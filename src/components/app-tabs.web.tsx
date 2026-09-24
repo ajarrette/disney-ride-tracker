@@ -73,7 +73,13 @@ export function TabButton({
           },
         ]}
       >
-        <Image source={icon} style={styles.icon} />
+        <Image
+          source={icon}
+          style={[
+            styles.icon,
+            { tintColor: isFocused ? colors.accent : colors.textSecondary },
+          ]}
+        />
       </View>
     </Pressable>
   );
