@@ -6,11 +6,29 @@ export enum Park {
 }
 
 export enum Land {
+  MainStreetUSA = 'main_street_usa',
   Tomorrowland = 'tomorrowland',
   Fantasyland = 'fantasyland',
   LibertySquare = 'liberty_square',
   Adventureland = 'adventureland',
   Frontierland = 'frontierland',
+  WorldCelebration = 'world_celebration',
+  WorldDiscovery = 'world_discovery',
+  WorldNature = 'world_nature',
+  WorldShowcase = 'world_showcase',
+  HollywoodBoulevard = 'hollywood_boulevard',
+  EchoLake = 'echo_lake',
+  GrandAvenue = 'grand_avenue',
+  StarWarsGalaxysEdge = 'star_wars_galaxys_edge',
+  ToyStoryLand = 'toy_story_land',
+  WaltDisneyStudiosLot = 'walt_disney_studios_lot',
+  SunsetBoulevard = 'sunset_boulevard',
+  Oasis = 'oasis',
+  DiscoveryIsland = 'discovery_island',
+  Africa = 'africa',
+  ConservationStation = 'conservation_station',
+  Asia = 'asia',
+  PandoraWorldOfAvatar = 'pandora_world_of_avatar',
 }
 
 export enum AgeGroup {
