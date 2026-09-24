@@ -1,0 +1,1 @@
+"When answering questions, prioritize logic and core algorithms. Keep code modifications highly concise. Never output boilerplate styles, massive mock datasets, or unrelated imports unless explicitly asked."
