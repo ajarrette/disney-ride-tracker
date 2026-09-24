@@ -1,5 +1,5 @@
-import { View } from 'react-native';
+import { ParkScreen } from '@/components/park-screen';
 
 export default function HollywoodStudiosScreen() {
-  return <View />;
+  return <ParkScreen name='Hollywood Studios' />;
 }

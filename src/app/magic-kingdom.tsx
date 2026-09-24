@@ -1,5 +1,5 @@
-import { View } from 'react-native';
+import { ParkScreen } from '@/components/park-screen';
 
 export default function MagicKingdomScreen() {
-  return <View />;
+  return <ParkScreen name='Magic Kingdom' />;
 }

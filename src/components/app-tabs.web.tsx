@@ -21,13 +21,13 @@ export default function AppTabs() {
 
           <TabTrigger name='magic-kingdom' href='/magic-kingdom' asChild>
             <TabButton
-              icon={require('@/assets/images/tabIcons/magic-kingdom.svg')}
+              icon={require('@/assets/images/tabIcons/magic-kingdom.png')}
               accessibilityLabel='Magic Kingdom'
             />
           </TabTrigger>
           <TabTrigger name='epcot' href='/epcot' asChild>
             <TabButton
-              icon={require('@/assets/images/tabIcons/epcot.svg')}
+              icon={require('@/assets/images/tabIcons/epcot.png')}
               accessibilityLabel='EPCOT'
             />
           </TabTrigger>
@@ -37,13 +37,13 @@ export default function AppTabs() {
             asChild
           >
             <TabButton
-              icon={require('@/assets/images/tabIcons/hollywood-studios.svg')}
+              icon={require('@/assets/images/tabIcons/hollywood-studios.png')}
               accessibilityLabel='Hollywood Studios'
             />
           </TabTrigger>
           <TabTrigger name='animal-kingdom' href='/animal-kingdom' asChild>
             <TabButton
-              icon={require('@/assets/images/tabIcons/animal-kingdom.svg')}
+              icon={require('@/assets/images/tabIcons/animal-kingdom.png')}
               accessibilityLabel='Animal Kingdom'
             />
           </TabTrigger>
@@ -57,7 +57,7 @@ export function TabButton({
   icon,
   isFocused,
   ...props
-}: TabTriggerSlotProps & { icon: string }) {
+}: TabTriggerSlotProps & { icon: number }) {
   const scheme = useColorScheme();
   const colors = Colors[scheme === 'unspecified' ? 'light' : scheme];
 
@@ -73,13 +73,7 @@ export function TabButton({
           },
         ]}
       >
-        <Image
-          source={icon}
-          style={[
-            styles.icon,
-            { tintColor: isFocused ? colors.accent : colors.textSecondary },
-          ]}
-        />
+        <Image source={icon} style={styles.icon} />
       </View>
     </Pressable>
   );
