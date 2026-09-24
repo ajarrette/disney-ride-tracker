@@ -11,20 +11,40 @@ export default function AppTabs() {
     <NativeTabs
       backgroundColor={colors.background}
       indicatorColor={colors.backgroundElement}
-      labelStyle={{ selected: { color: colors.text } }}>
-      <NativeTabs.Trigger name="index">
-        <NativeTabs.Trigger.Label>Home</NativeTabs.Trigger.Label>
+      iconColor={{ default: colors.textSecondary, selected: colors.accent }}
+      labelVisibilityMode='unlabeled'
+    >
+      <NativeTabs.Trigger name='index' hidden />
+
+      <NativeTabs.Trigger name='magic-kingdom'>
+        <NativeTabs.Trigger.Label hidden />
         <NativeTabs.Trigger.Icon
-          src={require('@/assets/images/tabIcons/home.png')}
-          renderingMode="template"
+          src={require('@/assets/images/tabIcons/magic-kingdom.png')}
+          renderingMode='template'
         />
       </NativeTabs.Trigger>
 
-      <NativeTabs.Trigger name="explore">
-        <NativeTabs.Trigger.Label>Explore</NativeTabs.Trigger.Label>
+      <NativeTabs.Trigger name='epcot'>
+        <NativeTabs.Trigger.Label hidden />
         <NativeTabs.Trigger.Icon
-          src={require('@/assets/images/tabIcons/explore.png')}
-          renderingMode="template"
+          src={require('@/assets/images/tabIcons/epcot.png')}
+          renderingMode='template'
+        />
+      </NativeTabs.Trigger>
+
+      <NativeTabs.Trigger name='hollywood-studios'>
+        <NativeTabs.Trigger.Label hidden />
+        <NativeTabs.Trigger.Icon
+          src={require('@/assets/images/tabIcons/hollywood-studios.png')}
+          renderingMode='template'
+        />
+      </NativeTabs.Trigger>
+
+      <NativeTabs.Trigger name='animal-kingdom'>
+        <NativeTabs.Trigger.Label hidden />
+        <NativeTabs.Trigger.Icon
+          src={require('@/assets/images/tabIcons/animal-kingdom.png')}
+          renderingMode='template'
         />
       </NativeTabs.Trigger>
     </NativeTabs>
