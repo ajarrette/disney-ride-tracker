@@ -1,11 +1,32 @@
 import { Image } from 'expo-image';
 import { Animated, Pressable, StyleSheet, Text, View } from 'react-native';
+import { useState } from 'react';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-import { Colors } from '@/constants/theme';
-import { LandLabels } from '@/constants/ride-labels';
+import { Colors, Fonts } from '@/constants/theme';
+import { LandLabels, ParkLabels } from '@/constants/ride-labels';
 import { getRideBackground } from '@/data/ride-images';
 import { Ride } from '@/models/ride';
+
+const formatLabel = (value: string) =>
+  value
+    .split('_')
+    .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+    .join(' ');
+
+const formatHeightRequirement = (
+  minimum: number | null,
+  maximum: number | null,
+) => {
+  if (minimum === null && maximum === null) return 'Any Height';
+  if (minimum !== null && maximum !== null) {
+    return `${minimum}-${maximum}"`;
+  }
+  if (minimum !== null) return `${minimum}" and taller`;
+  return `Up to ${maximum}"`;
+};
+
+const rideTitleColor = '#263d5a';
 
 type RideDetailsPanelProps = {
   onBack: () => void;
@@ -21,6 +42,67 @@ export function RideDetailsPanel({
   const colors = Colors.light;
   const insets = useSafeAreaInsets();
   const background = getRideBackground(ride.park, ride.backgroundUrl);
+  const [scrollY] = useState(() => new Animated.Value(0));
+  const titleCollapseOffset = background ? 220 : 56;
+  const titleFadeStart = Math.max(0, titleCollapseOffset - 80);
+  const headerTitleOpacity = scrollY.interpolate({
+    inputRange: [titleFadeStart, titleCollapseOffset],
+    outputRange: [0, 1],
+    extrapolate: 'clamp',
+  });
+  const largeTitleOpacity = scrollY.interpolate({
+    inputRange: [titleFadeStart, titleCollapseOffset],
+    outputRange: [1, 0],
+    extrapolate: 'clamp',
+  });
+  const headerBackgroundOpacity = scrollY.interpolate({
+    inputRange: [100, 180],
+    outputRange: [0, 1],
+    extrapolate: 'clamp',
+  });
+  const whiteBackIconOpacity = scrollY.interpolate({
+    inputRange: [100, 180],
+    outputRange: [1, 0],
+    extrapolate: 'clamp',
+  });
+  const blueBackIconOpacity = scrollY.interpolate({
+    inputRange: [100, 180],
+    outputRange: [0, 1],
+    extrapolate: 'clamp',
+  });
+  const details = [
+    [
+      'HEIGHT REQUIREMENT',
+      formatHeightRequirement(
+        ride.minimumHeightInches,
+        ride.maximumHeightInches,
+      ),
+    ],
+    ['AGES', ride.ages.map(formatLabel).join(', ')],
+    [
+      'THRILL TYPE',
+      ride.thrillTypes.length > 0
+        ? ride.thrillTypes.map(formatLabel).join(', ')
+        : null,
+    ],
+    [
+      'DURATION',
+      ride.durationMinutes === null ? null : `${ride.durationMinutes} minutes`,
+    ],
+    ['ATTRACTION TYPE', formatLabel(ride.attractionType)],
+    [
+      'WARNINGS',
+      ride.warnings.length > 0
+        ? ride.warnings.map(formatLabel).join(', ')
+        : null,
+    ],
+    [
+      'ACCESSIBILITY',
+      ride.accessibility.length > 0
+        ? ride.accessibility.map(formatLabel).join(', ')
+        : null,
+    ],
+  ] as const;
 
   return (
     <Animated.View
@@ -32,51 +114,138 @@ export function RideDetailsPanel({
         },
       ]}
     >
-      {background && (
-        <View style={styles.detailHero}>
-          <Image
-            contentFit='cover'
-            source={background}
-            style={styles.detailHeroImage}
-          />
-          <View style={styles.detailHeroScrim} />
-        </View>
-      )}
-      <View
-        style={[
-          styles.detailHeader,
-          { paddingTop: insets.top },
-          background && styles.detailHeaderOverImage,
-        ]}
+      <Animated.View
+        style={[styles.detailHeader, { top: insets.top }]}
+        pointerEvents='box-none'
       >
+        <Animated.View
+          pointerEvents='none'
+          style={[
+            styles.headerBackground,
+            {
+              backgroundColor: colors.background,
+              opacity: background ? headerBackgroundOpacity : 1,
+            },
+          ]}
+        />
         <Pressable
           accessibilityLabel='Back to ride list'
           accessibilityRole='button'
           hitSlop={12}
           onPress={onBack}
-          style={[styles.backButton, background && styles.backButtonOverImage]}
+          style={styles.backButton}
         >
-          <Text
+          <Animated.Text
             style={[
               styles.backIcon,
-              { color: background ? '#ffffff' : colors.text },
+              { opacity: background ? whiteBackIconOpacity : 0 },
             ]}
           >
-            ←
-          </Text>
+            ‹
+          </Animated.Text>
+          <Animated.Text
+            style={[
+              styles.backIcon,
+              styles.backIconOverlay,
+              {
+                color: colors.accent,
+                opacity: background ? blueBackIconOpacity : 1,
+              },
+            ]}
+          >
+            ‹
+          </Animated.Text>
         </Pressable>
-      </View>
-      <View style={styles.detailContent}>
-        <Text style={[styles.detailName, { color: colors.text }]}>
+        <Animated.Text
+          numberOfLines={1}
+          pointerEvents='none'
+          style={[
+            styles.headerTitle,
+            { color: rideTitleColor, opacity: headerTitleOpacity },
+          ]}
+        >
           {ride.name}
-        </Text>
-        <Text style={[styles.detailLabel, { color: colors.textSecondary }]}>
-          LAND
-        </Text>
-        <Text style={[styles.detailLand, { color: colors.text }]}>
-          {LandLabels[ride.land]}
-        </Text>
-      </View>
+        </Animated.Text>
+      </Animated.View>
+      <Animated.ScrollView
+        contentContainerStyle={styles.detailContent}
+        style={styles.detailScroll}
+        onScroll={Animated.event(
+          [{ nativeEvent: { contentOffset: { y: scrollY } } }],
+          { useNativeDriver: true },
+        )}
+        scrollEventThrottle={16}
+        showsVerticalScrollIndicator={false}
+      >
+        <View style={{ height: insets.top }} />
+        {background && (
+          <Image
+            contentFit='cover'
+            source={background}
+            style={styles.detailHeroImage}
+          />
+        )}
+        {!background && <View style={styles.heroPlaceholder} />}
+        <Animated.View
+          style={[styles.rideSummary, { opacity: largeTitleOpacity }]}
+        >
+          <Text style={[styles.rideName, { color: rideTitleColor }]}>
+            {ride.name}
+          </Text>
+          <Text style={[styles.ridePark, { color: colors.textSecondary }]}>
+            {ParkLabels[ride.park]}
+          </Text>
+          <Text style={[styles.rideLand, { color: colors.textSecondary }]}>
+            {LandLabels[ride.land]}
+          </Text>
+        </Animated.View>
+        <View style={styles.featureSection}>
+          <Text style={styles.featureIcon}>ϟ</Text>
+          <Text style={[styles.featureTitle, { color: colors.text }]}>
+            Lightning Lane
+          </Text>
+          <Text style={[styles.featureValue, { color: colors.textSecondary }]}>
+            {ride.lightningLane ? 'Available' : 'Not offered'}
+          </Text>
+        </View>
+        {details.map(([label, value]) =>
+          value ? (
+            <View key={label} style={styles.detailSection}>
+              <Text
+                style={[styles.detailLabel, { color: colors.textSecondary }]}
+              >
+                {label}
+              </Text>
+              <Text style={[styles.detailValue, { color: colors.text }]}>
+                {value}
+              </Text>
+            </View>
+          ) : null,
+        )}
+        <View style={styles.detailSection}>
+          <Text style={[styles.detailLabel, { color: colors.textSecondary }]}>
+            ABOUT THIS ATTRACTION
+          </Text>
+          <Text style={[styles.description, { color: colors.text }]}>
+            {ride.description}
+          </Text>
+        </View>
+        {(ride.photoPass || ride.seasonal) && (
+          <View style={styles.detailSection}>
+            <Text style={[styles.detailLabel, { color: colors.textSecondary }]}>
+              FEATURES
+            </Text>
+            <Text style={[styles.detailValue, { color: colors.text }]}>
+              {[
+                ride.photoPass ? 'PhotoPass' : null,
+                ride.seasonal ? 'Seasonal' : null,
+              ]
+                .filter(Boolean)
+                .join(', ')}
+            </Text>
+          </View>
+        )}
+      </Animated.ScrollView>
     </Animated.View>
   );
 }
@@ -85,67 +254,131 @@ const styles = StyleSheet.create({
   detailPanel: {
     ...StyleSheet.absoluteFill,
   },
-  detailHero: {
-    height: 280,
+  detailHeader: {
+    alignItems: 'center',
+    height: 56,
+    justifyContent: 'center',
     left: 0,
     position: 'absolute',
     right: 0,
-    top: 0,
+    zIndex: 1,
   },
-  detailHeroImage: {
-    height: '100%',
-    width: '100%',
-  },
-  detailHeroScrim: {
+  headerBackground: {
     ...StyleSheet.absoluteFill,
-    backgroundColor: 'rgba(0, 0, 0, 0.18)',
-  },
-  detailHeader: {
-    alignItems: 'center',
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    minHeight: 48,
-    paddingHorizontal: 24,
-  },
-  detailHeaderOverImage: {
-    alignItems: 'flex-start',
-    height: 280,
-    justifyContent: 'flex-start',
   },
   backButton: {
     alignItems: 'center',
-    backgroundColor: 'transparent',
-    height: 40,
+    height: 48,
     justifyContent: 'center',
-    width: 40,
-  },
-  backButtonOverImage: {
-    backgroundColor: 'rgba(0, 0, 0, 0.58)',
-    borderRadius: 20,
-    transform: [{ translateY: -8 }],
+    left: 12,
+    position: 'absolute',
+    top: 4,
+    width: 48,
   },
   backIcon: {
-    fontSize: 30,
-    lineHeight: 34,
+    color: '#ffffff',
+    fontSize: 42,
+    lineHeight: 46,
+    position: 'absolute',
+  },
+  backIconOverlay: {
+    color: Colors.light.accent,
+  },
+  headerTitle: {
+    fontSize: 20,
+    fontFamily: Fonts.rounded,
+    fontWeight: '800',
+    left: 60,
+    position: 'absolute',
+    right: 60,
+    textAlign: 'center',
   },
   detailContent: {
-    paddingHorizontal: 24,
-    paddingTop: 48,
+    paddingBottom: 32,
   },
-  detailName: {
-    fontSize: 36,
+  detailScroll: {
+    flex: 1,
+  },
+  detailHeroImage: {
+    height: 220,
+    width: '100%',
+  },
+  heroPlaceholder: {
+    height: 56,
+  },
+  rideSummary: {
+    borderBottomColor: '#dce7f2',
+    borderBottomWidth: StyleSheet.hairlineWidth,
+    paddingHorizontal: 20,
+    paddingBottom: 24,
+    paddingTop: 20,
+  },
+  rideName: {
+    fontFamily: Fonts.rounded,
+    fontSize: 28,
     fontWeight: '800',
-    lineHeight: 42,
+    lineHeight: 34,
+  },
+  ridePark: {
+    fontSize: 18,
+    fontWeight: '600',
+    lineHeight: 22,
+    marginTop: 6,
+  },
+  rideLand: {
+    fontSize: 16,
+    lineHeight: 22,
+  },
+  featureSection: {
+    alignItems: 'center',
+    borderBottomColor: '#dce7f2',
+    borderBottomWidth: StyleSheet.hairlineWidth,
+    justifyContent: 'center',
+    minHeight: 156,
+    paddingHorizontal: 24,
+    paddingVertical: 18,
+  },
+  featureIcon: {
+    color: Colors.light.accent,
+    fontSize: 56,
+    fontWeight: '800',
+    lineHeight: 60,
+  },
+  featureTitle: {
+    fontSize: 20,
+    fontWeight: '700',
+    marginTop: 8,
+    textAlign: 'center',
+  },
+  featureValue: {
+    fontSize: 14,
+    marginTop: 6,
+  },
+  detailSection: {
+    alignItems: 'center',
+    borderBottomColor: '#dce7f2',
+    borderBottomWidth: StyleSheet.hairlineWidth,
+    justifyContent: 'center',
+    minHeight: 108,
+    paddingHorizontal: 24,
+    paddingVertical: 16,
   },
   detailLabel: {
-    fontSize: 12,
-    fontWeight: '800',
-    letterSpacing: 1.4,
-    marginTop: 40,
-  },
-  detailLand: {
-    fontSize: 20,
+    fontSize: 15,
     fontWeight: '600',
+    textAlign: 'center',
+  },
+  detailValue: {
+    fontSize: 22,
+    fontWeight: '700',
+    lineHeight: 28,
+    marginTop: 6,
+    textAlign: 'center',
+  },
+  description: {
+    fontSize: 16,
+    lineHeight: 23,
     marginTop: 8,
+    textAlign: 'center',
   },
 });
