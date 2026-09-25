@@ -22,6 +22,7 @@ const rideLogosByBackground: Partial<
 > = {
   [Park.MagicKingdom]: {
     'astro-orbiter-background.jpg': require('../../assets/images/magic-kingdom/rides/astro-orbiter-logo.jpg'),
+    'the-barnstormer-background.jpg': require('../../assets/images/magic-kingdom/rides/the-barnstormer-logo.jpg'),
     'buzz-lightyears-space-ranger-spin-background.jpg': require('../../assets/images/magic-kingdom/rides/buzz-lightyears-space-ranger-spin-logo.jpg'),
     'dumbo-the-flying-elephant-background.jpg': require('../../assets/images/magic-kingdom/rides/dumbo-the-flying-elephant-logo.jpg'),
     'its-a-small-world-background.jpg': require('../../assets/images/magic-kingdom/rides/its-a-small-world-logo.jpg'),
@@ -61,6 +62,8 @@ const rideLogosByBackground: Partial<
     'toy-story-mania-background.jpg': require('../../assets/images/hollywood-studios/rides/toy-story-mania-logo.jpg'),
   },
   [Park.Epcot]: {
+    'the-seas-with-nemo-&-friends.avif': require('../../assets/images/epcot/rides/the-seas-with-nemo-&-friends-logo.jpg'),
+    'gran-fiesta-tour-starring-the-three-caballeros-background.jpg': require('../../assets/images/epcot/rides/gran-fiesta-tour-starring-the-three-caballeros-logo.jpg'),
     'frozen-ever-after-background.jpg': require('../../assets/images/epcot/rides/frozen-ever-after-logo.jpg'),
     'journey-into-imagination-with-figment-background.jpg': require('../../assets/images/epcot/rides/journey-into-imagination-with-figment-logo.jpg'),
     'living-with-the-land-background.jpg': require('../../assets/images/epcot/rides/living-with-the-land-logo.jpg'),
@@ -78,6 +81,7 @@ const rideBackgrounds: Partial<Record<Park, Record<string, ImageSource>>> = {
     'big-thunder-mountain-railroad-background.avif': require('../../assets/images/magic-kingdom/rides/big-thunder-mountain-railroad-background.avif'),
     'tron-lightcycle-background.webp': require('../../assets/images/magic-kingdom/rides/tron-lightcycle-background.webp'),
     'space-mountain-background.jpg': require('../../assets/images/magic-kingdom/rides/space-mountain-background.jpg'),
+    'the-barnstormer-background.jpg': require('../../assets/images/magic-kingdom/rides/the-barnstormer-background.jpg'),
     'pirates-of-the-caribbean-background.jpg': require('../../assets/images/magic-kingdom/rides/pirates-of-the-caribbean-background.jpg'),
     'seven-dwarfs-mine-train-background.jpg': require('../../assets/images/magic-kingdom/rides/seven-dwarfs-mine-train-background.jpg'),
     'tianas-bayou-adventure-background.jpg': require('../../assets/images/magic-kingdom/rides/tianas-bayou-adventure-background.jpg'),
@@ -119,6 +123,8 @@ const rideBackgrounds: Partial<Record<Park, Record<string, ImageSource>>> = {
   },
   [Park.Epcot]: {
     'guardians-of-the-galaxy-cosmic-rewind-background.webp': require('../../assets/images/epcot/rides/guardians-of-the-galaxy-cosmic-rewind-background.webp'),
+    'the-seas-with-nemo-&-friends.avif': require('../../assets/images/epcot/rides/the-seas-with-nemo-&-friends.avif'),
+    'gran-fiesta-tour-starring-the-three-caballeros-background.jpg': require('../../assets/images/epcot/rides/gran-fiesta-tour-starring-the-three-caballeros-background.jpg'),
     'test-track-background.jpg': require('../../assets/images/epcot/rides/test-track-background.jpg'),
     'soarin-around-the-world-background.jpg': require('../../assets/images/epcot/rides/soarin-around-the-world-background.jpg'),
     'remys-ratatouille-adventure-background.jpg': require('../../assets/images/epcot/rides/remys-ratatouille-adventure-background.jpg'),
