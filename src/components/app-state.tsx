@@ -12,6 +12,8 @@ import { RideLog } from '@/models/ride-log';
 type AppState = {
   tabBarHidden: boolean;
   setTabBarHidden: Dispatch<SetStateAction<boolean>>;
+  rideDetailsOpen: boolean;
+  setRideDetailsOpen: Dispatch<SetStateAction<boolean>>;
   previousTabPath: string;
   setPreviousTabPath: Dispatch<SetStateAction<string>>;
   rideLogs: RideLog[];
@@ -22,12 +24,15 @@ const AppStateContext = createContext<AppState | null>(null);
 
 export function AppStateProvider({ children }: { children: ReactNode }) {
   const [tabBarHidden, setTabBarHidden] = useState(false);
+  const [rideDetailsOpen, setRideDetailsOpen] = useState(false);
   const [previousTabPath, setPreviousTabPath] = useState('/');
   const [rideLogs, setRideLogs] = useState<RideLog[]>([]);
 
   const value: AppState = {
     tabBarHidden,
     setTabBarHidden,
+    rideDetailsOpen,
+    setRideDetailsOpen,
     previousTabPath,
     setPreviousTabPath,
     rideLogs,

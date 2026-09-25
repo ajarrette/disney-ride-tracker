@@ -8,9 +8,11 @@ import {
   Text,
   View,
 } from 'react-native';
+import { router } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { RideDetailsPanel } from '@/components/ride-details-panel';
+import { useAppState } from '@/components/app-state';
 import { RideListItem } from './ride-list-item';
 import { BottomTabInset, Colors } from '@/constants/theme';
 import { ParkLabels } from '@/constants/ride-labels';
@@ -41,6 +43,7 @@ const parkTabs = [
 export function ParkScreen({ park }: ParkScreenProps) {
   const colors = Colors.light;
   const insets = useSafeAreaInsets();
+  const { setRideDetailsOpen } = useAppState();
   const [selectedPark, setSelectedPark] = useState(park);
   const [selectedRide, setSelectedRide] = useState<Ride | null>(null);
   const [panelPosition] = useState(() => new Animated.Value(panelWidth));
@@ -68,13 +71,19 @@ export function ParkScreen({ park }: ParkScreenProps) {
       useNativeDriver: true,
     }).start(({ finished }) => {
       if (finished) {
+        setRideDetailsOpen(false);
         setSelectedRide(null);
       }
     });
   };
 
+  const openRide = (ride: Ride) => {
+    setRideDetailsOpen(true);
+    setSelectedRide(ride);
+  };
+
   const renderRide = ({ item }: { item: Ride }) => {
-    return <RideListItem ride={item} onPress={setSelectedRide} />;
+    return <RideListItem ride={item} onPress={openRide} />;
   };
 
   return (
@@ -135,6 +144,12 @@ export function ParkScreen({ park }: ParkScreenProps) {
       {selectedRide && (
         <RideDetailsPanel
           onBack={closePanel}
+          onLogRide={() =>
+            router.push({
+              pathname: '/log',
+              params: { rideId: selectedRide.id },
+            })
+          }
           panelPosition={panelPosition}
           ride={selectedRide}
         />

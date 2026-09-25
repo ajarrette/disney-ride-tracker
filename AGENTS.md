@@ -47,3 +47,7 @@ Docs: https://docs.expo.dev/eas/index.md
 ## UI
 
 - This in an iOS only app, don't spend much effort supporting web
+
+## General
+
+- Ask clarifying questions rather than guessing

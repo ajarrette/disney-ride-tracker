@@ -12,7 +12,12 @@ import {
   TextInput,
   View,
 } from 'react-native';
-import { router, useFocusEffect, type Href } from 'expo-router';
+import {
+  router,
+  useFocusEffect,
+  useLocalSearchParams,
+  type Href,
+} from 'expo-router';
 import { SymbolView } from 'expo-symbols';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
@@ -47,10 +52,16 @@ const ridesWithSearchText = seedRides
 export default function LogScreen() {
   const colors = Colors.light;
   const insets = useSafeAreaInsets();
+  const { rideId: rideIdParam } = useLocalSearchParams<{
+    rideId?: string | string[];
+  }>();
+  const rideId = Array.isArray(rideIdParam) ? rideIdParam[0] : rideIdParam;
+  const slideFromRight = Boolean(rideId);
+  const panelOffset = slideFromRight
+    ? Dimensions.get('window').width
+    : Dimensions.get('window').height;
   const { addRideLog, previousTabPath, setTabBarHidden } = useAppState();
-  const [panelPosition] = useState(
-    () => new Animated.Value(Dimensions.get('window').height),
-  );
+  const [panelPosition] = useState(() => new Animated.Value(panelOffset));
   const [query, setQuery] = useState('');
   const [selectedRide, setSelectedRide] = useState<Ride | null>(null);
   const [waitTime, setWaitTime] = useState('');
@@ -61,11 +72,11 @@ export default function LogScreen() {
     useCallback(() => {
       setTabBarHidden(true);
       setQuery('');
-      setSelectedRide(null);
+      setSelectedRide(seedRides.find((ride) => ride.id === rideId) ?? null);
       setWaitTime('');
       setRating(null);
       setNotes('');
-      panelPosition.setValue(Dimensions.get('window').height);
+      panelPosition.setValue(panelOffset);
       Animated.spring(panelPosition, {
         toValue: 0,
         useNativeDriver: true,
@@ -76,12 +87,14 @@ export default function LogScreen() {
       return () => setTabBarHidden(false);
     }, [
       panelPosition,
+      panelOffset,
       setNotes,
       setQuery,
       setRating,
       setSelectedRide,
       setTabBarHidden,
       setWaitTime,
+      rideId,
     ]),
   );
 
@@ -94,7 +107,7 @@ export default function LogScreen() {
 
   const closePanel = (destination: string) => {
     Animated.timing(panelPosition, {
-      toValue: Dimensions.get('window').height,
+      toValue: panelOffset,
       duration: 240,
       useNativeDriver: true,
     }).start(({ finished }) => {
@@ -138,7 +151,9 @@ export default function LogScreen() {
         styles.panel,
         {
           backgroundColor: colors.background,
-          transform: [{ translateY: panelPosition }],
+          transform: slideFromRight
+            ? [{ translateX: panelPosition }]
+            : [{ translateY: panelPosition }],
         },
       ]}
     >
@@ -215,27 +230,65 @@ export default function LogScreen() {
             </Text>
             <View style={styles.ratingRow}>
               {[1, 2, 3, 4, 5].map((value) => (
-                <Pressable
-                  key={value}
-                  accessibilityLabel={`Rate ${value} out of 5`}
-                  accessibilityRole='button'
-                  onPress={() => setRating(value)}
-                  style={styles.ratingButton}
-                >
-                  <SymbolView
-                    name={{
-                      ios: value <= (rating ?? 0) ? 'star.fill' : 'star',
-                      android: value <= (rating ?? 0) ? 'star' : 'star_outline',
-                      web: value <= (rating ?? 0) ? 'star' : 'star_outline',
-                    }}
-                    size={28}
-                    tintColor={
-                      value <= (rating ?? 0)
-                        ? colors.accent
-                        : colors.textSecondary
-                    }
-                  />
-                </Pressable>
+                <View key={value} style={styles.ratingButton}>
+                  {(() => {
+                    const currentRating = rating ?? 0;
+                    const isFull = currentRating >= value;
+                    const isHalf = !isFull && currentRating >= value - 0.5;
+
+                    return (
+                      <>
+                        <SymbolView
+                          name={{
+                            ios: isFull
+                              ? 'star.fill'
+                              : isHalf
+                                ? 'star.leadinghalf.filled'
+                                : 'star',
+                            android: isFull
+                              ? 'star'
+                              : isHalf
+                                ? 'star_half'
+                                : 'star_outline',
+                            web: isFull
+                              ? 'star'
+                              : isHalf
+                                ? 'star_half'
+                                : 'star_outline',
+                          }}
+                          size={28}
+                          tintColor={
+                            isFull || isHalf
+                              ? colors.accent
+                              : colors.textSecondary
+                          }
+                        />
+                        <Pressable
+                          accessibilityLabel={`Rate ${value - 0.5} out of 5`}
+                          accessibilityRole='button'
+                          accessibilityState={{
+                            selected: rating === value - 0.5,
+                          }}
+                          onPress={() => setRating(value - 0.5)}
+                          style={[
+                            styles.ratingHalfButton,
+                            styles.ratingHalfLeft,
+                          ]}
+                        />
+                        <Pressable
+                          accessibilityLabel={`Rate ${value} out of 5`}
+                          accessibilityRole='button'
+                          accessibilityState={{ selected: rating === value }}
+                          onPress={() => setRating(value)}
+                          style={[
+                            styles.ratingHalfButton,
+                            styles.ratingHalfRight,
+                          ]}
+                        />
+                      </>
+                    );
+                  })()}
+                </View>
               ))}
             </View>
 
@@ -434,10 +487,26 @@ const styles = StyleSheet.create({
   },
   ratingRow: {
     flexDirection: 'row',
-    gap: 12,
+    gap: 0,
   },
   ratingButton: {
-    paddingVertical: 4,
+    alignItems: 'center',
+    height: 44,
+    justifyContent: 'center',
+    position: 'relative',
+    width: 44,
+  },
+  ratingHalfButton: {
+    height: 44,
+    position: 'absolute',
+    top: 0,
+    width: 22,
+  },
+  ratingHalfLeft: {
+    left: 0,
+  },
+  ratingHalfRight: {
+    right: 0,
   },
   saveButton: {
     alignItems: 'center',

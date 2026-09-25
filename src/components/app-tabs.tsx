@@ -16,7 +16,7 @@ export default function AppTabs() {
 function NativeTabNavigator() {
   const colors = Colors.light;
   const pathname = usePathname();
-  const { tabBarHidden, setPreviousTabPath } = useAppState();
+  const { tabBarHidden, rideDetailsOpen, setPreviousTabPath } = useAppState();
 
   useEffect(() => {
     if (pathname !== '/log') setPreviousTabPath(pathname);
@@ -27,7 +27,7 @@ function NativeTabNavigator() {
       backgroundColor={colors.background}
       indicatorColor={colors.backgroundElement}
       iconColor={{ default: colors.textSecondary, selected: colors.accent }}
-      hidden={tabBarHidden}
+      hidden={tabBarHidden || (rideDetailsOpen && pathname === '/')}
     >
       <NativeTabs.Trigger name='index' disableAutomaticContentInsets>
         <NativeTabs.Trigger.Label hidden>Rides</NativeTabs.Trigger.Label>

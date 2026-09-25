@@ -1,4 +1,5 @@
 import { Image } from 'expo-image';
+import { SymbolView } from 'expo-symbols';
 import { Animated, Pressable, StyleSheet, Text, View } from 'react-native';
 import { useState } from 'react';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -30,12 +31,14 @@ const rideTitleColor = '#263d5a';
 
 type RideDetailsPanelProps = {
   onBack: () => void;
+  onLogRide: () => void;
   panelPosition: Animated.Value;
   ride: Ride;
 };
 
 export function RideDetailsPanel({
   onBack,
+  onLogRide,
   panelPosition,
   ride,
 }: RideDetailsPanelProps) {
@@ -189,9 +192,28 @@ export function RideDetailsPanel({
         <Animated.View
           style={[styles.rideSummary, { opacity: largeTitleOpacity }]}
         >
-          <Text style={[styles.rideName, { color: rideTitleColor }]}>
-            {ride.name}
-          </Text>
+          <View style={styles.rideTitleRow}>
+            <Text style={[styles.rideName, { color: rideTitleColor }]}>
+              {ride.name}
+            </Text>
+            <Pressable
+              accessibilityLabel={`Log ${ride.name}`}
+              accessibilityRole='button'
+              hitSlop={8}
+              onPress={onLogRide}
+              style={styles.logRideButton}
+            >
+              <SymbolView
+                name={{
+                  ios: 'plus.circle.fill',
+                  android: 'add_circle',
+                  web: 'add_circle',
+                }}
+                size={30}
+                tintColor={colors.accent}
+              />
+            </Pressable>
+          </View>
           <Text style={[styles.ridePark, { color: colors.textSecondary }]}>
             {ParkLabels[ride.park]}
           </Text>
@@ -314,10 +336,22 @@ const styles = StyleSheet.create({
     paddingTop: 20,
   },
   rideName: {
+    flex: 1,
     fontFamily: Fonts.rounded,
     fontSize: 28,
     fontWeight: '800',
     lineHeight: 34,
+  },
+  rideTitleRow: {
+    alignItems: 'center',
+    flexDirection: 'row',
+    gap: 12,
+  },
+  logRideButton: {
+    alignItems: 'center',
+    height: 40,
+    justifyContent: 'center',
+    width: 40,
   },
   ridePark: {
     fontSize: 18,
