@@ -1,6 +1,7 @@
 import { Image } from 'expo-image';
 import { useState } from 'react';
-import { Animated, StyleSheet, Text, View } from 'react-native';
+import { Animated, Pressable, StyleSheet, Text, View } from 'react-native';
+import { router } from 'expo-router';
 import { SymbolView } from 'expo-symbols';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
@@ -110,8 +111,16 @@ export default function DiaryScreen() {
                   );
 
                   return (
-                    <View
+                    <Pressable
+                      accessibilityLabel={`Edit ${ride.name} ride log`}
+                      accessibilityRole='button'
                       key={log.id}
+                      onPress={() =>
+                        router.push({
+                          pathname: '/log',
+                          params: { rideId: log.rideId, logId: log.id },
+                        })
+                      }
                       style={[
                         styles.entry,
                         index < logs.length - 1 && styles.entryDivider,
@@ -215,7 +224,7 @@ export default function DiaryScreen() {
                           </Text>
                         )}
                       </View>
-                    </View>
+                    </Pressable>
                   );
                 })}
               </View>

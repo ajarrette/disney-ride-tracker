@@ -1,9 +1,11 @@
-import { useCallback, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import {
+  Alert,
   Animated,
   Dimensions,
   FlatList,
   KeyboardAvoidingView,
+  Keyboard,
   Modal,
   Platform,
   Pressable,
@@ -64,15 +66,28 @@ const ridesWithSearchText = seedRides
 export default function LogScreen() {
   const colors = Colors.light;
   const insets = useSafeAreaInsets();
-  const { rideId: rideIdParam } = useLocalSearchParams<{
+  const { rideId: rideIdParam, logId: logIdParam } = useLocalSearchParams<{
     rideId?: string | string[];
+    logId?: string | string[];
   }>();
   const rideId = Array.isArray(rideIdParam) ? rideIdParam[0] : rideIdParam;
+  const logId = Array.isArray(logIdParam) ? logIdParam[0] : logIdParam;
   const slideFromRight = Boolean(rideId);
   const panelOffset = slideFromRight
     ? Dimensions.get('window').width
     : Dimensions.get('window').height;
-  const { addRideLog, previousTabPath, setTabBarHidden } = useAppState();
+  const {
+    addRideLog,
+    addRecentRideSearch,
+    updateRideLog,
+    removeRideLog,
+    previousTabPath,
+    rideLogs,
+    recentRideSearches,
+    setTabBarHidden,
+  } = useAppState();
+  const rideLogsRef = useRef(rideLogs);
+  const existingLog = rideLogs.find((log) => log.id === logId);
   const [panelPosition] = useState(() => new Animated.Value(panelOffset));
   const [query, setQuery] = useState('');
   const [selectedRide, setSelectedRide] = useState<Ride | null>(null);
@@ -83,15 +98,27 @@ export default function LogScreen() {
   const [draftVisitedAt, setDraftVisitedAt] = useState(() => new Date());
   const [dateTimePickerVisible, setDateTimePickerVisible] = useState(false);
 
+  useEffect(() => {
+    rideLogsRef.current = rideLogs;
+  }, [rideLogs]);
+
   useFocusEffect(
     useCallback(() => {
+      if (logId) Keyboard.dismiss();
       setTabBarHidden(true);
       setQuery('');
-      setSelectedRide(seedRides.find((ride) => ride.id === rideId) ?? null);
-      setWaitTime('');
-      setRating(null);
-      setNotes('');
-      setVisitedAt(new Date());
+      const log = rideLogsRef.current.find((entry) => entry.id === logId);
+      setSelectedRide(
+        seedRides.find((ride) => ride.id === (log?.rideId ?? rideId)) ?? null,
+      );
+      setWaitTime(
+        log?.waitTimeMinutes === null || log?.waitTimeMinutes === undefined
+          ? ''
+          : String(log.waitTimeMinutes),
+      );
+      setRating(log?.rating ?? null);
+      setNotes(log?.notes ?? '');
+      setVisitedAt(log ? new Date(log.visitedAt) : new Date());
       setDateTimePickerVisible(false);
       panelPosition.setValue(panelOffset);
       Animated.spring(panelPosition, {
@@ -114,6 +141,7 @@ export default function LogScreen() {
       setVisitedAt,
       setDateTimePickerVisible,
       rideId,
+      logId,
     ]),
   );
 
@@ -134,6 +162,22 @@ export default function LogScreen() {
     });
   };
 
+  const confirmDeleteRideLog = () => {
+    if (!existingLog) return;
+
+    Alert.alert('Delete ride log?', 'This entry will be permanently removed.', [
+      { text: 'Cancel', style: 'cancel' },
+      {
+        text: 'Delete',
+        style: 'destructive',
+        onPress: () => {
+          removeRideLog(existingLog.id);
+          closePanel('/diary');
+        },
+      },
+    ]);
+  };
+
   const openDateTimePicker = () => {
     setDraftVisitedAt(visitedAt);
     setDateTimePickerVisible(true);
@@ -146,7 +190,10 @@ export default function LogScreen() {
     setDateTimePickerVisible(false);
   };
 
+  const recordRecentSearch = () => addRecentRideSearch(query);
+
   const chooseRide = (ride: Ride) => {
+    recordRecentSearch();
     setSelectedRide(ride);
     setWaitTime('');
     setRating(null);
@@ -158,21 +205,26 @@ export default function LogScreen() {
     const now = new Date().toISOString();
     const parsedWaitTime = Number.parseInt(waitTime, 10);
 
-    addRideLog({
-      id: `${selectedRide.id}-${Date.now()}`,
+    const rideLog = {
+      id: existingLog?.id ?? `${selectedRide.id}-${Date.now()}`,
       rideId: selectedRide.id,
-      tripId: null,
+      tripId: existingLog?.tripId ?? null,
       visitedAt: visitedAt.toISOString(),
       waitTimeMinutes:
         Number.isFinite(parsedWaitTime) && parsedWaitTime >= 0
           ? parsedWaitTime
           : null,
       notes: notes.trim(),
-      photoUrl: null,
+      photoUrl: existingLog?.photoUrl ?? null,
       rating,
-      createdAt: now,
+      createdAt: existingLog?.createdAt ?? now,
       updatedAt: now,
-    });
+    };
+    if (logId) {
+      if (existingLog) updateRideLog(rideLog);
+    } else {
+      addRideLog(rideLog);
+    }
     closePanel('/diary');
   };
 
@@ -208,9 +260,25 @@ export default function LogScreen() {
             </Text>
           </Pressable>
           <Text style={[styles.headerTitle, { color: colors.text }]}>
-            Log a Ride
+            {logId ? 'Edit Ride' : 'Log a Ride'}
           </Text>
-          <View style={styles.headerAction} />
+          {logId ? (
+            <Pressable
+              accessibilityLabel='Delete ride log'
+              accessibilityRole='button'
+              hitSlop={8}
+              onPress={confirmDeleteRideLog}
+              style={[styles.headerAction, styles.headerActionRight]}
+            >
+              <SymbolView
+                name={{ ios: 'trash', android: 'delete', web: 'delete' }}
+                size={20}
+                tintColor='#d92d20'
+              />
+            </Pressable>
+          ) : (
+            <View style={styles.headerAction} />
+          )}
         </View>
 
         {selectedRide ? (
@@ -222,15 +290,17 @@ export default function LogScreen() {
             keyboardShouldPersistTaps='handled'
             showsVerticalScrollIndicator={false}
           >
-            <Pressable
-              accessibilityRole='button'
-              onPress={() => setSelectedRide(null)}
-              style={styles.changeRideButton}
-            >
-              <Text style={[styles.changeRideText, { color: colors.accent }]}>
-                Choose a different ride
-              </Text>
-            </Pressable>
+            {!logId && (
+              <Pressable
+                accessibilityRole='button'
+                onPress={() => setSelectedRide(null)}
+                style={styles.changeRideButton}
+              >
+                <Text style={[styles.changeRideText, { color: colors.accent }]}>
+                  Choose a different ride
+                </Text>
+              </Pressable>
+            )}
             <Text style={[styles.rideTitle, { color: colors.text }]}>
               {selectedRide.name}
             </Text>
@@ -388,7 +458,8 @@ export default function LogScreen() {
                 accessibilityLabel='Name of ride'
                 autoCapitalize='none'
                 onChangeText={setQuery}
-                placeholder='Name of ride'
+                onSubmitEditing={recordRecentSearch}
+                placeholder='Search by ride name, park or land.'
                 placeholderTextColor={colors.textSecondary}
                 returnKeyType='search'
                 style={[styles.searchInput, { color: colors.text }]}
@@ -421,14 +492,57 @@ export default function LogScreen() {
               data={filteredRides}
               keyboardShouldPersistTaps='handled'
               keyExtractor={(ride) => ride.id}
+              ListHeaderComponent={
+                !normalizedQuery && recentRideSearches.length > 0 ? (
+                  <View style={styles.recentSearches}>
+                    <Text
+                      style={[
+                        styles.recentSearchesLabel,
+                        { color: colors.textSecondary },
+                      ]}
+                    >
+                      Recent searches
+                    </Text>
+                    {recentRideSearches.map((search) => (
+                      <Pressable
+                        accessibilityRole='button'
+                        key={search}
+                        onPress={() => setQuery(search)}
+                        style={styles.recentSearchItem}
+                      >
+                        <SymbolView
+                          name={{
+                            ios: 'clock.arrow.circlepath',
+                            android: 'history',
+                            web: 'history',
+                          }}
+                          size={16}
+                          tintColor={colors.textSecondary}
+                        />
+                        <Text
+                          numberOfLines={1}
+                          style={[
+                            styles.recentSearchText,
+                            { color: colors.text },
+                          ]}
+                        >
+                          {search}
+                        </Text>
+                      </Pressable>
+                    ))}
+                  </View>
+                ) : null
+              }
               ListEmptyComponent={
-                <Text
-                  style={[styles.emptyText, { color: colors.textSecondary }]}
-                >
-                  {normalizedQuery
-                    ? 'No rides match your search.'
-                    : 'Search by ride name, park, type, warning, or land.'}
-                </Text>
+                normalizedQuery || recentRideSearches.length === 0 ? (
+                  <Text
+                    style={[styles.emptyText, { color: colors.textSecondary }]}
+                  >
+                    {normalizedQuery
+                      ? 'No rides match your search.'
+                      : 'Search by ride name, park, type, warning, or land.'}
+                  </Text>
+                ) : null
               }
               renderItem={({ item }) => (
                 <RideListItem ride={item} onPress={chooseRide} />
@@ -518,6 +632,9 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     minWidth: 72,
   },
+  headerActionRight: {
+    alignItems: 'flex-end',
+  },
   cancelText: {
     fontSize: 16,
   },
@@ -546,6 +663,24 @@ const styles = StyleSheet.create({
   listContent: {
     paddingBottom: 24,
     paddingHorizontal: 24,
+  },
+  recentSearches: {
+    paddingTop: 20,
+  },
+  recentSearchesLabel: {
+    fontSize: 13,
+    fontWeight: '600',
+    marginBottom: 6,
+  },
+  recentSearchItem: {
+    alignItems: 'center',
+    flexDirection: 'row',
+    gap: 12,
+    minHeight: 44,
+  },
+  recentSearchText: {
+    flex: 1,
+    fontSize: 15,
   },
   emptyText: {
     fontSize: 15,
