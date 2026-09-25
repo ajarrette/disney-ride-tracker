@@ -1,11 +1,9 @@
 import { NativeTabs } from 'expo-router/unstable-native-tabs';
-import { useColorScheme } from 'react-native';
 
 import { Colors } from '@/constants/theme';
 
 export default function AppTabs() {
-  const scheme = useColorScheme();
-  const colors = Colors[scheme === 'unspecified' ? 'light' : scheme];
+  const colors = Colors.light;
 
   return (
     <NativeTabs
@@ -16,7 +14,7 @@ export default function AppTabs() {
     >
       <NativeTabs.Trigger name='index' hidden />
 
-      <NativeTabs.Trigger name='magic-kingdom'>
+      <NativeTabs.Trigger name='magic-kingdom' disableAutomaticContentInsets>
         <NativeTabs.Trigger.Label hidden />
         <NativeTabs.Trigger.Icon
           src={require('@/assets/images/tabIcons/magic-kingdom.png')}
@@ -24,7 +22,7 @@ export default function AppTabs() {
         />
       </NativeTabs.Trigger>
 
-      <NativeTabs.Trigger name='epcot'>
+      <NativeTabs.Trigger name='epcot' disableAutomaticContentInsets>
         <NativeTabs.Trigger.Label hidden />
         <NativeTabs.Trigger.Icon
           src={require('@/assets/images/tabIcons/epcot.png')}
@@ -32,7 +30,10 @@ export default function AppTabs() {
         />
       </NativeTabs.Trigger>
 
-      <NativeTabs.Trigger name='hollywood-studios'>
+      <NativeTabs.Trigger
+        name='hollywood-studios'
+        disableAutomaticContentInsets
+      >
         <NativeTabs.Trigger.Label hidden />
         <NativeTabs.Trigger.Icon
           src={require('@/assets/images/tabIcons/hollywood-studios.png')}
@@ -40,7 +41,7 @@ export default function AppTabs() {
         />
       </NativeTabs.Trigger>
 
-      <NativeTabs.Trigger name='animal-kingdom'>
+      <NativeTabs.Trigger name='animal-kingdom' disableAutomaticContentInsets>
         <NativeTabs.Trigger.Label hidden />
         <NativeTabs.Trigger.Icon
           src={require('@/assets/images/tabIcons/animal-kingdom.png')}

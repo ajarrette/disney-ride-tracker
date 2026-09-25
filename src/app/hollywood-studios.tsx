@@ -1,5 +1,6 @@
 import { ParkScreen } from '@/components/park-screen';
+import { Park } from '@/models/ride';
 
 export default function HollywoodStudiosScreen() {
-  return <ParkScreen name='Hollywood Studios' />;
+  return <ParkScreen park={Park.HollywoodStudios} />;
 }
