@@ -17,6 +17,61 @@ const rideLogos: Partial<Record<Park, Record<string, ImageSource>>> = {
   },
 };
 
+const rideLogosByBackground: Partial<
+  Record<Park, Record<string, ImageSource>>
+> = {
+  [Park.MagicKingdom]: {
+    'astro-orbiter-background.jpg': require('../../assets/images/magic-kingdom/rides/astro-orbiter-logo.jpg'),
+    'buzz-lightyears-space-ranger-spin-background.jpg': require('../../assets/images/magic-kingdom/rides/buzz-lightyears-space-ranger-spin-logo.jpg'),
+    'dumbo-the-flying-elephant-background.jpg': require('../../assets/images/magic-kingdom/rides/dumbo-the-flying-elephant-logo.jpg'),
+    'its-a-small-world-background.jpg': require('../../assets/images/magic-kingdom/rides/its-a-small-world-logo.jpg'),
+    'jungle-cruise-background.jpg': require('../../assets/images/magic-kingdom/rides/jungle-cruise-logo.jpg'),
+    'mad-tea-party-background.jpg': require('../../assets/images/magic-kingdom/rides/mad-tea-party-logo.jpg'),
+    'magic-carpets-of-aladdin-background.jpg': require('../../assets/images/magic-kingdom/rides/magic-carpets-of-aladdin-logo.jpg'),
+    'many-adventures-of-winnie-the-pooh-background.jpg': require('../../assets/images/magic-kingdom/rides/many-adventures-of-winnie-the-pooh-logo.jpg'),
+    'monsters-inc-laugh-floor-background.jpg': require('../../assets/images/magic-kingdom/rides/monsters-inc-laugh-floor-logo.jpg'),
+    'peter-pans-flight-background.jpg': require('../../assets/images/magic-kingdom/rides/peter-pans-flight-logo.jpg'),
+    'pirates-of-the-caribbean-background.jpg': require('../../assets/images/magic-kingdom/rides/pirates-of-the-caribbean-logo.jpg'),
+    'prince-charming-regal-carrousel-background.jpg': require('../../assets/images/magic-kingdom/rides/prince-charming-regal-carrousel-logo.jpg'),
+    'seven-dwarfs-mine-train-background.jpg': require('../../assets/images/magic-kingdom/rides/seven-dwarfs-mine-train-logo.jpg'),
+    'space-mountain-background.jpg': require('../../assets/images/magic-kingdom/rides/space-mountain-logo.jpg'),
+    'tianas-bayou-adventure-background.jpg': require('../../assets/images/magic-kingdom/rides/tianas-bayou-adventure-logo.jpg'),
+    'tomorrowland-speedway-background.jpg': require('../../assets/images/magic-kingdom/rides/tomorrowland-speedway-logo.jpg'),
+    'tomorrowland-transit-authority-peoplemover-background.jpg': require('../../assets/images/magic-kingdom/rides/tomorrowland-transit-authority-peoplemover-logo.jpg'),
+    'under-the-sea-journey-of-the-little-mermaid-background.jpg': require('../../assets/images/magic-kingdom/rides/under-the-sea-journey-of-the-little-mermaid-logo.jpg'),
+    'walt-disney-world-railroad-background.jpg': require('../../assets/images/magic-kingdom/rides/walt-disney-world-railroad-logo.jpg'),
+  },
+  [Park.AnimalKingdom]: {
+    'avatar-flight-of-passage-background.avif': require('../../assets/images/animal-kingdom/rides/avatar-flight-of-passage-logo.jpg'),
+    'expedition-everest-background.jpg': require('../../assets/images/animal-kingdom/rides/expedition-everest-logo.jpg'),
+    'festival-of-the-lion-king-background.jpg': require('../../assets/images/animal-kingdom/rides/festival-of-the-lion-king-logo.jpg'),
+    'kali-river-rapids-background.jpg': require('../../assets/images/animal-kingdom/rides/kali-river-rapids-logo.jpg'),
+    'kilimanjaro-safaris-background.jpg': require('../../assets/images/animal-kingdom/rides/kilimanjaro-safaris-logo.jpg'),
+    'navi-river-journey-background.jpg': require('../../assets/images/animal-kingdom/rides/navi-river-journey-logo.jpg'),
+    'wildlife-express-train-background.jpg': require('../../assets/images/animal-kingdom/rides/wildlife-express-train-logo.jpg'),
+  },
+  [Park.HollywoodStudios]: {
+    'alien-swirling-saucers-background.jpg': require('../../assets/images/hollywood-studios/rides/alien-swirling-saucers-logo.jpg'),
+    'indiana-jones-epic-stunt-spectacular-background.jpg': require('../../assets/images/hollywood-studios/rides/indiana-jones-epic-stunt-spectacular-logo.jpg'),
+    'mickeys-runaway-railway-background.jpg': require('../../assets/images/hollywood-studios/rides/mickeys-runaway-railway-logo.jpg'),
+    'millennium-falcon-smugglers-run-background.jpg': require('../../assets/images/hollywood-studios/rides/millennium-falcon-smugglers-run-logo.jpg'),
+    'slinky-dog-dash-background.jpg': require('../../assets/images/hollywood-studios/rides/slinky-dog-dash-logo.jpg'),
+    'star-tours-adventures-continue-background.jpg': require('../../assets/images/hollywood-studios/rides/star-tours-adventures-continue-logo.jpg'),
+    'tower-of-terror-background.jpg': require('../../assets/images/hollywood-studios/rides/tower-of-terror-logo.jpg'),
+    'toy-story-mania-background.jpg': require('../../assets/images/hollywood-studios/rides/toy-story-mania-logo.jpg'),
+  },
+  [Park.Epcot]: {
+    'frozen-ever-after-background.jpg': require('../../assets/images/epcot/rides/frozen-ever-after-logo.jpg'),
+    'journey-into-imagination-with-figment-background.jpg': require('../../assets/images/epcot/rides/journey-into-imagination-with-figment-logo.jpg'),
+    'living-with-the-land-background.jpg': require('../../assets/images/epcot/rides/living-with-the-land-logo.jpg'),
+    'mission-space-background.jpg': require('../../assets/images/epcot/rides/mission-space-logo.jpg'),
+    'remys-ratatouille-adventure-background.jpg': require('../../assets/images/epcot/rides/remys-ratatouille-adventure-logo.jpg'),
+    'soarin-around-the-world-background.jpg': require('../../assets/images/epcot/rides/soarin-around-the-world-logo.jpg'),
+    'spaceship-earth-background.jpg': require('../../assets/images/epcot/rides/spaceship-earth-logo.jpg'),
+    'test-track-background.jpg': require('../../assets/images/epcot/rides/test-track-logo.jpg'),
+  },
+};
+
 const rideBackgrounds: Partial<Record<Park, Record<string, ImageSource>>> = {
   [Park.MagicKingdom]: {
     'haunted-mansion-background.avif': require('../../assets/images/magic-kingdom/rides/haunted-mansion-background.avif'),
@@ -78,8 +133,16 @@ const rideBackgrounds: Partial<Record<Park, Record<string, ImageSource>>> = {
 export const getRideLogo = (
   park: Park,
   logoUrl: string | null,
-): ImageSource | null =>
-  logoUrl ? (rideLogos[park]?.[logoUrl] ?? null) : null;
+  backgroundUrl: string | null,
+): ImageSource | null => {
+  if (logoUrl && rideLogos[park]?.[logoUrl]) {
+    return rideLogos[park][logoUrl];
+  }
+
+  return backgroundUrl
+    ? (rideLogosByBackground[park]?.[backgroundUrl] ?? null)
+    : null;
+};
 
 export const getRideBackground = (
   park: Park,

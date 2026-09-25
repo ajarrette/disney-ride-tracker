@@ -59,7 +59,7 @@ export function ParkScreen({ park }: ParkScreenProps) {
   };
 
   const renderRide = ({ item }: { item: Ride }) => {
-    const logo = getRideLogo(item.park, item.logoUrl);
+    const logo = getRideLogo(item.park, item.logoUrl, item.backgroundUrl);
 
     return (
       <Pressable
