@@ -10,6 +10,7 @@ import {
   View,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { SymbolView } from 'expo-symbols';
 
 import { RideDetailsPanel } from '@/components/ride-details-panel';
 import { BottomTabInset, Colors } from '@/constants/theme';
@@ -93,7 +94,26 @@ export function ParkScreen({ park }: ParkScreenProps) {
             {LandLabels[item.land]}
           </Text>
         </View>
-        <Text style={[styles.chevron, { color: colors.textSecondary }]}>›</Text>
+        <View accessibilityElementsHidden style={styles.rideIndicators}>
+          {item.photoPass && (
+            <SymbolView
+              name={{
+                ios: 'camera.fill',
+                android: 'photo_camera',
+                web: 'photo_camera',
+              }}
+              size={20}
+              tintColor={colors.textSecondary}
+            />
+          )}
+          {item.lightningLane && (
+            <SymbolView
+              name={{ ios: 'bolt.fill', android: 'bolt', web: 'bolt' }}
+              size={20}
+              tintColor={colors.textSecondary}
+            />
+          )}
+        </View>
       </Pressable>
     );
   };
@@ -184,9 +204,10 @@ const styles = StyleSheet.create({
     lineHeight: 19,
     marginTop: 3,
   },
-  chevron: {
-    fontSize: 28,
-    fontWeight: '300',
-    lineHeight: 30,
+  rideIndicators: {
+    alignItems: 'center',
+    gap: 6,
+    justifyContent: 'center',
+    minWidth: 24,
   },
 });

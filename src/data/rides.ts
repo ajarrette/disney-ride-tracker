@@ -152,6 +152,7 @@ export const seedRides: Ride[] = [
     thrillTypes: [ThrillType.SmallDrops, ThrillType.Dark],
     warnings: [RideWarning.Water, RideWarning.Darkness],
     lightningLane: true,
+    photoPass: true,
     description:
       'Join Tiana on a musical bayou adventure in search of a missing ingredient.',
   }),
@@ -166,6 +167,7 @@ export const seedRides: Ride[] = [
     thrillTypes: [ThrillType.Dark, ThrillType.Scary],
     warnings: [RideWarning.Darkness, RideWarning.Scary],
     lightningLane: true,
+    photoPass: true,
     description: 'Tour a chilling estate inhabited by happy haunts.',
   }),
   createSeedRide({
@@ -216,6 +218,7 @@ export const seedRides: Ride[] = [
     thrillTypes: [ThrillType.Dark],
     warnings: [RideWarning.Darkness, RideWarning.FlashingLights],
     lightningLane: true,
+    photoPass: true,
     description:
       'Help Buzz Lightyear defeat Emperor Zurg in an interactive space mission.',
   }),
@@ -231,6 +234,7 @@ export const seedRides: Ride[] = [
     thrillTypes: [ThrillType.ThrillRide, ThrillType.Loud],
     warnings: [RideWarning.LoudSounds, RideWarning.FlashingLights],
     lightningLane: true,
+    photoPass: true,
     description: 'Race through a digital frontier on a high-speed lightcycle.',
   }),
   createSeedRide({
@@ -371,6 +375,7 @@ export const seedRides: Ride[] = [
     thrillTypes: [ThrillType.ThrillRide, ThrillType.Spinning, ThrillType.Loud],
     warnings: [RideWarning.LoudSounds, RideWarning.FlashingLights],
     lightningLane: true,
+    photoPass: true,
     description:
       'Join the Guardians on a musical, backwards-launching cosmic chase.',
   }),
@@ -385,6 +390,7 @@ export const seedRides: Ride[] = [
     thrillTypes: [ThrillType.ThrillRide, ThrillType.Loud],
     warnings: [RideWarning.LoudSounds],
     lightningLane: true,
+    photoPass: true,
     description:
       'Design a custom vehicle and put it through a series of performance tests.',
   }),
@@ -425,6 +431,7 @@ export const seedRides: Ride[] = [
     thrillTypes: [ThrillType.Dark, ThrillType.SlowRides, ThrillType.SmallDrops],
     warnings: [RideWarning.Darkness, RideWarning.Water],
     lightningLane: true,
+    photoPass: true,
     description:
       'Set sail through Arendelle with Anna, Elsa, Olaf, and friends.',
   }),
@@ -558,6 +565,7 @@ export const seedRides: Ride[] = [
     minimumHeightInches: 38,
     thrillTypes: [ThrillType.ThrillRide, ThrillType.SmallDrops],
     lightningLane: true,
+    photoPass: true,
     description:
       'Race around Andy’s backyard on a family-friendly coaster built from a Slinky toy.',
   }),
@@ -584,6 +592,7 @@ export const seedRides: Ride[] = [
     thrillTypes: [ThrillType.ThrillRide, ThrillType.BigDrops, ThrillType.Dark],
     warnings: [RideWarning.Darkness, RideWarning.Scary],
     lightningLane: true,
+    photoPass: true,
     description:
       'Drop into the mysterious fifth dimension at a haunted Hollywood hotel.',
   }),
@@ -688,6 +697,7 @@ export const seedRides: Ride[] = [
     ],
     warnings: [RideWarning.Darkness, RideWarning.LoudSounds, RideWarning.Scary],
     lightningLane: true,
+    photoPass: true,
     description:
       'Climb into the Himalayas and escape the legendary Yeti aboard a runaway train.',
   }),
