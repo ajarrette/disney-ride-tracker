@@ -1,5 +1,6 @@
-import { View } from 'react-native';
+import { ParkScreen } from '@/components/park-screen';
+import { Park } from '@/models/ride';
 
 export default function IndexScreen() {
-  return <View style={{ flex: 1 }} />;
+  return <ParkScreen park={Park.MagicKingdom} />;
 }
