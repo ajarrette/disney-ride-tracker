@@ -4,6 +4,7 @@ import {
   Dimensions,
   FlatList,
   KeyboardAvoidingView,
+  Modal,
   Platform,
   Pressable,
   ScrollView,
@@ -19,6 +20,7 @@ import {
   type Href,
 } from 'expo-router';
 import { SymbolView } from 'expo-symbols';
+import { DateTimePicker } from '@expo/ui/community/datetime-picker';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { useAppState } from '@/components/app-state';
@@ -33,6 +35,16 @@ const formatLabel = (value: string) =>
     .split('_')
     .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
     .join(' ');
+
+const formatVisitedAt = (value: Date) =>
+  `${value.toLocaleDateString(undefined, {
+    month: 'short',
+    day: 'numeric',
+    year: 'numeric',
+  })} · ${value.toLocaleTimeString(undefined, {
+    hour: 'numeric',
+    minute: '2-digit',
+  })}`;
 
 const ridesWithSearchText = seedRides
   .map((ride) => ({
@@ -67,6 +79,9 @@ export default function LogScreen() {
   const [waitTime, setWaitTime] = useState('');
   const [rating, setRating] = useState<number | null>(null);
   const [notes, setNotes] = useState('');
+  const [visitedAt, setVisitedAt] = useState(() => new Date());
+  const [draftVisitedAt, setDraftVisitedAt] = useState(() => new Date());
+  const [dateTimePickerVisible, setDateTimePickerVisible] = useState(false);
 
   useFocusEffect(
     useCallback(() => {
@@ -76,6 +91,8 @@ export default function LogScreen() {
       setWaitTime('');
       setRating(null);
       setNotes('');
+      setVisitedAt(new Date());
+      setDateTimePickerVisible(false);
       panelPosition.setValue(panelOffset);
       Animated.spring(panelPosition, {
         toValue: 0,
@@ -94,6 +111,8 @@ export default function LogScreen() {
       setSelectedRide,
       setTabBarHidden,
       setWaitTime,
+      setVisitedAt,
+      setDateTimePickerVisible,
       rideId,
     ]),
   );
@@ -115,6 +134,18 @@ export default function LogScreen() {
     });
   };
 
+  const openDateTimePicker = () => {
+    setDraftVisitedAt(visitedAt);
+    setDateTimePickerVisible(true);
+  };
+
+  const closeDateTimePicker = () => setDateTimePickerVisible(false);
+
+  const saveDateTimePicker = () => {
+    setVisitedAt(draftVisitedAt);
+    setDateTimePickerVisible(false);
+  };
+
   const chooseRide = (ride: Ride) => {
     setSelectedRide(ride);
     setWaitTime('');
@@ -131,7 +162,7 @@ export default function LogScreen() {
       id: `${selectedRide.id}-${Date.now()}`,
       rideId: selectedRide.id,
       tripId: null,
-      visitedAt: now,
+      visitedAt: visitedAt.toISOString(),
       waitTimeMinutes:
         Number.isFinite(parsedWaitTime) && parsedWaitTime >= 0
           ? parsedWaitTime
@@ -208,6 +239,26 @@ export default function LogScreen() {
             >
               {ParkLabels[selectedRide.park]} · {LandLabels[selectedRide.land]}
             </Text>
+
+            <Pressable
+              accessibilityLabel={`Change ride date and time, ${formatVisitedAt(visitedAt)}`}
+              accessibilityRole='button'
+              onPress={openDateTimePicker}
+              style={styles.dateTimeButton}
+            >
+              <Text style={[styles.dateTimeValue, { color: colors.accent }]}>
+                {formatVisitedAt(visitedAt)}
+              </Text>
+              <SymbolView
+                name={{
+                  ios: 'chevron.down',
+                  android: 'expand_more',
+                  web: 'expand_more',
+                }}
+                size={14}
+                tintColor={colors.accent}
+              />
+            </Pressable>
 
             <Text style={[styles.fieldLabel, { color: colors.text }]}>
               Wait time (minutes)
@@ -387,6 +438,61 @@ export default function LogScreen() {
           </>
         )}
       </KeyboardAvoidingView>
+      <Modal
+        animationType='slide'
+        onRequestClose={closeDateTimePicker}
+        transparent
+        visible={dateTimePickerVisible}
+      >
+        <View style={styles.dateTimeModalRoot}>
+          <Pressable
+            accessibilityLabel='Close date and time picker'
+            accessibilityRole='button'
+            onPress={closeDateTimePicker}
+            style={styles.dateTimeModalBackdrop}
+          />
+          <View
+            style={[
+              styles.dateTimeSheet,
+              {
+                backgroundColor: colors.background,
+                paddingBottom: insets.bottom + 12,
+              },
+            ]}
+          >
+            <View style={styles.dateTimeModalHeader}>
+              <Pressable
+                accessibilityRole='button'
+                onPress={closeDateTimePicker}
+                style={styles.dateTimeModalAction}
+              >
+                <Text style={{ color: colors.accent }}>Cancel</Text>
+              </Pressable>
+              <Text style={[styles.dateTimeModalTitle, { color: colors.text }]}>
+                Edit ride time
+              </Text>
+              <Pressable
+                accessibilityRole='button'
+                onPress={saveDateTimePicker}
+                style={[styles.dateTimeModalAction, styles.dateTimeDoneAction]}
+              >
+                <Text style={{ color: colors.accent, fontWeight: '600' }}>
+                  Done
+                </Text>
+              </Pressable>
+            </View>
+            <DateTimePicker
+              accentColor={colors.accent}
+              display='spinner'
+              mode='datetime'
+              onValueChange={(_, date) => setDraftVisitedAt(date)}
+              style={styles.datePickerHost}
+              themeVariant='light'
+              value={draftVisitedAt}
+            />
+          </View>
+        </View>
+      </Modal>
     </Animated.View>
   );
 }
@@ -467,6 +573,56 @@ const styles = StyleSheet.create({
   rideSubtitle: {
     fontSize: 14,
     marginTop: 5,
+  },
+  dateTimeButton: {
+    alignItems: 'center',
+    alignSelf: 'flex-start',
+    flexDirection: 'row',
+    gap: 6,
+    marginTop: 12,
+    minHeight: 36,
+  },
+  dateTimeValue: {
+    fontSize: 16,
+    fontWeight: '600',
+  },
+  dateTimeModalRoot: {
+    flex: 1,
+    justifyContent: 'flex-end',
+  },
+  dateTimeModalBackdrop: {
+    ...StyleSheet.absoluteFill,
+    backgroundColor: 'rgba(0, 0, 0, 0.32)',
+  },
+  dateTimeSheet: {
+    borderTopLeftRadius: 16,
+    borderTopRightRadius: 16,
+    paddingHorizontal: 24,
+    paddingTop: 12,
+  },
+  dateTimeModalHeader: {
+    alignItems: 'center',
+    flexDirection: 'row',
+    height: 44,
+    justifyContent: 'space-between',
+  },
+  dateTimeModalAction: {
+    justifyContent: 'center',
+    minHeight: 44,
+    width: 72,
+  },
+  dateTimeDoneAction: {
+    alignItems: 'flex-end',
+  },
+  dateTimeModalTitle: {
+    flex: 1,
+    fontSize: 16,
+    fontWeight: '700',
+    textAlign: 'center',
+  },
+  datePickerHost: {
+    height: 220,
+    width: '100%',
   },
   fieldLabel: {
     fontSize: 15,
