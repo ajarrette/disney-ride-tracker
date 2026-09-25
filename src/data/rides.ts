@@ -589,9 +589,11 @@ export const seedRides: Ride[] = [
   }),
   createSeedRide({
     id: 'hollywood-studios-rock-n-roller-coaster',
-    name: "Rock 'n' Roller Coaster Starring Aerosmith",
+    name: 'Rock ’n’ Roller Coaster Starring The Muppets',
     park: Park.HollywoodStudios,
     land: Land.SunsetBoulevard,
+    logoUrl: 'rock-n-roller-coaster-starring-the-muppets-logo.jpg',
+    backgroundUrl: 'rock-n-roller-coaster-starring-the-muppets-background.avif',
     attractionType: AttractionType.Ride,
     minimumHeightInches: 48,
     thrillTypes: [ThrillType.ThrillRide, ThrillType.Loud, ThrillType.Dark],
@@ -601,8 +603,12 @@ export const seedRides: Ride[] = [
       RideWarning.FlashingLights,
     ],
     lightningLane: true,
+    photoPass: true,
     description:
-      'Launch from zero to 57 miles per hour on a backstage rock-and-roll race.',
+      'Join The Electric Mayhem on a VIP studio tour, then race to their concert aboard a high-speed limousine with a rock soundtrack.',
+    officialUrl:
+      'https://disneyworld.disney.go.com/attractions/hollywood-studios/rock-and-roller-coaster-starring-muppets/',
+    openingDate: '2026-05-26',
   }),
   createSeedRide({
     id: 'hollywood-studios-indiana-jones-epic-stunt-spectacular',
@@ -727,6 +733,7 @@ export const seedRides: Ride[] = [
     name: 'Finding Nemo: The Big Blue... and Beyond!',
     park: Park.AnimalKingdom,
     land: Land.DiscoveryIsland,
+    backgroundUrl: 'finding-nemo-the-big-blue...-and-beyond!-background.jpg',
     attractionType: AttractionType.Show,
     warnings: [RideWarning.LoudSounds],
     description:

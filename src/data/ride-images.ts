@@ -10,6 +10,7 @@ const rideLogos: Partial<Record<Park, Record<string, ImageSource>>> = {
   },
   [Park.AnimalKingdom]: {},
   [Park.HollywoodStudios]: {
+    'rock-n-roller-coaster-starring-the-muppets-logo.jpg': require('../../assets/images/hollywood-studios/rides/rock-n-roller-coaster-starring-the-muppets-logo.jpg'),
     'rise-of-the-resistance-logo.avif': require('../../assets/images/hollywood-studios/rides/rise-of-the-resistance-logo.avif'),
   },
   [Park.Epcot]: {
@@ -43,6 +44,7 @@ const rideLogosByBackground: Partial<
     'walt-disney-world-railroad-background.jpg': require('../../assets/images/magic-kingdom/rides/walt-disney-world-railroad-logo.jpg'),
   },
   [Park.AnimalKingdom]: {
+    'finding-nemo-the-big-blue...-and-beyond!-background.jpg': require('../../assets/images/animal-kingdom/rides/finding-nemo-the-big-blue...-and-beyond!-logo.jpg'),
     'avatar-flight-of-passage-background.avif': require('../../assets/images/animal-kingdom/rides/avatar-flight-of-passage-logo.jpg'),
     'expedition-everest-background.jpg': require('../../assets/images/animal-kingdom/rides/expedition-everest-logo.jpg'),
     'festival-of-the-lion-king-background.jpg': require('../../assets/images/animal-kingdom/rides/festival-of-the-lion-king-logo.jpg'),
@@ -102,6 +104,7 @@ const rideBackgrounds: Partial<Record<Park, Record<string, ImageSource>>> = {
     'walt-disney-world-railroad-background.jpg': require('../../assets/images/magic-kingdom/rides/walt-disney-world-railroad-background.jpg'),
   },
   [Park.AnimalKingdom]: {
+    'finding-nemo-the-big-blue...-and-beyond!-background.jpg': require('../../assets/images/animal-kingdom/rides/finding-nemo-the-big-blue...-and-beyond!-background.jpg'),
     'avatar-flight-of-passage-background.avif': require('../../assets/images/animal-kingdom/rides/avatar-flight-of-passage-background.avif'),
     'navi-river-journey-background.jpg': require('../../assets/images/animal-kingdom/rides/navi-river-journey-background.jpg'),
     'expedition-everest-background.jpg': require('../../assets/images/animal-kingdom/rides/expedition-everest-background.jpg'),
@@ -120,6 +123,7 @@ const rideBackgrounds: Partial<Record<Park, Record<string, ImageSource>>> = {
     'indiana-jones-epic-stunt-spectacular-background.jpg': require('../../assets/images/hollywood-studios/rides/indiana-jones-epic-stunt-spectacular-background.jpg'),
     'alien-swirling-saucers-background.jpg': require('../../assets/images/hollywood-studios/rides/alien-swirling-saucers-background.jpg'),
     'star-tours-adventures-continue-background.jpg': require('../../assets/images/hollywood-studios/rides/star-tours-adventures-continue-background.jpg'),
+    'rock-n-roller-coaster-starring-the-muppets-background.avif': require('../../assets/images/hollywood-studios/rides/rock-n-roller-coaster-starring-the-muppets-background.avif'),
   },
   [Park.Epcot]: {
     'guardians-of-the-galaxy-cosmic-rewind-background.webp': require('../../assets/images/epcot/rides/guardians-of-the-galaxy-cosmic-rewind-background.webp'),
