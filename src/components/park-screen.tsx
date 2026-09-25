@@ -3,7 +3,7 @@ import { Image } from 'expo-image';
 import {
   Animated,
   Dimensions,
-  FlatList,
+  Platform,
   Pressable,
   StyleSheet,
   Text,
@@ -13,8 +13,9 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { SymbolView } from 'expo-symbols';
 
 import { RideDetailsPanel } from '@/components/ride-details-panel';
-import { BottomTabInset, Colors } from '@/constants/theme';
+import { BottomTabInset, Colors, Fonts } from '@/constants/theme';
 import { LandLabels, ParkLabels } from '@/constants/ride-labels';
+import { getParkImage } from '@/data/park-images';
 import { getRideLogo } from '@/data/ride-images';
 import { seedRides } from '@/data/rides';
 import { Park, Ride } from '@/models/ride';
@@ -28,8 +29,22 @@ const panelWidth = Dimensions.get('window').width;
 export function ParkScreen({ park }: ParkScreenProps) {
   const colors = Colors.light;
   const insets = useSafeAreaInsets();
+  const parkImage = getParkImage(park);
+  const [scrollY] = useState(() => new Animated.Value(0));
   const [selectedRide, setSelectedRide] = useState<Ride | null>(null);
   const [panelPosition] = useState(() => new Animated.Value(panelWidth));
+  const titleCollapseOffset = 220;
+  const titleFadeStart = titleCollapseOffset - 80;
+  const headerTitleOpacity = scrollY.interpolate({
+    inputRange: [titleFadeStart, titleCollapseOffset],
+    outputRange: [0, 1],
+    extrapolate: 'clamp',
+  });
+  const headerBackgroundOpacity = scrollY.interpolate({
+    inputRange: [100, 180],
+    outputRange: [0, 1],
+    extrapolate: 'clamp',
+  });
   const rides = seedRides
     .filter((ride) => ride.park === park)
     .sort((firstRide, secondRide) =>
@@ -121,7 +136,7 @@ export function ParkScreen({ park }: ParkScreenProps) {
   return (
     <View style={[styles.container, { backgroundColor: colors.background }]}>
       <View style={[styles.listViewport, { paddingTop: insets.top }]}>
-        <FlatList
+        <Animated.FlatList
           contentContainerStyle={[
             styles.listContent,
             {
@@ -132,13 +147,45 @@ export function ParkScreen({ park }: ParkScreenProps) {
           data={rides}
           keyExtractor={(ride) => ride.id}
           ListHeaderComponent={
-            <Text style={[styles.title, { color: colors.text }]}>
-              {ParkLabels[park]}
-            </Text>
+            <View>
+              <View style={styles.parkHero}>
+                <Image
+                  accessibilityLabel={parkImage.alt}
+                  contentFit='cover'
+                  source={parkImage.source}
+                  style={styles.parkHeroImage}
+                />
+              </View>
+            </View>
           }
+          onScroll={Animated.event(
+            [{ nativeEvent: { contentOffset: { y: scrollY } } }],
+            { useNativeDriver: Platform.OS !== 'web' },
+          )}
           renderItem={renderRide}
+          scrollEventThrottle={16}
           showsVerticalScrollIndicator={false}
         />
+        <Animated.View style={[styles.detailHeader, { top: insets.top }]}>
+          <Animated.View
+            style={[
+              styles.headerBackground,
+              {
+                backgroundColor: colors.background,
+                opacity: headerBackgroundOpacity,
+              },
+            ]}
+          />
+          <Animated.Text
+            numberOfLines={1}
+            style={[
+              styles.headerTitle,
+              { color: colors.text, opacity: headerTitleOpacity },
+            ]}
+          >
+            {ParkLabels[park]}
+          </Animated.Text>
+        </Animated.View>
       </View>
 
       {selectedRide && (
@@ -162,11 +209,39 @@ const styles = StyleSheet.create({
   listContent: {
     padding: 24,
   },
-  title: {
-    fontSize: 34,
-    fontWeight: '800',
-    letterSpacing: -0.5,
-    marginBottom: 24,
+  parkHero: {
+    height: 220,
+    marginHorizontal: -24,
+  },
+  parkHeroImage: {
+    height: '100%',
+    width: '100%',
+  },
+  detailHeader: {
+    alignItems: 'center',
+    height: 56,
+    justifyContent: 'center',
+    left: 0,
+    pointerEvents: 'box-none',
+    position: 'absolute',
+    right: 0,
+    zIndex: 1,
+  },
+  headerBackground: {
+    ...StyleSheet.absoluteFill,
+    borderBottomColor: Colors.light.backgroundSelected,
+    borderBottomWidth: StyleSheet.hairlineWidth,
+    pointerEvents: 'none',
+  },
+  headerTitle: {
+    fontFamily: Fonts.sans,
+    fontSize: 17,
+    fontWeight: '600',
+    left: 20,
+    pointerEvents: 'none',
+    position: 'absolute',
+    right: 20,
+    textAlign: 'center',
   },
   rideRow: {
     alignItems: 'center',
