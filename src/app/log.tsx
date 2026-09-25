@@ -9,12 +9,12 @@ import {
   Modal,
   Platform,
   Pressable,
-  ScrollView,
   StyleSheet,
   Text,
   TextInput,
   View,
 } from 'react-native';
+import { Image } from 'expo-image';
 import {
   router,
   useFocusEffect,
@@ -30,7 +30,8 @@ import { useAppState } from '@/components/app-state';
 import { RideListItem } from '@/components/ride-list-item';
 import { RideLogPhotos } from '@/components/ride-log-photos';
 import { LandLabels, ParkLabels } from '@/constants/ride-labels';
-import { Colors } from '@/constants/theme';
+import { Colors, Fonts } from '@/constants/theme';
+import { getRideBackground } from '@/data/ride-images';
 import { seedRides } from '@/data/rides';
 import { Ride } from '@/models/ride';
 import { getRideLogPhotos } from '@/models/ride-log';
@@ -95,6 +96,7 @@ export default function LogScreen() {
   const rideLogsRef = useRef(rideLogs);
   const existingLog = rideLogs.find((log) => log.id === logId);
   const [panelPosition] = useState(() => new Animated.Value(panelOffset));
+  const [scrollY] = useState(() => new Animated.Value(0));
   const [query, setQuery] = useState('');
   const [selectedRide, setSelectedRide] = useState<Ride | null>(null);
   const [waitTime, setWaitTime] = useState('');
@@ -104,6 +106,29 @@ export default function LogScreen() {
   const [visitedAt, setVisitedAt] = useState(() => new Date());
   const [draftVisitedAt, setDraftVisitedAt] = useState(() => new Date());
   const [dateTimePickerVisible, setDateTimePickerVisible] = useState(false);
+  const rideBackground = selectedRide
+    ? getRideBackground(selectedRide.park, selectedRide.backgroundUrl)
+    : null;
+  const headerTitleOpacity = scrollY.interpolate({
+    inputRange: [140, 220],
+    outputRange: [0, 1],
+    extrapolate: 'clamp',
+  });
+  const headerBackgroundOpacity = scrollY.interpolate({
+    inputRange: [100, 180],
+    outputRange: [0, 1],
+    extrapolate: 'clamp',
+  });
+  const headerForegroundOpacity = scrollY.interpolate({
+    inputRange: [100, 180],
+    outputRange: [1, 0],
+    extrapolate: 'clamp',
+  });
+  const largeTitleOpacity = scrollY.interpolate({
+    inputRange: [140, 220],
+    outputRange: [1, 0],
+    extrapolate: 'clamp',
+  });
 
   useEffect(() => {
     rideLogsRef.current = rideLogs;
@@ -203,6 +228,7 @@ export default function LogScreen() {
 
   const chooseRide = (ride: Ride) => {
     recordRecentSearch();
+    scrollY.setValue(0);
     setSelectedRide(ride);
     setWaitTime('');
     setRating(null);
@@ -302,24 +328,95 @@ export default function LogScreen() {
         behavior={Platform.OS === 'ios' ? 'padding' : undefined}
         style={styles.content}
       >
-        <View
+        <Animated.View
           style={[
             styles.header,
+            rideBackground && styles.headerOverlay,
             { height: 56 + insets.top, paddingTop: insets.top },
           ]}
         >
+          {rideBackground && (
+            <Animated.View
+              pointerEvents='none'
+              style={[
+                StyleSheet.absoluteFill,
+                {
+                  backgroundColor: colors.background,
+                  opacity: headerBackgroundOpacity,
+                },
+              ]}
+            />
+          )}
           <Pressable
+            accessibilityLabel='Close ride form'
             accessibilityRole='button'
+            hitSlop={8}
             onPress={() => closePanel(previousTabPath)}
             style={styles.headerAction}
           >
-            <Text style={[styles.cancelText, { color: colors.accent }]}>
-              Cancel
-            </Text>
+            {rideBackground ? (
+              <>
+                <Animated.View
+                  pointerEvents='none'
+                  style={[
+                    styles.headerForeground,
+                    { opacity: headerForegroundOpacity },
+                  ]}
+                >
+                  <SymbolView
+                    name={{
+                      ios: 'xmark.circle.fill',
+                      android: 'cancel',
+                      web: 'cancel',
+                    }}
+                    size={24}
+                    tintColor='#ffffff'
+                  />
+                </Animated.View>
+                <Animated.View style={{ opacity: headerBackgroundOpacity }}>
+                  <SymbolView
+                    name={{
+                      ios: 'xmark.circle.fill',
+                      android: 'cancel',
+                      web: 'cancel',
+                    }}
+                    size={24}
+                    tintColor={colors.accent}
+                  />
+                </Animated.View>
+              </>
+            ) : (
+              <SymbolView
+                name={{
+                  ios: 'xmark.circle.fill',
+                  android: 'cancel',
+                  web: 'cancel',
+                }}
+                size={24}
+                tintColor={colors.accent}
+              />
+            )}
           </Pressable>
-          <Text style={[styles.headerTitle, { color: colors.text }]}>
-            {logId ? 'Edit Ride' : 'Log a Ride'}
-          </Text>
+          {rideBackground ? (
+            <Animated.Text
+              numberOfLines={1}
+              pointerEvents='none'
+              style={[
+                styles.collapsingHeaderTitle,
+                {
+                  color: '#263d5a',
+                  opacity: headerTitleOpacity,
+                  top: insets.top + 16,
+                },
+              ]}
+            >
+              Log a Ride
+            </Animated.Text>
+          ) : (
+            <Text style={[styles.headerTitle, { color: colors.text }]}>
+              {logId ? 'Edit Ride' : 'Log a Ride'}
+            </Text>
+          )}
           {logId ? (
             <Pressable
               accessibilityLabel='Delete ride log'
@@ -328,26 +425,66 @@ export default function LogScreen() {
               onPress={confirmDeleteRideLog}
               style={[styles.headerAction, styles.headerActionRight]}
             >
-              <SymbolView
-                name={{ ios: 'trash', android: 'delete', web: 'delete' }}
-                size={20}
-                tintColor='#d92d20'
-              />
+              {rideBackground ? (
+                <>
+                  <Animated.View
+                    style={[
+                      styles.headerDeleteForeground,
+                      { opacity: headerForegroundOpacity },
+                    ]}
+                  >
+                    <SymbolView
+                      name={{ ios: 'trash', android: 'delete', web: 'delete' }}
+                      size={20}
+                      tintColor='#ffffff'
+                    />
+                  </Animated.View>
+                  <Animated.View style={{ opacity: headerBackgroundOpacity }}>
+                    <SymbolView
+                      name={{ ios: 'trash', android: 'delete', web: 'delete' }}
+                      size={20}
+                      tintColor='#d92d20'
+                    />
+                  </Animated.View>
+                </>
+              ) : (
+                <SymbolView
+                  name={{ ios: 'trash', android: 'delete', web: 'delete' }}
+                  size={20}
+                  tintColor='#d92d20'
+                />
+              )}
             </Pressable>
           ) : (
             <View style={styles.headerAction} />
           )}
-        </View>
+        </Animated.View>
 
         {selectedRide ? (
-          <ScrollView
+          <Animated.ScrollView
             contentContainerStyle={[
               styles.formContent,
               { paddingBottom: insets.bottom + 36 },
             ]}
             keyboardShouldPersistTaps='handled'
+            onScroll={Animated.event(
+              [{ nativeEvent: { contentOffset: { y: scrollY } } }],
+              { useNativeDriver: true },
+            )}
+            scrollEventThrottle={16}
             showsVerticalScrollIndicator={false}
+            style={styles.formScroll}
           >
+            {rideBackground ? (
+              <>
+                <View style={{ height: insets.top }} />
+                <Image
+                  contentFit='cover'
+                  source={rideBackground}
+                  style={styles.formHeroImage}
+                />
+              </>
+            ) : null}
             {!logId && (
               <Pressable
                 accessibilityRole='button'
@@ -359,14 +496,19 @@ export default function LogScreen() {
                 </Text>
               </Pressable>
             )}
-            <Text style={[styles.rideTitle, { color: colors.text }]}>
-              {selectedRide.name}
-            </Text>
-            <Text
-              style={[styles.rideSubtitle, { color: colors.textSecondary }]}
+            <Animated.View
+              style={{ opacity: rideBackground ? largeTitleOpacity : 1 }}
             >
-              {ParkLabels[selectedRide.park]} · {LandLabels[selectedRide.land]}
-            </Text>
+              <Text style={[styles.rideTitle, { color: '#263d5a' }]}>
+                {selectedRide.name}
+              </Text>
+              <Text
+                style={[styles.rideSubtitle, { color: colors.textSecondary }]}
+              >
+                {ParkLabels[selectedRide.park]} ·{' '}
+                {LandLabels[selectedRide.land]}
+              </Text>
+            </Animated.View>
 
             <Pressable
               accessibilityLabel={`Change ride date and time, ${formatVisitedAt(visitedAt)}`}
@@ -538,7 +680,7 @@ export default function LogScreen() {
             >
               <Text style={styles.saveButtonText}>Save Ride</Text>
             </Pressable>
-          </ScrollView>
+          </Animated.ScrollView>
         ) : (
           <>
             <View style={styles.searchContainer}>
@@ -725,12 +867,37 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     paddingHorizontal: 20,
   },
+  headerOverlay: {
+    borderBottomWidth: 0,
+    left: 0,
+    position: 'absolute',
+    right: 0,
+    top: 0,
+    zIndex: 1,
+  },
   headerAction: {
     justifyContent: 'center',
+    minHeight: 48,
     minWidth: 72,
+    position: 'relative',
   },
   headerActionRight: {
     alignItems: 'flex-end',
+  },
+  headerForeground: {
+    bottom: 0,
+    justifyContent: 'center',
+    left: 0,
+    position: 'absolute',
+    top: 0,
+  },
+  headerDeleteForeground: {
+    alignItems: 'flex-end',
+    bottom: 0,
+    justifyContent: 'center',
+    position: 'absolute',
+    right: 0,
+    top: 0,
   },
   cancelText: {
     fontSize: 16,
@@ -740,6 +907,19 @@ const styles = StyleSheet.create({
     fontSize: 18,
     fontWeight: '700',
     textAlign: 'center',
+  },
+  collapsingHeaderTitle: {
+    fontFamily: Fonts.rounded,
+    fontSize: 20,
+    fontWeight: '800',
+    left: 84,
+    lineHeight: 24,
+    position: 'absolute',
+    right: 84,
+    textAlign: 'center',
+  },
+  formScroll: {
+    flex: 1,
   },
   searchContainer: {
     alignItems: 'center',
@@ -787,6 +967,11 @@ const styles = StyleSheet.create({
   formContent: {
     paddingBottom: 36,
     paddingHorizontal: 24,
+  },
+  formHeroImage: {
+    height: 220,
+    marginHorizontal: -24,
+    width: Dimensions.get('window').width,
   },
   changeRideButton: {
     alignSelf: 'flex-start',
