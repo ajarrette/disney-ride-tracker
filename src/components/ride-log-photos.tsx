@@ -1,5 +1,5 @@
 import { Image } from 'expo-image';
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 import {
   Modal,
   Pressable,
@@ -9,6 +9,7 @@ import {
   ViewStyle,
 } from 'react-native';
 import { SymbolView } from 'expo-symbols';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 type RideLogPhotosProps = {
   photos: string[];
@@ -17,7 +18,28 @@ type RideLogPhotosProps = {
 };
 
 export function RideLogPhotos({ photos, onRemove, style }: RideLogPhotosProps) {
-  const [viewingPhoto, setViewingPhoto] = useState<string | null>(null);
+  const insets = useSafeAreaInsets();
+  const [viewingPhotoIndex, setViewingPhotoIndex] = useState<number | null>(
+    null,
+  );
+  const touchStartX = useRef<number | null>(null);
+  const viewingPhoto =
+    viewingPhotoIndex === null ? null : (photos[viewingPhotoIndex] ?? null);
+
+  const finishPhotoSwipe = (endX: number) => {
+    const startX = touchStartX.current;
+    touchStartX.current = null;
+    if (startX === null) return;
+
+    const distance = endX - startX;
+    if (Math.abs(distance) < 48) return;
+
+    setViewingPhotoIndex((currentIndex) => {
+      if (currentIndex === null) return null;
+      const direction = distance < 0 ? 1 : -1;
+      return Math.max(0, Math.min(photos.length - 1, currentIndex + direction));
+    });
+  };
 
   return (
     <>
@@ -27,7 +49,7 @@ export function RideLogPhotos({ photos, onRemove, style }: RideLogPhotosProps) {
             <Pressable
               accessibilityLabel={`View photo ${index + 1}`}
               accessibilityRole='button'
-              onPress={() => setViewingPhoto(uri)}
+              onPress={() => setViewingPhotoIndex(index)}
             >
               <Image
                 contentFit='cover'
@@ -51,25 +73,46 @@ export function RideLogPhotos({ photos, onRemove, style }: RideLogPhotosProps) {
       </View>
       <Modal
         animationType='fade'
-        onRequestClose={() => setViewingPhoto(null)}
+        onRequestClose={() => setViewingPhotoIndex(null)}
         transparent
-        visible={viewingPhoto !== null}
+        visible={viewingPhotoIndex !== null}
       >
-        <View style={styles.viewer}>
+        <View
+          style={[
+            styles.viewer,
+            {
+              paddingBottom: insets.bottom + 16,
+              paddingTop: insets.top + 60,
+            },
+          ]}
+        >
           <Pressable
             accessibilityLabel='Close photo viewer'
             accessibilityRole='button'
-            onPress={() => setViewingPhoto(null)}
-            style={styles.viewerClose}
+            onPress={() => setViewingPhotoIndex(null)}
+            style={[styles.viewerClose, { top: insets.top + 8 }]}
           >
             <SymbolView name='xmark' size={22} tintColor='#ffffff' />
           </Pressable>
           {viewingPhoto && (
-            <Image
-              contentFit='contain'
-              source={{ uri: viewingPhoto }}
-              style={styles.fullImage}
-            />
+            <View
+              accessibilityLabel={`Photo ${viewingPhotoIndex! + 1} of ${photos.length}. Swipe left for next photo, right for previous photo.`}
+              accessibilityRole='image'
+              onResponderGrant={(event) => {
+                touchStartX.current = event.nativeEvent.pageX;
+              }}
+              onResponderRelease={(event) =>
+                finishPhotoSwipe(event.nativeEvent.pageX)
+              }
+              onStartShouldSetResponder={() => true}
+              style={styles.imageSwipeArea}
+            >
+              <Image
+                contentFit='contain'
+                source={{ uri: viewingPhoto }}
+                style={styles.fullImage}
+              />
+            </View>
           )}
         </View>
       </Modal>
@@ -113,10 +156,16 @@ const styles = StyleSheet.create({
   },
   viewerClose: {
     alignItems: 'center',
-    alignSelf: 'flex-end',
+    position: 'absolute',
+    right: 16,
+    zIndex: 1,
     height: 44,
     justifyContent: 'center',
     width: 44,
+  },
+  imageSwipeArea: {
+    flex: 1,
+    width: '100%',
   },
   fullImage: {
     flex: 1,

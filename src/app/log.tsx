@@ -471,6 +471,45 @@ export default function LogScreen() {
               ))}
             </View>
 
+            <View style={styles.photoHeader}>
+              <Text style={[styles.photoLabel, { color: colors.text }]}>
+                Photos ({photos.length}/{MAX_PHOTOS})
+              </Text>
+              {photos.length < MAX_PHOTOS && (
+                <Pressable
+                  accessibilityLabel='Add photos'
+                  accessibilityRole='button'
+                  onPress={addPhotos}
+                  style={({ pressed }) => [
+                    styles.addPhotosButton,
+                    {
+                      borderColor: colors.accent,
+                    },
+                    pressed && styles.addPhotosButtonPressed,
+                  ]}
+                >
+                  <SymbolView
+                    name={{
+                      ios: 'camera',
+                      android: 'photo_camera',
+                      web: 'photo_camera',
+                    }}
+                    size={32}
+                    tintColor={colors.accent}
+                  />
+                </Pressable>
+              )}
+            </View>
+            <RideLogPhotos
+              onRemove={(index) =>
+                setPhotos((currentPhotos) =>
+                  currentPhotos.filter((_, photoIndex) => photoIndex !== index),
+                )
+              }
+              photos={photos}
+              style={styles.formPhotoStrip}
+            />
+
             <Text style={[styles.fieldLabel, { color: colors.text }]}>
               Notes
             </Text>
@@ -487,43 +526,6 @@ export default function LogScreen() {
               ]}
               textAlignVertical='top'
               value={notes}
-            />
-
-            <View style={styles.photoHeader}>
-              <Text
-                style={[
-                  styles.fieldLabel,
-                  styles.photoLabel,
-                  { color: colors.text },
-                ]}
-              >
-                Photos ({photos.length}/{MAX_PHOTOS})
-              </Text>
-              {photos.length < MAX_PHOTOS && (
-                <Pressable
-                  accessibilityRole='button'
-                  onPress={addPhotos}
-                  style={styles.addPhotosButton}
-                >
-                  <SymbolView
-                    name={{ ios: 'plus', android: 'add', web: 'add' }}
-                    size={16}
-                    tintColor={colors.accent}
-                  />
-                  <Text style={{ color: colors.accent, fontWeight: '600' }}>
-                    Add photos
-                  </Text>
-                </Pressable>
-              )}
-            </View>
-            <RideLogPhotos
-              onRemove={(index) =>
-                setPhotos((currentPhotos) =>
-                  currentPhotos.filter((_, photoIndex) => photoIndex !== index),
-                )
-              }
-              photos={photos}
-              style={styles.formPhotoStrip}
             />
 
             <Pressable
@@ -875,15 +877,25 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     flexDirection: 'row',
     justifyContent: 'space-between',
+    marginTop: 24,
+    minHeight: 56,
   },
   photoLabel: {
+    fontSize: 15,
+    fontWeight: '600',
     marginBottom: 0,
+    marginTop: 0,
   },
   addPhotosButton: {
     alignItems: 'center',
-    flexDirection: 'row',
-    gap: 4,
-    minHeight: 44,
+    borderRadius: 28,
+    borderWidth: 1.5,
+    height: 56,
+    justifyContent: 'center',
+    width: 56,
+  },
+  addPhotosButtonPressed: {
+    opacity: 0.72,
   },
   formPhotoStrip: {
     marginTop: 12,
