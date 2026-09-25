@@ -23,14 +23,20 @@ import {
 } from 'expo-router';
 import { SymbolView } from 'expo-symbols';
 import { DateTimePicker } from '@expo/ui/community/datetime-picker';
+import * as ImagePicker from 'expo-image-picker';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { useAppState } from '@/components/app-state';
 import { RideListItem } from '@/components/ride-list-item';
+import { RideLogPhotos } from '@/components/ride-log-photos';
 import { LandLabels, ParkLabels } from '@/constants/ride-labels';
 import { Colors } from '@/constants/theme';
 import { seedRides } from '@/data/rides';
 import { Ride } from '@/models/ride';
+import { getRideLogPhotos } from '@/models/ride-log';
+
+const MAX_PHOTOS = 5;
+const MAX_PHOTO_SIZE_BYTES = 20 * 1024 * 1024;
 
 const formatLabel = (value: string) =>
   value
@@ -94,6 +100,7 @@ export default function LogScreen() {
   const [waitTime, setWaitTime] = useState('');
   const [rating, setRating] = useState<number | null>(null);
   const [notes, setNotes] = useState('');
+  const [photos, setPhotos] = useState<string[]>([]);
   const [visitedAt, setVisitedAt] = useState(() => new Date());
   const [draftVisitedAt, setDraftVisitedAt] = useState(() => new Date());
   const [dateTimePickerVisible, setDateTimePickerVisible] = useState(false);
@@ -118,6 +125,7 @@ export default function LogScreen() {
       );
       setRating(log?.rating ?? null);
       setNotes(log?.notes ?? '');
+      setPhotos(log ? getRideLogPhotos(log).slice(0, MAX_PHOTOS) : []);
       setVisitedAt(log ? new Date(log.visitedAt) : new Date());
       setDateTimePickerVisible(false);
       panelPosition.setValue(panelOffset);
@@ -133,6 +141,7 @@ export default function LogScreen() {
       panelPosition,
       panelOffset,
       setNotes,
+      setPhotos,
       setQuery,
       setRating,
       setSelectedRide,
@@ -198,6 +207,54 @@ export default function LogScreen() {
     setWaitTime('');
     setRating(null);
     setNotes('');
+    setPhotos([]);
+  };
+
+  const addPhotos = async () => {
+    const remainingSlots = MAX_PHOTOS - photos.length;
+    if (remainingSlots === 0) return;
+
+    try {
+      const result = await ImagePicker.launchImageLibraryAsync({
+        allowsMultipleSelection: true,
+        mediaTypes: ['images'],
+        selectionLimit: remainingSlots,
+      });
+      if (result.canceled) return;
+
+      const acceptedPhotos: string[] = [];
+      let oversizedCount = 0;
+      let unverifiedCount = 0;
+      result.assets.forEach((asset) => {
+        if (asset.fileSize === undefined) {
+          unverifiedCount += 1;
+        } else if (asset.fileSize > MAX_PHOTO_SIZE_BYTES) {
+          oversizedCount += 1;
+        } else {
+          acceptedPhotos.push(asset.uri);
+        }
+      });
+
+      if (acceptedPhotos.length > 0) {
+        setPhotos((currentPhotos) =>
+          [...currentPhotos, ...acceptedPhotos].slice(0, MAX_PHOTOS),
+        );
+      }
+      if (oversizedCount > 0 || unverifiedCount > 0) {
+        const reasons = [
+          oversizedCount > 0 &&
+            `${oversizedCount} image${oversizedCount === 1 ? '' : 's'} exceeded 20 MB`,
+          unverifiedCount > 0 &&
+            `${unverifiedCount} image${unverifiedCount === 1 ? '' : 's'} could not be checked`,
+        ].filter(Boolean);
+        Alert.alert('Some photos were skipped', `${reasons.join(' and ')}.`);
+      }
+    } catch {
+      Alert.alert(
+        'Unable to add photos',
+        'Please try selecting the images again.',
+      );
+    }
   };
 
   const saveRideLog = () => {
@@ -215,7 +272,8 @@ export default function LogScreen() {
           ? parsedWaitTime
           : null,
       notes: notes.trim(),
-      photoUrl: existingLog?.photoUrl ?? null,
+      photos: photos.slice(0, MAX_PHOTOS),
+      photoUrl: null,
       rating,
       createdAt: existingLog?.createdAt ?? now,
       updatedAt: now,
@@ -429,6 +487,43 @@ export default function LogScreen() {
               ]}
               textAlignVertical='top'
               value={notes}
+            />
+
+            <View style={styles.photoHeader}>
+              <Text
+                style={[
+                  styles.fieldLabel,
+                  styles.photoLabel,
+                  { color: colors.text },
+                ]}
+              >
+                Photos ({photos.length}/{MAX_PHOTOS})
+              </Text>
+              {photos.length < MAX_PHOTOS && (
+                <Pressable
+                  accessibilityRole='button'
+                  onPress={addPhotos}
+                  style={styles.addPhotosButton}
+                >
+                  <SymbolView
+                    name={{ ios: 'plus', android: 'add', web: 'add' }}
+                    size={16}
+                    tintColor={colors.accent}
+                  />
+                  <Text style={{ color: colors.accent, fontWeight: '600' }}>
+                    Add photos
+                  </Text>
+                </Pressable>
+              )}
+            </View>
+            <RideLogPhotos
+              onRemove={(index) =>
+                setPhotos((currentPhotos) =>
+                  currentPhotos.filter((_, photoIndex) => photoIndex !== index),
+                )
+              }
+              photos={photos}
+              style={styles.formPhotoStrip}
             />
 
             <Pressable
@@ -775,6 +870,23 @@ const styles = StyleSheet.create({
   },
   notesInput: {
     minHeight: 120,
+  },
+  photoHeader: {
+    alignItems: 'center',
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+  },
+  photoLabel: {
+    marginBottom: 0,
+  },
+  addPhotosButton: {
+    alignItems: 'center',
+    flexDirection: 'row',
+    gap: 4,
+    minHeight: 44,
+  },
+  formPhotoStrip: {
+    marginTop: 12,
   },
   ratingRow: {
     flexDirection: 'row',

@@ -10,6 +10,8 @@ import { LandLabels, ParkLabels } from '@/constants/ride-labels';
 import { Colors } from '@/constants/theme';
 import { getRideLogo } from '@/data/ride-images';
 import { seedRides } from '@/data/rides';
+import { getRideLogPhotos } from '@/models/ride-log';
+import { RideLogPhotos } from '@/components/ride-log-photos';
 
 export default function DiaryScreen() {
   const colors = Colors.light;
@@ -111,120 +113,132 @@ export default function DiaryScreen() {
                   );
 
                   return (
-                    <Pressable
-                      accessibilityLabel={`Edit ${ride.name} ride log`}
-                      accessibilityRole='button'
+                    <View
                       key={log.id}
-                      onPress={() =>
-                        router.push({
-                          pathname: '/log',
-                          params: { rideId: log.rideId, logId: log.id },
-                        })
-                      }
                       style={[
                         styles.entry,
                         index < logs.length - 1 && styles.entryDivider,
                         { borderBottomColor: colors.backgroundSelected },
                       ]}
                     >
-                      <View
-                        style={[
-                          styles.rideLogo,
-                          { backgroundColor: colors.backgroundElement },
-                        ]}
+                      <Pressable
+                        accessibilityLabel={`Edit ${ride.name} ride log`}
+                        accessibilityRole='button'
+                        onPress={() =>
+                          router.push({
+                            pathname: '/log',
+                            params: { rideId: log.rideId, logId: log.id },
+                          })
+                        }
+                        style={styles.entryMain}
                       >
-                        {logo ? (
-                          <Image
-                            contentFit='cover'
-                            recyclingKey={ride.id}
-                            source={logo}
-                            style={styles.rideLogoImage}
-                          />
-                        ) : (
+                        <View
+                          style={[
+                            styles.rideLogo,
+                            { backgroundColor: colors.backgroundElement },
+                          ]}
+                        >
+                          {logo ? (
+                            <Image
+                              contentFit='cover'
+                              recyclingKey={ride.id}
+                              source={logo}
+                              style={styles.rideLogoImage}
+                            />
+                          ) : (
+                            <Text
+                              style={[
+                                styles.logoFallback,
+                                { color: colors.textSecondary },
+                              ]}
+                            >
+                              {ride.name.charAt(0)}
+                            </Text>
+                          )}
+                        </View>
+                        <View style={styles.entryCopy}>
+                          <View style={styles.titleRow}>
+                            <Text
+                              style={[styles.rideName, { color: colors.text }]}
+                            >
+                              {ride.name}
+                            </Text>
+                            <View style={styles.ratingRow}>
+                              {[1, 2, 3, 4, 5].map((star) => {
+                                const rating = log.rating ?? 0;
+                                const isFull = rating >= star;
+                                const isHalf = !isFull && rating >= star - 0.5;
+
+                                return (
+                                  <SymbolView
+                                    key={star}
+                                    name={{
+                                      ios: isFull
+                                        ? 'star.fill'
+                                        : isHalf
+                                          ? 'star.leadinghalf.filled'
+                                          : 'star',
+                                      android: isFull
+                                        ? 'star'
+                                        : isHalf
+                                          ? 'star_half'
+                                          : 'star_outline',
+                                      web: isFull
+                                        ? 'star'
+                                        : isHalf
+                                          ? 'star_half'
+                                          : 'star_outline',
+                                    }}
+                                    size={16}
+                                    tintColor={
+                                      isFull || isHalf
+                                        ? colors.accent
+                                        : colors.backgroundSelected
+                                    }
+                                  />
+                                );
+                              })}
+                            </View>
+                          </View>
                           <Text
                             style={[
-                              styles.logoFallback,
+                              styles.metadata,
                               { color: colors.textSecondary },
                             ]}
                           >
-                            {ride.name.charAt(0)}
+                            {dateTime(log.visitedAt)} -{' '}
+                            {log.waitTimeMinutes === null
+                              ? 'Wait not recorded'
+                              : `${log.waitTimeMinutes} min wait`}
                           </Text>
-                        )}
-                      </View>
-                      <View style={styles.entryCopy}>
-                        <View style={styles.titleRow}>
                           <Text
-                            style={[styles.rideName, { color: colors.text }]}
+                            style={[
+                              styles.metadata,
+                              { color: colors.textSecondary },
+                            ]}
                           >
-                            {ride.name}
+                            <Text style={styles.parkName}>
+                              {ParkLabels[ride.park]}
+                            </Text>
+                            {' - '}
+                            {LandLabels[ride.land]}
                           </Text>
-                          <View style={styles.ratingRow}>
-                            {[1, 2, 3, 4, 5].map((star) => {
-                              const rating = log.rating ?? 0;
-                              const isFull = rating >= star;
-                              const isHalf = !isFull && rating >= star - 0.5;
-
-                              return (
-                                <SymbolView
-                                  key={star}
-                                  name={{
-                                    ios: isFull
-                                      ? 'star.fill'
-                                      : isHalf
-                                        ? 'star.leadinghalf.filled'
-                                        : 'star',
-                                    android: isFull
-                                      ? 'star'
-                                      : isHalf
-                                        ? 'star_half'
-                                        : 'star_outline',
-                                    web: isFull
-                                      ? 'star'
-                                      : isHalf
-                                        ? 'star_half'
-                                        : 'star_outline',
-                                  }}
-                                  size={16}
-                                  tintColor={
-                                    isFull || isHalf
-                                      ? colors.accent
-                                      : colors.backgroundSelected
-                                  }
-                                />
-                              );
-                            })}
-                          </View>
+                          {log.notes.length > 0 && (
+                            <Text
+                              style={[styles.notes, { color: colors.text }]}
+                            >
+                              {log.notes}
+                            </Text>
+                          )}
                         </View>
-                        <Text
-                          style={[
-                            styles.metadata,
-                            { color: colors.textSecondary },
-                          ]}
-                        >
-                          {dateTime(log.visitedAt)} -{' '}
-                          {log.waitTimeMinutes === null
-                            ? 'Wait not recorded'
-                            : `${log.waitTimeMinutes} min wait`}
-                        </Text>
-                        <Text
-                          style={[
-                            styles.metadata,
-                            { color: colors.textSecondary },
-                          ]}
-                        >
-                          <Text style={styles.parkName}>
-                            {ParkLabels[ride.park]}
-                          </Text>
-                          {' - '}
-                          {LandLabels[ride.land]}
-                        </Text>
-                        {log.notes.length > 0 && (
-                          <Text style={[styles.notes, { color: colors.text }]}>
-                            {log.notes}
-                          </Text>
-                        )}
-                      </View>
-                    </Pressable>
+                      </Pressable>
+                      {getRideLogPhotos(log).length > 0 && (
+                        <RideLogPhotos
+                          photos={getRideLogPhotos(log)}
+                          style={styles.photoGallery}
+                        />
+                      )}
+                    </View>
                   );
                 })}
               </View>
@@ -303,10 +317,12 @@ const styles = StyleSheet.create({
     textTransform: 'uppercase',
   },
   entry: {
-    alignItems: 'flex-start',
-    flexDirection: 'row',
     paddingBottom: 16,
     paddingTop: 16,
+  },
+  entryMain: {
+    alignItems: 'flex-start',
+    flexDirection: 'row',
   },
   entryDivider: {
     borderBottomWidth: StyleSheet.hairlineWidth,
@@ -360,6 +376,10 @@ const styles = StyleSheet.create({
     fontSize: 14,
     lineHeight: 20,
     marginTop: 6,
+  },
+  photoGallery: {
+    marginLeft: 64,
+    marginTop: 10,
   },
 });
 

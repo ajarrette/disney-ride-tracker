@@ -5,8 +5,16 @@ export interface RideLog {
   visitedAt: string;
   waitTimeMinutes: number | null;
   notes: string;
-  photoUrl: string | null;
+  photos?: string[];
+  photoUrl?: string | null;
   rating: number | null;
   createdAt: string;
   updatedAt: string;
 }
+
+export const getRideLogPhotos = (rideLog: RideLog) =>
+  rideLog.photos !== undefined
+    ? rideLog.photos
+    : rideLog.photoUrl
+      ? [rideLog.photoUrl]
+      : [];

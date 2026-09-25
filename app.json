@@ -26,6 +26,13 @@
     "plugins": [
       "expo-router",
       [
+        "expo-image-picker",
+        {
+          "microphonePermission": false,
+          "photosPermission": "Allow Disney Ride Tracker to attach selected photos to ride logs."
+        }
+      ],
+      [
         "expo-splash-screen",
         {
           "backgroundColor": "#208AEF",
