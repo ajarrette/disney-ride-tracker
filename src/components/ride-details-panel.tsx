@@ -432,6 +432,11 @@ const styles = StyleSheet.create({
     fontSize: 16,
     lineHeight: 22,
   },
+  dataAttribution: {
+    fontSize: 10,
+    lineHeight: 14,
+    marginTop: 2,
+  },
   featureSection: {
     alignItems: 'center',
     borderBottomColor: '#c7d7e8',

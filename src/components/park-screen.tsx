@@ -228,6 +228,13 @@ const styles = StyleSheet.create({
     borderBottomWidth: StyleSheet.hairlineWidth,
     backgroundColor: Colors.light.background,
   },
+  dataAttribution: {
+    color: Colors.light.textSecondary,
+    fontSize: 10,
+    paddingBottom: 8,
+    paddingHorizontal: 16,
+    textAlign: 'right',
+  },
   parkTabs: {
     flexDirection: 'row',
     paddingHorizontal: 8,
