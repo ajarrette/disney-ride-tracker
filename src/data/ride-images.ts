@@ -145,6 +145,7 @@ export const getRideLogo = (
   logoUrl: string | null,
   backgroundUrl: string | null,
 ): ImageSource | null => {
+  if (logoUrl?.startsWith('https://')) return { uri: logoUrl };
   if (logoUrl && rideLogos[park]?.[logoUrl]) {
     return rideLogos[park][logoUrl];
   }
@@ -157,5 +158,9 @@ export const getRideLogo = (
 export const getRideBackground = (
   park: Park,
   backgroundUrl: string | null,
-): ImageSource | null =>
-  backgroundUrl ? (rideBackgrounds[park]?.[backgroundUrl] ?? null) : null;
+): ImageSource | null => {
+  if (backgroundUrl?.startsWith('https://')) return { uri: backgroundUrl };
+  return backgroundUrl
+    ? (rideBackgrounds[park]?.[backgroundUrl] ?? null)
+    : null;
+};

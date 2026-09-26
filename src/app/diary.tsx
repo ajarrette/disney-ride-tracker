@@ -1,15 +1,23 @@
 import { Image } from 'expo-image';
 import { useState } from 'react';
-import { Animated, Pressable, StyleSheet, Text, View } from 'react-native';
+import {
+  Alert,
+  Animated,
+  Pressable,
+  StyleSheet,
+  Text,
+  View,
+} from 'react-native';
 import { router } from 'expo-router';
 import { SymbolView } from 'expo-symbols';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { useAppState } from '@/components/app-state';
+import { useRideCatalog } from '@/components/ride-catalog-provider';
 import { LandLabels, ParkLabels } from '@/constants/ride-labels';
 import { Colors } from '@/constants/theme';
 import { getRideLogo } from '@/data/ride-images';
-import { seedRides } from '@/data/rides';
+import { supabase } from '@/data/supabase';
 import { getRideLogPhotos } from '@/models/ride-log';
 import { RideLogPhotos } from '@/components/ride-log-photos';
 
@@ -18,7 +26,8 @@ export default function DiaryScreen() {
   const insets = useSafeAreaInsets();
   const [scrollY] = useState(() => new Animated.Value(0));
   const { rideLogs } = useAppState();
-  const ridesById = new Map(seedRides.map((ride) => [ride.id, ride]));
+  const { rides } = useRideCatalog();
+  const ridesById = new Map(rides.map((ride) => [ride.id, ride]));
   const groupedLogs = new Map<string, typeof rideLogs>();
 
   [...rideLogs]
@@ -49,6 +58,12 @@ export default function DiaryScreen() {
     outputRange: [0, 1],
     extrapolate: 'clamp',
   });
+
+  const signOut = async () => {
+    if (!supabase) return;
+    const { error } = await supabase.auth.signOut();
+    if (error) Alert.alert('Unable to sign out', error.message);
+  };
 
   return (
     <View style={[styles.container, { backgroundColor: colors.background }]}>
@@ -262,13 +277,14 @@ export default function DiaryScreen() {
         )}
       </Animated.ScrollView>
       <View
-        pointerEvents='none'
+        pointerEvents='box-none'
         style={[
           styles.header,
           { height: insets.top + 44, paddingTop: insets.top },
         ]}
       >
         <Animated.View
+          pointerEvents='none'
           style={[
             StyleSheet.absoluteFill,
             {
@@ -278,6 +294,7 @@ export default function DiaryScreen() {
           ]}
         />
         <Animated.Text
+          pointerEvents='none'
           style={[
             styles.compactTitle,
             { color: colors.text, opacity: compactTitleOpacity },
@@ -285,6 +302,22 @@ export default function DiaryScreen() {
         >
           Diary
         </Animated.Text>
+        <Pressable
+          accessibilityLabel='Sign out'
+          accessibilityRole='button'
+          onPress={() => void signOut()}
+          style={[styles.signOutButton, { top: insets.top + 2 }]}
+        >
+          <SymbolView
+            name={{
+              ios: 'rectangle.portrait.and.arrow.right',
+              android: 'logout',
+              web: 'logout',
+            }}
+            size={20}
+            tintColor={colors.textSecondary}
+          />
+        </Pressable>
       </View>
     </View>
   );
@@ -316,6 +349,14 @@ const styles = StyleSheet.create({
     fontSize: 17,
     fontWeight: '600',
     textAlign: 'center',
+  },
+  signOutButton: {
+    alignItems: 'center',
+    height: 40,
+    justifyContent: 'center',
+    position: 'absolute',
+    right: 12,
+    width: 40,
   },
   emptyText: {
     fontSize: 16,

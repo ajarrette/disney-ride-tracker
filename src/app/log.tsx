@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import {
+  ActivityIndicator,
   Alert,
   Animated,
   Dimensions,
@@ -27,12 +28,12 @@ import * as ImagePicker from 'expo-image-picker';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { useAppState } from '@/components/app-state';
+import { useRideCatalog } from '@/components/ride-catalog-provider';
 import { RideListItem } from '@/components/ride-list-item';
 import { RideLogPhotos } from '@/components/ride-log-photos';
 import { LandLabels, ParkLabels } from '@/constants/ride-labels';
 import { Colors, Fonts } from '@/constants/theme';
 import { getRideBackground } from '@/data/ride-images';
-import { seedRides } from '@/data/rides';
 import { Ride } from '@/models/ride';
 import { getRideLogPhotos } from '@/models/ride-log';
 
@@ -54,21 +55,6 @@ const formatVisitedAt = (value: Date) =>
     hour: 'numeric',
     minute: '2-digit',
   })}`;
-
-const ridesWithSearchText = seedRides
-  .map((ride) => ({
-    ride,
-    searchText: [
-      ride.name,
-      ParkLabels[ride.park],
-      formatLabel(ride.attractionType),
-      ...ride.warnings.map(formatLabel),
-      LandLabels[ride.land],
-    ]
-      .join(' ')
-      .toLocaleLowerCase(),
-  }))
-  .sort((first, second) => first.ride.name.localeCompare(second.ride.name));
 
 export default function LogScreen() {
   const colors = Colors.light;
@@ -93,7 +79,10 @@ export default function LogScreen() {
     recentRideSearches,
     setTabBarHidden,
   } = useAppState();
+  const { rides, isLoading, hasError } = useRideCatalog();
   const rideLogsRef = useRef(rideLogs);
+  const ridesRef = useRef(rides);
+  const pendingRideIdRef = useRef<string | null>(null);
   const existingLog = rideLogs.find((log) => log.id === logId);
   const [panelPosition] = useState(() => new Animated.Value(panelOffset));
   const [scrollY] = useState(() => new Animated.Value(0));
@@ -135,15 +124,31 @@ export default function LogScreen() {
     rideLogsRef.current = rideLogs;
   }, [rideLogs]);
 
+  useEffect(() => {
+    ridesRef.current = rides;
+    if (!pendingRideIdRef.current) return;
+
+    const pendingRide = rides.find(
+      (ride) => ride.id === pendingRideIdRef.current,
+    );
+    if (pendingRide) {
+      setSelectedRide(pendingRide);
+      pendingRideIdRef.current = null;
+    }
+  }, [rides]);
+
   useFocusEffect(
     useCallback(() => {
       if (logId) Keyboard.dismiss();
       setTabBarHidden(true);
       setQuery('');
       const log = rideLogsRef.current.find((entry) => entry.id === logId);
-      setSelectedRide(
-        seedRides.find((ride) => ride.id === (log?.rideId ?? rideId)) ?? null,
+      const selectedRideId = log?.rideId ?? rideId;
+      const initialRide = ridesRef.current.find(
+        (ride) => ride.id === selectedRideId,
       );
+      pendingRideIdRef.current = initialRide ? null : (selectedRideId ?? null);
+      setSelectedRide(initialRide ?? null);
       setWaitTime(
         log?.waitTimeMinutes === null || log?.waitTimeMinutes === undefined
           ? ''
@@ -182,6 +187,20 @@ export default function LogScreen() {
   );
 
   const normalizedQuery = query.trim().toLocaleLowerCase();
+  const ridesWithSearchText = rides
+    .map((ride) => ({
+      ride,
+      searchText: [
+        ride.name,
+        ParkLabels[ride.park],
+        formatLabel(ride.attractionType),
+        ...ride.warnings.map(formatLabel),
+        LandLabels[ride.land],
+      ]
+        .join(' ')
+        .toLocaleLowerCase(),
+    }))
+    .sort((first, second) => first.ride.name.localeCompare(second.ride.name));
   const filteredRides = normalizedQuery
     ? ridesWithSearchText
         .filter(({ searchText }) => searchText.includes(normalizedQuery))
@@ -229,6 +248,7 @@ export default function LogScreen() {
   const recordRecentSearch = () => addRecentRideSearch(query);
 
   const chooseRide = (ride: Ride) => {
+    pendingRideIdRef.current = null;
     recordRecentSearch();
     scrollY.setValue(0);
     setSelectedRide(ride);
@@ -492,7 +512,10 @@ export default function LogScreen() {
             {!logId && (
               <Pressable
                 accessibilityRole='button'
-                onPress={() => setSelectedRide(null)}
+                onPress={() => {
+                  pendingRideIdRef.current = null;
+                  setSelectedRide(null);
+                }}
                 style={styles.changeRideButton}
               >
                 <Text style={[styles.changeRideText, { color: colors.accent }]}>
@@ -804,7 +827,19 @@ export default function LogScreen() {
                 ) : null
               }
               ListEmptyComponent={
-                normalizedQuery || recentRideSearches.length === 0 ? (
+                isLoading ? (
+                  <ActivityIndicator
+                    color={colors.accent}
+                    style={{ marginTop: 24 }}
+                  />
+                ) : hasError && rides.length === 0 ? (
+                  <Text
+                    style={[styles.emptyText, { color: colors.textSecondary }]}
+                  >
+                    Ride catalog unavailable. Check your connection and Supabase
+                    configuration.
+                  </Text>
+                ) : normalizedQuery || recentRideSearches.length === 0 ? (
                   <Text
                     style={[styles.emptyText, { color: colors.textSecondary }]}
                   >

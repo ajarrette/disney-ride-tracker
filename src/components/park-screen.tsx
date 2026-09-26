@@ -1,10 +1,12 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { Image, type ImageSource } from 'expo-image';
 import {
+  ActivityIndicator,
   Animated,
   Dimensions,
   Pressable,
   StyleSheet,
+  Text,
   View,
 } from 'react-native';
 import { router } from 'expo-router';
@@ -20,7 +22,7 @@ import {
   normalizeRideName,
   RideLiveData,
 } from '@/data/live-wait-times';
-import { seedRides } from '@/data/rides';
+import { useRideCatalog } from '@/components/ride-catalog-provider';
 import { Park, Ride } from '@/models/ride';
 
 type ParkScreenProps = {
@@ -65,6 +67,7 @@ export function ParkScreen({ park }: ParkScreenProps) {
   const colors = Colors.light;
   const insets = useSafeAreaInsets();
   const { setRideDetailsOpen } = useAppState();
+  const { rides: catalogRides, isLoading, hasError } = useRideCatalog();
   const [selectedPark, setSelectedPark] = useState(park);
   const [selectedRide, setSelectedRide] = useState<Ride | null>(null);
   const [panelPosition] = useState(() => new Animated.Value(panelWidth));
@@ -74,7 +77,7 @@ export function ParkScreen({ park }: ParkScreenProps) {
   const [loadingParks, setLoadingParks] = useState<Set<Park>>(() => new Set());
   const loadedParks = useRef(new Set<Park>());
   const pendingParks = useRef(new Set<Park>());
-  const rides = seedRides
+  const rides = catalogRides
     .filter((ride) => ride.park === selectedPark)
     .sort((firstRide, secondRide) =>
       firstRide.name.localeCompare(secondRide.name),
@@ -196,6 +199,18 @@ export function ParkScreen({ park }: ParkScreenProps) {
           data={rides}
           extraData={liveDataByPark[selectedPark]}
           keyExtractor={(ride) => ride.id}
+          ListEmptyComponent={
+            isLoading ? (
+              <ActivityIndicator color={colors.accent} />
+            ) : hasError ? (
+              <Text
+                style={[styles.catalogMessage, { color: colors.textSecondary }]}
+              >
+                Ride catalog unavailable. Check your connection and Supabase
+                configuration.
+              </Text>
+            ) : null
+          }
           onRefresh={() => loadLiveData(selectedPark)}
           renderItem={renderRide}
           refreshing={loadingParks.has(selectedPark)}
@@ -233,6 +248,11 @@ const styles = StyleSheet.create({
   },
   listContent: {
     padding: 24,
+  },
+  catalogMessage: {
+    lineHeight: 20,
+    paddingVertical: 24,
+    textAlign: 'center',
   },
   parkHeader: {
     borderBottomColor: '#dce7f2',
