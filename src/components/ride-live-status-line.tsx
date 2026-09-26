@@ -6,12 +6,16 @@ import { RideLiveData } from '@/data/live-wait-times';
 export function RideLiveStatusLine({
   liveStatus,
   color: colorOverride,
+  reserveSpaceWhenEmpty = false,
 }: {
   liveStatus?: RideLiveData;
   color?: string;
+  reserveSpaceWhenEmpty?: boolean;
 }) {
   if (!liveStatus) {
-    return null;
+    return reserveSpaceWhenEmpty ? (
+      <View style={[styles.liveStatusRow, styles.liveStatusPlaceholder]} />
+    ) : null;
   }
 
   const label =
@@ -86,6 +90,9 @@ const styles = StyleSheet.create({
     fontSize: 15,
     lineHeight: 21,
     marginTop: 2,
+  },
+  liveStatusPlaceholder: {
+    height: 23,
   },
   waitNumber: {
     fontWeight: '700',

@@ -16,6 +16,7 @@ export function RideListItem({
   isDragging = false,
   drag,
   liveStatus,
+  reserveLiveStatusSpace = false,
   onPress,
 }: {
   ride: Ride;
@@ -24,6 +25,7 @@ export function RideListItem({
   isDragging?: boolean;
   drag?: () => void;
   liveStatus?: RideLiveData;
+  reserveLiveStatusSpace?: boolean;
   onPress: (ride: Ride) => void;
 }) {
   const colors = Colors.light;
@@ -73,6 +75,7 @@ export function RideListItem({
         <RideLiveStatusLine
           color={isClosedStatus ? undefined : rideTextColor}
           liveStatus={liveStatus}
+          reserveSpaceWhenEmpty={reserveLiveStatusSpace}
         />
       </View>
       <View accessibilityElementsHidden style={styles.rideIndicators}>

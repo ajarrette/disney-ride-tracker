@@ -15,6 +15,7 @@ import {
 type RidePreferencesContextValue = {
   pinnedRideIds: Set<string>;
   pinnedRideOrder: string[];
+  isLoading: boolean;
   setRidePinned: (rideId: string, isPinned: boolean) => void;
   setPinnedRideOrder: (rideIds: string[]) => void;
 };
@@ -27,6 +28,7 @@ export function RidePreferencesProvider({ children }: React.PropsWithChildren) {
     () => new Set(),
   );
   const [pinnedRideOrder, setPinnedRideOrderState] = useState<string[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
   const pinnedRideIdsRef = useRef(pinnedRideIds);
   const pinnedRideOrderRef = useRef(pinnedRideOrder);
   const locallyChangedRideIds = useRef(new Set<string>());
@@ -90,14 +92,17 @@ export function RidePreferencesProvider({ children }: React.PropsWithChildren) {
         const previousOrder = pinnedRideOrderRef.current;
         updatePinnedRideOrder(nextOrder);
         preferencesLoaded.current = true;
+        setIsLoading(false);
         if (pendingPinChanges.current.size > 0) {
           pendingPinChanges.current.clear();
           persistPinnedRideOrder(nextOrder, previousOrder);
         }
       })
       .catch((error) => {
+        if (!isMounted) return;
         console.warn('Unable to load ride preferences.', error);
         preferencesLoaded.current = true;
+        setIsLoading(false);
         if (pendingPinChanges.current.size > 0) {
           pendingPinChanges.current.clear();
           persistPinnedRideOrder(
@@ -135,6 +140,7 @@ export function RidePreferencesProvider({ children }: React.PropsWithChildren) {
       value={{
         pinnedRideIds,
         pinnedRideOrder,
+        isLoading,
         setRidePinned,
         setPinnedRideOrder,
       }}

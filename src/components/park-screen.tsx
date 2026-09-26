@@ -67,8 +67,13 @@ export function ParkScreen({ park }: ParkScreenProps) {
   const insets = useSafeAreaInsets();
   const { setRideDetailsOpen } = useAppState();
   const { rides: catalogRides, isLoading, hasError } = useRideCatalog();
-  const { pinnedRideIds, pinnedRideOrder, setRidePinned, setPinnedRideOrder } =
-    useRidePreferences();
+  const {
+    pinnedRideIds,
+    pinnedRideOrder,
+    isLoading: isPreferencesLoading,
+    setRidePinned,
+    setPinnedRideOrder,
+  } = useRidePreferences();
   const [selectedPark, setSelectedPark] = useState(park);
   const [selectedRide, setSelectedRide] = useState<Ride | null>(null);
   const [panelPosition] = useState(() => new Animated.Value(panelWidth));
@@ -178,6 +183,7 @@ export function ParkScreen({ park }: ParkScreenProps) {
           bottomInset={insets.bottom}
           hasCatalogError={hasError}
           isCatalogLoading={isLoading}
+          isPreferencesLoading={isPreferencesLoading}
           isRefreshing={loadingParks.has(selectedPark)}
           liveData={liveDataByPark[selectedPark]}
           onPinnedRideOrderChange={setPinnedRideOrder}

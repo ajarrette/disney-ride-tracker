@@ -15,6 +15,7 @@ type ParkRideListProps = {
   onPinnedRideOrderChange: (rideIds: string[]) => void;
   onRidePress: (ride: Ride) => void;
   isCatalogLoading: boolean;
+  isPreferencesLoading: boolean;
   hasCatalogError: boolean;
   isRefreshing: boolean;
   onRefresh: () => void;
@@ -29,6 +30,7 @@ export function ParkRideList({
   onPinnedRideOrderChange,
   onRidePress,
   isCatalogLoading,
+  isPreferencesLoading,
   hasCatalogError,
   isRefreshing,
   onRefresh,
@@ -51,6 +53,10 @@ export function ParkRideList({
     .sort((firstRide, secondRide) =>
       firstRide.name.localeCompare(secondRide.name),
     );
+
+  if (isCatalogLoading || isPreferencesLoading) {
+    return <RideListSkeleton bottomInset={bottomInset} />;
+  }
 
   const renderPinnedRide = ({
     item,
@@ -76,6 +82,7 @@ export function ParkRideList({
         liveStatus={liveData?.[normalizeRideName(item.name)]}
         onPress={onRidePress}
         ride={item}
+        reserveLiveStatusSpace
       />
     );
   };
@@ -102,6 +109,7 @@ export function ParkRideList({
           liveStatus={liveData?.[normalizeRideName(ride.name)]}
           onPress={onRidePress}
           ride={ride}
+          reserveLiveStatusSpace
         />
       ))}
     </View>
@@ -156,6 +164,29 @@ export function ParkRideList({
   );
 }
 
+function RideListSkeleton({ bottomInset }: { bottomInset: number }) {
+  return (
+    <View
+      accessibilityLabel='Loading rides'
+      style={[
+        styles.listContent,
+        { paddingBottom: bottomInset + BottomTabInset + 24 },
+      ]}
+    >
+      {Array.from({ length: 6 }, (_, index) => (
+        <View key={index} style={styles.skeletonRow}>
+          <View style={styles.skeletonLogo} />
+          <View style={styles.skeletonCopy}>
+            <View style={[styles.skeletonBar, styles.skeletonTitle]} />
+            <View style={[styles.skeletonBar, styles.skeletonSubtitle]} />
+            <View style={[styles.skeletonBar, styles.skeletonStatus]} />
+          </View>
+        </View>
+      ))}
+    </View>
+  );
+}
+
 const styles = StyleSheet.create({
   listContent: {
     padding: 24,
@@ -181,5 +212,40 @@ const styles = StyleSheet.create({
     lineHeight: 20,
     paddingVertical: 24,
     textAlign: 'center',
+  },
+  skeletonRow: {
+    alignItems: 'center',
+    borderBottomColor: '#e3e7eb',
+    borderBottomWidth: StyleSheet.hairlineWidth,
+    flexDirection: 'row',
+    minHeight: 76,
+    paddingVertical: 14,
+  },
+  skeletonLogo: {
+    backgroundColor: '#edf0f3',
+    borderRadius: 28,
+    height: 56,
+    marginRight: 16,
+    width: 56,
+  },
+  skeletonCopy: {
+    flex: 1,
+    gap: 7,
+  },
+  skeletonBar: {
+    backgroundColor: '#edf0f3',
+    borderRadius: 3,
+    height: 10,
+  },
+  skeletonTitle: {
+    height: 14,
+    width: '68%',
+  },
+  skeletonSubtitle: {
+    width: '38%',
+  },
+  skeletonStatus: {
+    height: 8,
+    width: '24%',
   },
 });
