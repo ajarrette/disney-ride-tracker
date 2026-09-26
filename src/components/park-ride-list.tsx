@@ -14,6 +14,13 @@ import { BottomTabInset, Colors } from '@/constants/theme';
 import { RideLiveData, normalizeRideName } from '@/data/live-wait-times';
 import { Ride } from '@/models/ride';
 
+function compareRideNames(firstRide: Ride, secondRide: Ride) {
+  const firstName = firstRide.name.replace(/^(?:a|an|the)\s+/i, '');
+  const secondName = secondRide.name.replace(/^(?:a|an|the)\s+/i, '');
+
+  return firstName.localeCompare(secondName);
+}
+
 type ParkRideListProps = {
   rides: Ride[];
   liveData?: Record<string, RideLiveData>;
@@ -49,9 +56,7 @@ export function ParkRideList({
   const [showHiddenRides, setShowHiddenRides] = useState(false);
   const hiddenRides = rides
     .filter((ride) => hiddenRideIds.has(ride.id))
-    .sort((firstRide, secondRide) =>
-      firstRide.name.localeCompare(secondRide.name),
-    );
+    .sort(compareRideNames);
   const visibleRides = rides.filter((ride) => !hiddenRideIds.has(ride.id));
   const rideOrder = new Map(
     pinnedRideOrder.map((rideId, index) => [rideId, index]),
@@ -62,13 +67,11 @@ export function ParkRideList({
       (firstRide, secondRide) =>
         (rideOrder.get(firstRide.id) ?? Number.MAX_SAFE_INTEGER) -
           (rideOrder.get(secondRide.id) ?? Number.MAX_SAFE_INTEGER) ||
-        firstRide.name.localeCompare(secondRide.name),
+        compareRideNames(firstRide, secondRide),
     );
   const unpinnedRides = visibleRides
     .filter((ride) => !pinnedRideIds.has(ride.id))
-    .sort((firstRide, secondRide) =>
-      firstRide.name.localeCompare(secondRide.name),
-    );
+    .sort(compareRideNames);
 
   if (isCatalogLoading || isPreferencesLoading) {
     return <RideListSkeleton bottomInset={bottomInset} />;
