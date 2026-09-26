@@ -1,11 +1,10 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { Image } from 'expo-image';
+import { Image, type ImageSource } from 'expo-image';
 import {
   Animated,
   Dimensions,
   Pressable,
   StyleSheet,
-  Text,
   View,
 } from 'react-native';
 import { router } from 'expo-router';
@@ -29,21 +28,38 @@ type ParkScreenProps = {
 };
 
 const panelWidth = Dimensions.get('window').width;
-const parkTabs = [
+const parkTabs: {
+  park: Park;
+  unselectedIcon: ImageSource;
+  selectedIcon?: ImageSource;
+}[] = [
   {
     park: Park.MagicKingdom,
-    icon: require('@/assets/images/tabIcons/magic-kingdom.png'),
+    unselectedIcon: require('@/assets/images/magic-kingdom-icon.png'),
+    selectedIcon: require('@/assets/images/magic-kingdom-selected-icon.png'),
   },
-  { park: Park.Epcot, icon: require('@/assets/images/tabIcons/epcot.png') },
+  {
+    park: Park.Epcot,
+    unselectedIcon: require('@/assets/images/epcot-icon.png'),
+    selectedIcon: require('@/assets/images/epcot-selected-icon.png'),
+  },
   {
     park: Park.HollywoodStudios,
-    icon: require('@/assets/images/tabIcons/hollywood-studios.png'),
+    unselectedIcon: require('@/assets/images/hollywood-studios-icon.png'),
+    selectedIcon: require('@/assets/images/hollywood-studios-selected-icon.png'),
   },
   {
     park: Park.AnimalKingdom,
-    icon: require('@/assets/images/tabIcons/animal-kingdom.png'),
+    unselectedIcon: require('@/assets/images/animal-kingdom-icon.png'),
+    selectedIcon: require('@/assets/images/animal-kingdom-selected-icon.png'),
   },
 ];
+const parkSelectionColors: Partial<Record<Park, string>> = {
+  [Park.MagicKingdom]: '#4CA1D4',
+  [Park.Epcot]: '#766FB0',
+  [Park.HollywoodStudios]: '#9C5D32',
+  [Park.AnimalKingdom]: '#78AE70',
+};
 
 export function ParkScreen({ park }: ParkScreenProps) {
   const colors = Colors.light;
@@ -140,38 +156,33 @@ export function ParkScreen({ park }: ParkScreenProps) {
       <View style={[styles.listViewport, { paddingTop: insets.top }]}>
         <View style={styles.parkHeader}>
           <View style={styles.parkTabs}>
-            {parkTabs.map(({ park: parkOption, icon }) => (
-              <Pressable
-                key={parkOption}
-                accessibilityRole='tab'
-                accessibilityLabel={ParkLabels[parkOption]}
-                accessibilityState={{ selected: parkOption === selectedPark }}
-                onPress={() => setSelectedPark(parkOption)}
-                style={[
-                  styles.parkTab,
-                  parkOption === selectedPark && styles.parkTabSelected,
-                ]}
-              >
-                <Image
-                  source={icon}
+            {parkTabs.map(
+              ({ park: parkOption, unselectedIcon, selectedIcon }) => (
+                <Pressable
+                  key={parkOption}
+                  accessibilityRole='tab'
+                  accessibilityLabel={ParkLabels[parkOption]}
+                  accessibilityState={{ selected: parkOption === selectedPark }}
+                  onPress={() => setSelectedPark(parkOption)}
                   style={[
-                    styles.parkIcon,
-                    {
-                      tintColor:
-                        parkOption === selectedPark ? colors.accent : '#263d5a',
+                    styles.parkTab,
+                    parkOption === selectedPark && {
+                      borderBottomColor:
+                        parkSelectionColors[parkOption] ?? colors.accent,
                     },
                   ]}
-                />
-                <Text
-                  style={[
-                    styles.parkTabLabel,
-                    parkOption === selectedPark && styles.parkTabLabelSelected,
-                  ]}
                 >
-                  {ParkLabels[parkOption]}
-                </Text>
-              </Pressable>
-            ))}
+                  <Image
+                    source={
+                      parkOption === selectedPark
+                        ? (selectedIcon ?? unselectedIcon)
+                        : unselectedIcon
+                    }
+                    style={styles.parkIcon}
+                  />
+                </Pressable>
+              ),
+            )}
           </View>
         </View>
         <Animated.FlatList
@@ -242,27 +253,14 @@ const styles = StyleSheet.create({
   parkTab: {
     alignItems: 'center',
     flex: 1,
-    gap: 6,
-    height: 88,
+    height: 64,
     justifyContent: 'center',
     paddingHorizontal: 2,
     borderBottomWidth: 3,
     borderBottomColor: 'transparent',
   },
   parkIcon: {
-    width: 32,
-    height: 32,
-  },
-  parkTabSelected: {
-    borderBottomColor: Colors.light.accent,
-  },
-  parkTabLabel: {
-    color: '#263d5a',
-    fontSize: 12,
-    fontWeight: '600',
-    textAlign: 'center',
-  },
-  parkTabLabelSelected: {
-    color: Colors.light.accent,
+    width: 48,
+    height: 48,
   },
 });

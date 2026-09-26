@@ -396,7 +396,7 @@ export const seedRides: Ride[] = [
   }),
   createSeedRide({
     id: 'epcot-soarin-around-the-world',
-    name: "Soarin' Around the World",
+    name: "Soarin' Across America",
     park: Park.Epcot,
     land: Land.WorldNature,
     backgroundUrl: 'soarin-around-the-world-background.jpg',
