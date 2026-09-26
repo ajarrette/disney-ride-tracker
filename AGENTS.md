@@ -51,3 +51,4 @@ Docs: https://docs.expo.dev/eas/index.md
 ## General
 
 - Ask clarifying questions rather than guessing
+- Try to keep code files less than 350 lines
