@@ -14,6 +14,7 @@ import { SymbolView } from 'expo-symbols';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { useAppState } from '@/components/app-state';
+import { MickeyRatingMark } from '@/components/mickey-rating-mark';
 import { useRideCatalog } from '@/components/ride-catalog-provider';
 import { LandLabels, ParkLabels } from '@/constants/ride-labels';
 import { Colors } from '@/constants/theme';
@@ -215,32 +216,26 @@ export default function DiaryScreen() {
                                 const isHalf = !isFull && rating >= star - 0.5;
 
                                 return (
-                                  <SymbolView
-                                    key={star}
-                                    name={{
-                                      ios: isFull
-                                        ? 'star.fill'
-                                        : isHalf
-                                          ? 'star.leadinghalf.filled'
-                                          : 'star',
-                                      android: isFull
-                                        ? 'star'
-                                        : isHalf
-                                          ? 'star_half'
-                                          : 'star_outline',
-                                      web: isFull
-                                        ? 'star'
-                                        : isHalf
-                                          ? 'star_half'
-                                          : 'star_outline',
-                                    }}
-                                    size={16}
-                                    tintColor={
-                                      isFull || isHalf
-                                        ? colors.accent
-                                        : colors.backgroundSelected
-                                    }
-                                  />
+                                  <View key={star} style={styles.ratingMark}>
+                                    <MickeyRatingMark
+                                      color={
+                                        isFull
+                                          ? colors.accent
+                                          : colors.backgroundSelected
+                                      }
+                                      filled={isFull}
+                                      width={16}
+                                    />
+                                    {isHalf && (
+                                      <View style={styles.halfRatingClip}>
+                                        <MickeyRatingMark
+                                          color={colors.accent}
+                                          filled
+                                          width={16}
+                                        />
+                                      </View>
+                                    )}
+                                  </View>
                                 );
                               })}
                             </View>
@@ -496,6 +491,21 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     gap: 2,
     flexShrink: 0,
+  },
+  ratingMark: {
+    alignItems: 'center',
+    height: 16,
+    justifyContent: 'center',
+    position: 'relative',
+    width: 16,
+  },
+  halfRatingClip: {
+    height: 14,
+    left: 0,
+    overflow: 'hidden',
+    position: 'absolute',
+    top: 1,
+    width: 8,
   },
   notes: {
     fontSize: 14,

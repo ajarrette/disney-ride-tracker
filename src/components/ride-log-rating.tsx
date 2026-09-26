@@ -1,7 +1,7 @@
 import { Pressable, StyleSheet, View } from 'react-native';
-import { SymbolView } from 'expo-symbols';
 
 import { Colors } from '@/constants/theme';
+import { MickeyRatingMark } from '@/components/mickey-rating-mark';
 
 type RideLogRatingProps = {
   onChange: (rating: number) => void;
@@ -19,26 +19,16 @@ export function RideLogRating({ onChange, rating }: RideLogRatingProps) {
         const isHalf = !isFull && currentRating >= value - 0.5;
 
         return (
-          <View key={value} style={styles.star}>
-            <SymbolView
-              name={{
-                ios: isFull
-                  ? 'star.fill'
-                  : isHalf
-                    ? 'star.leadinghalf.filled'
-                    : 'star',
-                android: isFull
-                  ? 'star'
-                  : isHalf
-                    ? 'star_half'
-                    : 'star_outline',
-                web: isFull ? 'star' : isHalf ? 'star_half' : 'star_outline',
-              }}
-              size={28}
-              tintColor={
-                isFull || isHalf ? colors.accent : colors.textSecondary
-              }
+          <View key={value} style={styles.markContainer}>
+            <MickeyRatingMark
+              color={isFull ? colors.accent : colors.textSecondary}
+              filled={isFull}
             />
+            {isHalf && (
+              <View style={styles.halfClip}>
+                <MickeyRatingMark color={colors.accent} filled />
+              </View>
+            )}
             <Pressable
               accessibilityLabel={`Rate ${value - 0.5} out of 5`}
               accessibilityRole='button'
@@ -64,12 +54,20 @@ const styles = StyleSheet.create({
   row: {
     flexDirection: 'row',
   },
-  star: {
+  markContainer: {
     alignItems: 'center',
     height: 44,
     justifyContent: 'center',
     position: 'relative',
     width: 44,
+  },
+  halfClip: {
+    height: 30,
+    left: 4,
+    overflow: 'hidden',
+    position: 'absolute',
+    top: 7,
+    width: 18,
   },
   halfButton: {
     height: 44,
