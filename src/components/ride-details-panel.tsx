@@ -6,7 +6,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { Colors, Fonts } from '@/constants/theme';
 import { LandLabels, ParkLabels } from '@/constants/ride-labels';
-import { RideLiveData } from '@/data/live-wait-times';
+import { RideLiveData, RideOperatingHour } from '@/data/live-wait-times';
 import { getRideBackground } from '@/data/ride-images';
 import { Ride } from '@/models/ride';
 import { RideLiveStatusLine } from './ride-live-status-line';
@@ -30,6 +30,17 @@ const formatHeightRequirement = (
 };
 
 const rideTitleColor = '#263d5a';
+
+const formatParkTime = (dateTime: string) => {
+  const match = dateTime.match(/T(\d{2}):(\d{2})/);
+  if (!match) return dateTime;
+
+  const hour = Number(match[1]);
+  return `${hour % 12 || 12}:${match[2]} ${hour >= 12 ? 'PM' : 'AM'}`;
+};
+
+const formatHourRange = ({ startTime, endTime }: RideOperatingHour) =>
+  `${formatParkTime(startTime)} to ${formatParkTime(endTime)}`;
 
 type RideDetailsPanelProps = {
   onBack: () => void;
@@ -77,7 +88,7 @@ export function RideDetailsPanel({
     outputRange: [0, 1],
     extrapolate: 'clamp',
   });
-  const details = [
+  const detailsBeforeHours = [
     [
       'HEIGHT REQUIREMENT',
       formatHeightRequirement(
@@ -92,6 +103,8 @@ export function RideDetailsPanel({
         ? ride.thrillTypes.map(formatLabel).join(', ')
         : null,
     ],
+  ] as const;
+  const detailsAfterHours = [
     [
       'DURATION',
       ride.durationMinutes === null ? null : `${ride.durationMinutes} minutes`,
@@ -110,6 +123,27 @@ export function RideDetailsPanel({
         : null,
     ],
   ] as const;
+  const operatingHours =
+    liveStatus?.operatingHours.filter((hour) => hour.type === 'Operating') ??
+    [];
+  const extendedHours =
+    liveStatus?.operatingHours.filter((hour) => hour.type !== 'Operating') ??
+    [];
+  const renderDetailSections = (
+    sections: readonly (readonly [string, string | null])[],
+  ) =>
+    sections.map(([label, value]) =>
+      value ? (
+        <View key={label} style={styles.detailSection}>
+          <Text style={[styles.detailLabel, { color: colors.textSecondary }]}>
+            {label}
+          </Text>
+          <Text style={[styles.detailValue, { color: colors.text }]}>
+            {value}
+          </Text>
+        </View>
+      ) : null,
+    );
 
   return (
     <Animated.View
@@ -235,20 +269,50 @@ export function RideDetailsPanel({
             {ride.lightningLane ? 'Available' : 'Not offered'}
           </Text>
         </View>
-        {details.map(([label, value]) =>
-          value ? (
-            <View key={label} style={styles.detailSection}>
+        {renderDetailSections(detailsBeforeHours)}
+        {operatingHours.length > 0 && (
+          <View style={styles.detailSection}>
+            <Text style={[styles.detailLabel, { color: colors.textSecondary }]}>
+              HOURS
+            </Text>
+            {operatingHours.map((hour) => (
               <Text
-                style={[styles.detailLabel, { color: colors.textSecondary }]}
+                key={`${hour.startTime}-${hour.endTime}`}
+                style={[styles.detailValue, { color: colors.text }]}
               >
-                {label}
+                {formatHourRange(hour)}
               </Text>
-              <Text style={[styles.detailValue, { color: colors.text }]}>
-                {value}
-              </Text>
-            </View>
-          ) : null,
+            ))}
+          </View>
         )}
+        {extendedHours.length > 0 && (
+          <View style={styles.detailSection}>
+            <Text style={[styles.detailLabel, { color: colors.textSecondary }]}>
+              EXTENDED HOURS
+            </Text>
+            {extendedHours.map((hour, hourIndex) => (
+              <View key={`${hour.type}-${hour.startTime}-${hour.endTime}`}>
+                <View style={styles.extendedHour}>
+                  <Text style={[styles.detailValue, { color: colors.text }]}>
+                    {formatHourRange(hour)}
+                  </Text>
+                  <Text
+                    style={[
+                      styles.extendedHourType,
+                      { color: colors.textSecondary },
+                    ]}
+                  >
+                    {hour.type}
+                  </Text>
+                </View>
+                {hourIndex < extendedHours.length - 1 && (
+                  <View style={styles.extendedHourDivider} />
+                )}
+              </View>
+            ))}
+          </View>
+        )}
+        {renderDetailSections(detailsAfterHours)}
         <View style={styles.detailSection}>
           <Text style={[styles.detailLabel, { color: colors.textSecondary }]}>
             ABOUT THIS ATTRACTION
@@ -334,11 +398,11 @@ const styles = StyleSheet.create({
     height: 56,
   },
   rideSummary: {
-    borderBottomColor: '#dce7f2',
+    borderBottomColor: '#c7d7e8',
     borderBottomWidth: StyleSheet.hairlineWidth,
     paddingHorizontal: 20,
-    paddingBottom: 24,
-    paddingTop: 20,
+    paddingBottom: 16,
+    paddingTop: 16,
   },
   rideName: {
     flex: 1,
@@ -370,12 +434,12 @@ const styles = StyleSheet.create({
   },
   featureSection: {
     alignItems: 'center',
-    borderBottomColor: '#dce7f2',
+    borderBottomColor: '#c7d7e8',
     borderBottomWidth: StyleSheet.hairlineWidth,
     justifyContent: 'center',
-    minHeight: 156,
+    minHeight: 132,
     paddingHorizontal: 24,
-    paddingVertical: 18,
+    paddingVertical: 12,
   },
   featureIcon: {
     color: Colors.light.accent,
@@ -395,23 +459,40 @@ const styles = StyleSheet.create({
   },
   detailSection: {
     alignItems: 'center',
-    borderBottomColor: '#dce7f2',
+    borderBottomColor: '#c7d7e8',
     borderBottomWidth: StyleSheet.hairlineWidth,
     justifyContent: 'center',
-    minHeight: 108,
+    minHeight: 88,
     paddingHorizontal: 24,
-    paddingVertical: 16,
+    paddingVertical: 12,
   },
   detailLabel: {
-    fontSize: 15,
+    fontSize: 14,
     fontWeight: '600',
     textAlign: 'center',
   },
   detailValue: {
-    fontSize: 22,
+    fontSize: 20,
     fontWeight: '700',
-    lineHeight: 28,
+    lineHeight: 26,
     marginTop: 6,
+    textAlign: 'center',
+  },
+  extendedHour: {
+    alignItems: 'center',
+    marginTop: 6,
+  },
+  extendedHourDivider: {
+    alignSelf: 'center',
+    backgroundColor: '#c7d7e8',
+    height: StyleSheet.hairlineWidth,
+    marginBottom: 10,
+    marginTop: 16,
+    width: 24,
+  },
+  extendedHourType: {
+    fontSize: 14,
+    lineHeight: 18,
     textAlign: 'center',
   },
   description: {

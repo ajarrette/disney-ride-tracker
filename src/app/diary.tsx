@@ -200,17 +200,32 @@ export default function DiaryScreen() {
                               })}
                             </View>
                           </View>
-                          <Text
-                            style={[
-                              styles.metadata,
-                              { color: colors.textSecondary },
-                            ]}
-                          >
-                            {dateTime(log.visitedAt)} -{' '}
-                            {log.waitTimeMinutes === null
-                              ? 'Wait not recorded'
-                              : `${log.waitTimeMinutes} min wait`}
-                          </Text>
+                          <View style={styles.metadataRow}>
+                            {log.lightningLaneUsed && ride.lightningLane && (
+                              <SymbolView
+                                name={{
+                                  ios: 'bolt.fill',
+                                  android: 'bolt',
+                                  web: 'bolt',
+                                }}
+                                size={14}
+                                tintColor={colors.accent}
+                                style={styles.lightningLaneIcon}
+                              />
+                            )}
+                            <Text
+                              style={[
+                                styles.metadata,
+                                styles.metadataTime,
+                                { color: colors.textSecondary },
+                              ]}
+                            >
+                              {dateTime(log.visitedAt)} -{' '}
+                              {log.waitTimeMinutes === null
+                                ? 'Wait not recorded'
+                                : `${log.waitTimeMinutes} min wait`}
+                            </Text>
+                          </View>
                           <Text
                             style={[
                               styles.metadata,
@@ -362,6 +377,16 @@ const styles = StyleSheet.create({
     fontSize: 13,
     lineHeight: 19,
     marginTop: 3,
+  },
+  metadataRow: {
+    alignItems: 'center',
+    flexDirection: 'row',
+  },
+  metadataTime: {
+    flex: 1,
+  },
+  lightningLaneIcon: {
+    marginRight: 4,
   },
   parkName: {
     fontWeight: '600',

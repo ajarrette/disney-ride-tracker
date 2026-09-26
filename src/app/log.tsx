@@ -100,6 +100,7 @@ export default function LogScreen() {
   const [query, setQuery] = useState('');
   const [selectedRide, setSelectedRide] = useState<Ride | null>(null);
   const [waitTime, setWaitTime] = useState('');
+  const [lightningLaneUsed, setLightningLaneUsed] = useState(false);
   const [rating, setRating] = useState<number | null>(null);
   const [notes, setNotes] = useState('');
   const [photos, setPhotos] = useState<string[]>([]);
@@ -148,6 +149,7 @@ export default function LogScreen() {
           ? ''
           : String(log.waitTimeMinutes),
       );
+      setLightningLaneUsed(log?.lightningLaneUsed ?? false);
       setRating(log?.rating ?? null);
       setNotes(log?.notes ?? '');
       setPhotos(log ? getRideLogPhotos(log).slice(0, MAX_PHOTOS) : []);
@@ -231,6 +233,7 @@ export default function LogScreen() {
     scrollY.setValue(0);
     setSelectedRide(ride);
     setWaitTime('');
+    setLightningLaneUsed(false);
     setRating(null);
     setNotes('');
     setPhotos([]);
@@ -297,6 +300,7 @@ export default function LogScreen() {
         Number.isFinite(parsedWaitTime) && parsedWaitTime >= 0
           ? parsedWaitTime
           : null,
+      lightningLaneUsed: selectedRide.lightningLane && lightningLaneUsed,
       notes: notes.trim(),
       photos: photos.slice(0, MAX_PHOTOS),
       photoUrl: null,
@@ -510,25 +514,52 @@ export default function LogScreen() {
               </Text>
             </Animated.View>
 
-            <Pressable
-              accessibilityLabel={`Change ride date and time, ${formatVisitedAt(visitedAt)}`}
-              accessibilityRole='button'
-              onPress={openDateTimePicker}
-              style={styles.dateTimeButton}
-            >
-              <Text style={[styles.dateTimeValue, { color: colors.accent }]}>
-                {formatVisitedAt(visitedAt)}
-              </Text>
-              <SymbolView
-                name={{
-                  ios: 'chevron.down',
-                  android: 'expand_more',
-                  web: 'expand_more',
-                }}
-                size={14}
-                tintColor={colors.accent}
-              />
-            </Pressable>
+            <View style={styles.dateTimeRow}>
+              <Pressable
+                accessibilityLabel={`Change ride date and time, ${formatVisitedAt(visitedAt)}`}
+                accessibilityRole='button'
+                onPress={openDateTimePicker}
+                style={styles.dateTimeButton}
+              >
+                <Text style={[styles.dateTimeValue, { color: colors.accent }]}>
+                  {formatVisitedAt(visitedAt)}
+                </Text>
+                <SymbolView
+                  name={{
+                    ios: 'chevron.down',
+                    android: 'expand_more',
+                    web: 'expand_more',
+                  }}
+                  size={14}
+                  tintColor={colors.accent}
+                />
+              </Pressable>
+
+              {selectedRide.lightningLane && (
+                <Pressable
+                  accessibilityLabel='Lightning Lane used'
+                  accessibilityRole='radio'
+                  accessibilityState={{ selected: lightningLaneUsed }}
+                  onPress={() => setLightningLaneUsed((used) => !used)}
+                  style={({ pressed }) => [
+                    styles.lightningLaneButton,
+                    {
+                      backgroundColor: lightningLaneUsed
+                        ? colors.accent
+                        : colors.background,
+                      borderColor: colors.accent,
+                    },
+                    pressed && styles.lightningLaneButtonPressed,
+                  ]}
+                >
+                  <SymbolView
+                    name={{ ios: 'bolt.fill', android: 'bolt', web: 'bolt' }}
+                    size={20}
+                    tintColor={lightningLaneUsed ? '#ffffff' : colors.accent}
+                  />
+                </Pressable>
+              )}
+            </View>
 
             <Text style={[styles.fieldLabel, { color: colors.text }]}>
               Wait time (minutes)
@@ -991,17 +1022,34 @@ const styles = StyleSheet.create({
     fontSize: 14,
     marginTop: 5,
   },
+  dateTimeRow: {
+    alignItems: 'center',
+    flexDirection: 'row',
+    gap: 12,
+    marginTop: 12,
+    minHeight: 44,
+  },
   dateTimeButton: {
     alignItems: 'center',
-    alignSelf: 'flex-start',
+    flex: 1,
     flexDirection: 'row',
     gap: 6,
-    marginTop: 12,
     minHeight: 36,
   },
   dateTimeValue: {
     fontSize: 16,
     fontWeight: '600',
+  },
+  lightningLaneButton: {
+    alignItems: 'center',
+    borderRadius: 22,
+    borderWidth: 1.5,
+    height: 44,
+    justifyContent: 'center',
+    width: 44,
+  },
+  lightningLaneButtonPressed: {
+    opacity: 0.72,
   },
   dateTimeModalRoot: {
     flex: 1,

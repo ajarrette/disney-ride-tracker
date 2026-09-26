@@ -10,6 +10,13 @@ const themeParksParkIds: Record<Park, string> = {
 export type RideLiveData = {
   status: string;
   waitTime: number | null;
+  operatingHours: RideOperatingHour[];
+};
+
+export type RideOperatingHour = {
+  type: string;
+  startTime: string;
+  endTime: string;
 };
 
 type LiveDataEntity = {
@@ -21,7 +28,21 @@ type LiveDataEntity = {
       waitTime?: unknown;
     };
   };
+  operatingHours?: unknown;
 };
+
+function isRideOperatingHour(value: unknown): value is RideOperatingHour {
+  if (typeof value !== 'object' || value === null) {
+    return false;
+  }
+
+  const hour = value as Record<string, unknown>;
+  return (
+    typeof hour.type === 'string' &&
+    typeof hour.startTime === 'string' &&
+    typeof hour.endTime === 'string'
+  );
+}
 
 export function normalizeRideName(name: string): string {
   return name.toLowerCase().replace(/[^a-z0-9]/g, '');
@@ -56,9 +77,13 @@ export async function fetchParkLiveData(
     }
 
     const waitTime = entity.queue?.STANDBY?.waitTime;
+    const operatingHours = Array.isArray(entity.operatingHours)
+      ? entity.operatingHours.filter(isRideOperatingHour)
+      : [];
     rides[normalizeRideName(entity.name)] = {
       status: entity.status,
       waitTime: typeof waitTime === 'number' ? waitTime : null,
+      operatingHours,
     };
   }
 

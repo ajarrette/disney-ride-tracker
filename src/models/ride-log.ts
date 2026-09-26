@@ -4,6 +4,7 @@ export interface RideLog {
   tripId: string | null;
   visitedAt: string;
   waitTimeMinutes: number | null;
+  lightningLaneUsed?: boolean;
   notes: string;
   photos?: string[];
   photoUrl?: string | null;
