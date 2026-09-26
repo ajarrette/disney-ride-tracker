@@ -101,7 +101,7 @@ export function ParkRideList({
     onPinnedRideOrderChange(nextOrder);
   };
 
-  const renderUnpinnedRides = () => (
+  const unpinnedRidesFooter = (
     <View>
       {unpinnedRides.map((ride) => (
         <RideListItem
@@ -125,7 +125,7 @@ export function ParkRideList({
       data={pinnedRides}
       extraData={{ liveData, pinnedRideIds, pinnedRideOrder }}
       keyExtractor={(ride) => ride.id}
-      ListFooterComponent={renderUnpinnedRides}
+      ListFooterComponent={unpinnedRidesFooter}
       ListEmptyComponent={
         rides.length > 0 ? null : isCatalogLoading ? (
           <ActivityIndicator color={colors.accent} />
