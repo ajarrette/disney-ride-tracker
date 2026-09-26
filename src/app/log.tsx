@@ -25,6 +25,7 @@ import {
 import { SymbolView } from 'expo-symbols';
 import { DateTimePicker } from '@expo/ui/community/datetime-picker';
 import * as ImagePicker from 'expo-image-picker';
+import { Directory, File, Paths } from 'expo-file-system';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { useAppState } from '@/components/app-state';
@@ -34,6 +35,7 @@ import { RideLogPhotos } from '@/components/ride-log-photos';
 import { LandLabels, ParkLabels } from '@/constants/ride-labels';
 import { Colors, Fonts } from '@/constants/theme';
 import { getRideBackground } from '@/data/ride-images';
+import { deleteCachedRideLogPhotos } from '@/data/ride-logs';
 import { Ride } from '@/models/ride';
 import { getRideLogPhotos } from '@/models/ride-log';
 
@@ -75,6 +77,7 @@ export default function LogScreen() {
     updateRideLog,
     removeRideLog,
     previousTabPath,
+    rideLogsReady,
     rideLogs,
     recentRideSearches,
     setTabBarHidden,
@@ -93,6 +96,9 @@ export default function LogScreen() {
   const [rating, setRating] = useState<number | null>(null);
   const [notes, setNotes] = useState('');
   const [photos, setPhotos] = useState<string[]>([]);
+  const [photoPaths, setPhotoPaths] = useState<string[]>([]);
+  const [isMutating, setIsMutating] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
   const [visitedAt, setVisitedAt] = useState(() => new Date());
   const [draftVisitedAt, setDraftVisitedAt] = useState(() => new Date());
   const [dateTimePickerVisible, setDateTimePickerVisible] = useState(false);
@@ -158,6 +164,7 @@ export default function LogScreen() {
       setRating(log?.rating ?? null);
       setNotes(log?.notes ?? '');
       setPhotos(log ? getRideLogPhotos(log).slice(0, MAX_PHOTOS) : []);
+      setPhotoPaths(log?.photoPaths?.slice(0, MAX_PHOTOS) ?? []);
       setVisitedAt(log ? new Date(log.visitedAt) : new Date());
       setDateTimePickerVisible(false);
       panelPosition.setValue(panelOffset);
@@ -217,6 +224,25 @@ export default function LogScreen() {
     });
   };
 
+  const deleteExistingRideLog = async () => {
+    if (!existingLog || isMutating) return;
+
+    setIsMutating(true);
+    setIsDeleting(true);
+    try {
+      await removeRideLog(existingLog.id);
+      closePanel('/diary');
+    } catch (error) {
+      Alert.alert(
+        'Unable to delete ride log',
+        error instanceof Error ? error.message : 'Please try again.',
+      );
+    } finally {
+      setIsMutating(false);
+      setIsDeleting(false);
+    }
+  };
+
   const confirmDeleteRideLog = () => {
     if (!existingLog) return;
 
@@ -225,10 +251,7 @@ export default function LogScreen() {
       {
         text: 'Delete',
         style: 'destructive',
-        onPress: () => {
-          removeRideLog(existingLog.id);
-          closePanel('/diary');
-        },
+        onPress: () => void deleteExistingRideLog(),
       },
     ]);
   };
@@ -257,9 +280,23 @@ export default function LogScreen() {
     setRating(null);
     setNotes('');
     setPhotos([]);
+    setPhotoPaths([]);
+  };
+
+  const removePhoto = (index: number) => {
+    if (isMutating) return;
+    const photo = photos[index];
+    if (photo) deleteCachedRideLogPhotos([photo]);
+    setPhotos((currentPhotos) =>
+      currentPhotos.filter((_, photoIndex) => photoIndex !== index),
+    );
+    setPhotoPaths((currentPaths) =>
+      currentPaths.filter((_, photoIndex) => photoIndex !== index),
+    );
   };
 
   const addPhotos = async () => {
+    if (isMutating) return;
     const remainingSlots = MAX_PHOTOS - photos.length;
     if (remainingSlots === 0) return;
 
@@ -274,27 +311,52 @@ export default function LogScreen() {
       const acceptedPhotos: string[] = [];
       let oversizedCount = 0;
       let unverifiedCount = 0;
-      result.assets.forEach((asset) => {
+      let unavailableCount = 0;
+      const photoDirectory = new Directory(
+        Paths.document,
+        'ride-log-photo-cache',
+      );
+      photoDirectory.create({ idempotent: true, intermediates: true });
+      for (const asset of result.assets) {
         if (asset.fileSize === undefined) {
           unverifiedCount += 1;
         } else if (asset.fileSize > MAX_PHOTO_SIZE_BYTES) {
           oversizedCount += 1;
         } else {
-          acceptedPhotos.push(asset.uri);
+          try {
+            const source = new File(asset.uri);
+            const extension = source.extension || '.jpg';
+            const destination = new File(
+              photoDirectory,
+              `photo-${Date.now()}-${Math.random().toString(36).slice(2)}${extension}`,
+            );
+            await source.copy(destination);
+            acceptedPhotos.push(destination.uri);
+          } catch {
+            unavailableCount += 1;
+          }
         }
-      });
+      }
 
       if (acceptedPhotos.length > 0) {
         setPhotos((currentPhotos) =>
           [...currentPhotos, ...acceptedPhotos].slice(0, MAX_PHOTOS),
         );
+        setPhotoPaths((currentPaths) =>
+          [...currentPaths, ...acceptedPhotos.map(() => '')].slice(
+            0,
+            MAX_PHOTOS,
+          ),
+        );
       }
-      if (oversizedCount > 0 || unverifiedCount > 0) {
+      if (oversizedCount > 0 || unverifiedCount > 0 || unavailableCount > 0) {
         const reasons = [
           oversizedCount > 0 &&
             `${oversizedCount} image${oversizedCount === 1 ? '' : 's'} exceeded 20 MB`,
           unverifiedCount > 0 &&
             `${unverifiedCount} image${unverifiedCount === 1 ? '' : 's'} could not be checked`,
+          unavailableCount > 0 &&
+            `${unavailableCount} image${unavailableCount === 1 ? '' : 's'} could not be copied for upload`,
         ].filter(Boolean);
         Alert.alert('Some photos were skipped', `${reasons.join(' and ')}.`);
       }
@@ -306,34 +368,45 @@ export default function LogScreen() {
     }
   };
 
-  const saveRideLog = () => {
-    if (!selectedRide) return;
-    const now = new Date().toISOString();
-    const parsedWaitTime = Number.parseInt(waitTime, 10);
+  const saveCurrentRideLog = async () => {
+    if (!selectedRide || isMutating) return;
+    setIsMutating(true);
+    try {
+      const now = new Date().toISOString();
+      const parsedWaitTime = Number.parseInt(waitTime, 10);
 
-    const rideLog = {
-      id: existingLog?.id ?? `${selectedRide.id}-${Date.now()}`,
-      rideId: selectedRide.id,
-      tripId: existingLog?.tripId ?? null,
-      visitedAt: visitedAt.toISOString(),
-      waitTimeMinutes:
-        Number.isFinite(parsedWaitTime) && parsedWaitTime >= 0
-          ? parsedWaitTime
-          : null,
-      lightningLaneUsed: selectedRide.lightningLane && lightningLaneUsed,
-      notes: notes.trim(),
-      photos: photos.slice(0, MAX_PHOTOS),
-      photoUrl: null,
-      rating,
-      createdAt: existingLog?.createdAt ?? now,
-      updatedAt: now,
-    };
-    if (logId) {
-      if (existingLog) updateRideLog(rideLog);
-    } else {
-      addRideLog(rideLog);
+      const rideLog = {
+        id: existingLog?.id ?? `${selectedRide.id}-${Date.now()}`,
+        rideId: selectedRide.id,
+        tripId: existingLog?.tripId ?? null,
+        visitedAt: visitedAt.toISOString(),
+        waitTimeMinutes:
+          Number.isFinite(parsedWaitTime) && parsedWaitTime >= 0
+            ? parsedWaitTime
+            : null,
+        lightningLaneUsed: selectedRide.lightningLane && lightningLaneUsed,
+        notes: notes.trim(),
+        photos: photos.slice(0, MAX_PHOTOS),
+        photoPaths: photoPaths.slice(0, MAX_PHOTOS),
+        photoUrl: null,
+        rating,
+        createdAt: existingLog?.createdAt ?? now,
+        updatedAt: now,
+      };
+      if (logId) {
+        if (existingLog) await updateRideLog(rideLog);
+      } else {
+        await addRideLog(rideLog);
+      }
+      closePanel('/diary');
+    } catch (error) {
+      Alert.alert(
+        'Unable to save ride log',
+        error instanceof Error ? error.message : 'Please try again.',
+      );
+    } finally {
+      setIsMutating(false);
     }
-    closePanel('/diary');
   };
 
   return (
@@ -374,6 +447,7 @@ export default function LogScreen() {
           <Pressable
             accessibilityLabel='Close ride form'
             accessibilityRole='button'
+            disabled={isMutating}
             hitSlop={8}
             onPress={() => closePanel(previousTabPath)}
             style={styles.headerAction}
@@ -445,11 +519,15 @@ export default function LogScreen() {
             <Pressable
               accessibilityLabel='Delete ride log'
               accessibilityRole='button'
+              accessibilityState={{ disabled: isMutating }}
+              disabled={isMutating}
               hitSlop={8}
               onPress={confirmDeleteRideLog}
               style={[styles.headerAction, styles.headerActionRight]}
             >
-              {rideBackground ? (
+              {isDeleting ? (
+                <ActivityIndicator color='#d92d20' size='small' />
+              ) : rideBackground ? (
                 <>
                   <Animated.View
                     style={[
@@ -675,6 +753,7 @@ export default function LogScreen() {
                 <Pressable
                   accessibilityLabel='Add photos'
                   accessibilityRole='button'
+                  disabled={isMutating}
                   onPress={addPhotos}
                   style={({ pressed }) => [
                     styles.addPhotosButton,
@@ -697,11 +776,7 @@ export default function LogScreen() {
               )}
             </View>
             <RideLogPhotos
-              onRemove={(index) =>
-                setPhotos((currentPhotos) =>
-                  currentPhotos.filter((_, photoIndex) => photoIndex !== index),
-                )
-              }
+              onRemove={isMutating ? undefined : removePhoto}
               photos={photos}
               style={styles.formPhotoStrip}
             />
@@ -726,13 +801,26 @@ export default function LogScreen() {
 
             <Pressable
               accessibilityRole='button'
-              onPress={saveRideLog}
+              accessibilityState={{
+                disabled: isMutating || !selectedRide || !rideLogsReady,
+              }}
+              disabled={isMutating || !selectedRide || !rideLogsReady}
+              onPress={() => void saveCurrentRideLog()}
               style={({ pressed }) => [
                 styles.saveButton,
+                (isMutating || !selectedRide || !rideLogsReady) &&
+                  styles.saveButtonDisabled,
                 pressed && styles.saveButtonPressed,
               ]}
             >
-              <Text style={styles.saveButtonText}>Save Ride</Text>
+              {isMutating ? (
+                <View style={styles.saveButtonContent}>
+                  <ActivityIndicator color='#ffffff' size='small' />
+                  <Text style={styles.saveButtonText}>Saving</Text>
+                </View>
+              ) : (
+                <Text style={styles.saveButtonText}>Save Ride</Text>
+              )}
             </Pressable>
           </Animated.ScrollView>
         ) : (
@@ -1199,8 +1287,16 @@ const styles = StyleSheet.create({
     marginTop: 32,
     minHeight: 52,
   },
+  saveButtonDisabled: {
+    opacity: 0.6,
+  },
   saveButtonPressed: {
     opacity: 0.8,
+  },
+  saveButtonContent: {
+    alignItems: 'center',
+    flexDirection: 'row',
+    gap: 10,
   },
   saveButtonText: {
     color: '#ffffff',

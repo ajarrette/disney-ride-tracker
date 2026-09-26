@@ -1,6 +1,7 @@
 import { Image } from 'expo-image';
 import { useState } from 'react';
 import {
+  ActivityIndicator,
   Alert,
   Animated,
   Pressable,
@@ -25,7 +26,13 @@ export default function DiaryScreen() {
   const colors = Colors.light;
   const insets = useSafeAreaInsets();
   const [scrollY] = useState(() => new Animated.Value(0));
-  const { rideLogs } = useAppState();
+  const {
+    rideLogs,
+    rideLogSyncStatuses,
+    rideLogsLoading,
+    rideLogsError,
+    reloadRideLogs,
+  } = useAppState();
   const { rides } = useRideCatalog();
   const ridesById = new Map(rides.map((ride) => [ride.id, ride]));
   const groupedLogs = new Map<string, typeof rideLogs>();
@@ -90,7 +97,30 @@ export default function DiaryScreen() {
         >
           Diary
         </Animated.Text>
-        {rideLogs.length === 0 ? (
+        {rideLogsError && rideLogs.length > 0 && (
+          <Pressable
+            accessibilityRole='button'
+            onPress={() => void reloadRideLogs()}
+            style={styles.syncIssue}
+          >
+            <Text style={[styles.emptyText, { color: '#b42318' }]}>
+              Sync issue. Tap to retry.
+            </Text>
+          </Pressable>
+        )}
+        {rideLogsLoading && rideLogs.length === 0 ? (
+          <ActivityIndicator color={colors.accent} style={styles.loading} />
+        ) : rideLogsError && rideLogs.length === 0 ? (
+          <Pressable
+            accessibilityRole='button'
+            onPress={() => void reloadRideLogs()}
+            style={styles.syncIssue}
+          >
+            <Text style={[styles.emptyText, { color: colors.textSecondary }]}>
+              Could not load your diary. Tap to retry.
+            </Text>
+          </Pressable>
+        ) : rideLogs.length === 0 ? (
           <Text style={[styles.emptyText, { color: colors.textSecondary }]}>
             Rides you log will appear here.
           </Text>
@@ -260,6 +290,23 @@ export default function DiaryScreen() {
                               {log.notes}
                             </Text>
                           )}
+                          {rideLogSyncStatuses[log.id] && (
+                            <Text
+                              style={[
+                                styles.syncStatus,
+                                {
+                                  color:
+                                    rideLogSyncStatuses[log.id] === 'failed'
+                                      ? '#b42318'
+                                      : colors.textSecondary,
+                                },
+                              ]}
+                            >
+                              {rideLogSyncStatuses[log.id] === 'failed'
+                                ? 'Sync failed'
+                                : 'Pending sync'}
+                            </Text>
+                          )}
                         </View>
                       </Pressable>
                       {getRideLogPhotos(log).length > 0 && (
@@ -360,6 +407,18 @@ const styles = StyleSheet.create({
   },
   emptyText: {
     fontSize: 16,
+  },
+  loading: {
+    marginTop: 28,
+  },
+  syncIssue: {
+    alignSelf: 'stretch',
+    minHeight: 44,
+  },
+  syncStatus: {
+    fontSize: 12,
+    fontWeight: '600',
+    marginTop: 6,
   },
   dayHeader: {
     marginHorizontal: -24,

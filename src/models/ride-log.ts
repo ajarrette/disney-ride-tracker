@@ -7,6 +7,7 @@ export interface RideLog {
   lightningLaneUsed?: boolean;
   notes: string;
   photos?: string[];
+  photoPaths?: string[];
   photoUrl?: string | null;
   rating: number | null;
   createdAt: string;
