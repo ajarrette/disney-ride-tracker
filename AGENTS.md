@@ -52,3 +52,4 @@ Docs: https://docs.expo.dev/eas/index.md
 
 - Ask clarifying questions rather than guessing
 - Try to keep code files less than 350 lines
+- If you create a supabase migration, make sure to run it

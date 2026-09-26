@@ -13,12 +13,16 @@ export function RideListItem({
   ride,
   isPinned = false,
   isPinnedDivider = false,
+  isDragging = false,
+  drag,
   liveStatus,
   onPress,
 }: {
   ride: Ride;
   isPinned?: boolean;
   isPinnedDivider?: boolean;
+  isDragging?: boolean;
+  drag?: () => void;
   liveStatus?: RideLiveData;
   onPress: (ride: Ride) => void;
 }) {
@@ -31,11 +35,19 @@ export function RideListItem({
 
   return (
     <Pressable
+      accessibilityHint={
+        isPinned ? 'Touch and hold to change the pinned ride order.' : undefined
+      }
+      accessibilityLabel={isPinned ? `${ride.name}, pinned` : ride.name}
       accessibilityRole='button'
+      delayLongPress={180}
+      disabled={isDragging}
+      onLongPress={drag}
       onPress={() => onPress(ride)}
       style={({ pressed }) => [
         styles.rideRow,
         isPinnedDivider && styles.pinnedDivider,
+        isDragging && styles.rideRowDragging,
         pressed && styles.rideRowPressed,
       ]}
     >
@@ -106,6 +118,18 @@ const styles = StyleSheet.create({
   pinnedDivider: {
     borderBottomColor: Colors.light.accent,
     borderBottomWidth: 2,
+  },
+  rideRowDragging: {
+    backgroundColor: '#eef7ff',
+    borderColor: '#78baff',
+    borderRadius: 8,
+    borderWidth: 1,
+    elevation: 8,
+    shadowColor: '#16324f',
+    shadowOffset: { width: 0, height: 5 },
+    shadowOpacity: 0.2,
+    shadowRadius: 10,
+    zIndex: 10,
   },
   rideRowPressed: {
     opacity: 0.55,

@@ -1,10 +1,22 @@
-import { createContext, useContext, useEffect, useRef, useState } from 'react';
+import {
+  createContext,
+  useCallback,
+  useContext,
+  useEffect,
+  useRef,
+  useState,
+} from 'react';
 
-import { fetchPinnedRideIds, saveRidePin } from '@/data/ride-preferences';
+import {
+  fetchPinnedRideIds,
+  savePinnedRideOrder,
+} from '@/data/ride-preferences';
 
 type RidePreferencesContextValue = {
   pinnedRideIds: Set<string>;
+  pinnedRideOrder: string[];
   setRidePinned: (rideId: string, isPinned: boolean) => void;
+  setPinnedRideOrder: (rideIds: string[]) => void;
 };
 
 const RidePreferencesContext =
@@ -14,17 +26,48 @@ export function RidePreferencesProvider({ children }: React.PropsWithChildren) {
   const [pinnedRideIds, setPinnedRideIds] = useState<Set<string>>(
     () => new Set(),
   );
+  const [pinnedRideOrder, setPinnedRideOrderState] = useState<string[]>([]);
   const pinnedRideIdsRef = useRef(pinnedRideIds);
+  const pinnedRideOrderRef = useRef(pinnedRideOrder);
   const locallyChangedRideIds = useRef(new Set<string>());
-  const writeSequences = useRef(new Map<string, number>());
-  const pendingWrites = useRef(new Map<string, Promise<void>>());
+  const pendingPinChanges = useRef(new Set<string>());
+  const preferencesLoaded = useRef(false);
+  const writeSequence = useRef(0);
+  const pendingWrite = useRef(Promise.resolve());
 
-  const updatePinnedRideIds = (rideId: string, isPinned: boolean) => {
-    const next = new Set(pinnedRideIdsRef.current);
-    if (isPinned) next.add(rideId);
-    else next.delete(rideId);
-    pinnedRideIdsRef.current = next;
-    setPinnedRideIds(next);
+  const updatePinnedRideOrder = useCallback((rideIds: string[]) => {
+    const nextOrder = [...new Set(rideIds)];
+    const nextIds = new Set(nextOrder);
+    pinnedRideOrderRef.current = nextOrder;
+    pinnedRideIdsRef.current = nextIds;
+    setPinnedRideOrderState(nextOrder);
+    setPinnedRideIds(nextIds);
+  }, []);
+
+  const persistPinnedRideOrder = useCallback(
+    (rideIds: string[], previousOrder: string[]) => {
+      const sequence = ++writeSequence.current;
+      const previousWrite = pendingWrite.current;
+      const write = previousWrite
+        .catch(() => undefined)
+        .then(() => savePinnedRideOrder(rideIds))
+        .catch((error) => {
+          console.warn('Unable to save ride preferences.', error);
+          if (writeSequence.current === sequence) {
+            updatePinnedRideOrder(previousOrder);
+          }
+        });
+      pendingWrite.current = write;
+    },
+    [updatePinnedRideOrder],
+  );
+
+  const setPinnedRideOrder = (rideIds: string[]) => {
+    const previousOrder = pinnedRideOrderRef.current;
+    updatePinnedRideOrder(rideIds);
+    if (preferencesLoaded.current) {
+      persistPinnedRideOrder(rideIds, previousOrder);
+    }
   };
 
   useEffect(() => {
@@ -33,53 +76,69 @@ export function RidePreferencesProvider({ children }: React.PropsWithChildren) {
     void fetchPinnedRideIds()
       .then((rideIds) => {
         if (!isMounted) return;
-        const next = new Set(rideIds);
+        const nextOrder = rideIds.filter(
+          (rideId) => !locallyChangedRideIds.current.has(rideId),
+        );
         locallyChangedRideIds.current.forEach((rideId) => {
-          if (pinnedRideIdsRef.current.has(rideId)) next.add(rideId);
-          else next.delete(rideId);
+          if (
+            pinnedRideIdsRef.current.has(rideId) &&
+            !nextOrder.includes(rideId)
+          ) {
+            nextOrder.push(rideId);
+          }
         });
-        pinnedRideIdsRef.current = next;
-        setPinnedRideIds(next);
+        const previousOrder = pinnedRideOrderRef.current;
+        updatePinnedRideOrder(nextOrder);
+        preferencesLoaded.current = true;
+        if (pendingPinChanges.current.size > 0) {
+          pendingPinChanges.current.clear();
+          persistPinnedRideOrder(nextOrder, previousOrder);
+        }
       })
-      .catch((error) =>
-        console.warn('Unable to load ride preferences.', error),
-      );
+      .catch((error) => {
+        console.warn('Unable to load ride preferences.', error);
+        preferencesLoaded.current = true;
+        if (pendingPinChanges.current.size > 0) {
+          pendingPinChanges.current.clear();
+          persistPinnedRideOrder(
+            pinnedRideOrderRef.current,
+            pinnedRideOrderRef.current,
+          );
+        }
+      });
 
     return () => {
       isMounted = false;
     };
-  }, []);
+  }, [persistPinnedRideOrder, updatePinnedRideOrder]);
 
   const setRidePinned = (rideId: string, isPinned: boolean) => {
     const previousValue = pinnedRideIdsRef.current.has(rideId);
     if (previousValue === isPinned) return;
 
     locallyChangedRideIds.current.add(rideId);
-    updatePinnedRideIds(rideId, isPinned);
+    const previousOrder = pinnedRideOrderRef.current;
+    const nextOrder = isPinned
+      ? [...previousOrder, rideId]
+      : previousOrder.filter((id) => id !== rideId);
+    updatePinnedRideOrder(nextOrder);
 
-    const sequence = (writeSequences.current.get(rideId) ?? 0) + 1;
-    writeSequences.current.set(rideId, sequence);
-    const previousWrite =
-      pendingWrites.current.get(rideId) ?? Promise.resolve();
-    const write = previousWrite
-      .catch(() => undefined)
-      .then(() => saveRidePin(rideId, isPinned))
-      .catch((error) => {
-        console.warn('Unable to save ride preference.', error);
-        if (writeSequences.current.get(rideId) === sequence) {
-          updatePinnedRideIds(rideId, previousValue);
-        }
-      });
-    pendingWrites.current.set(rideId, write);
-    void write.finally(() => {
-      if (pendingWrites.current.get(rideId) === write) {
-        pendingWrites.current.delete(rideId);
-      }
-    });
+    if (preferencesLoaded.current) {
+      persistPinnedRideOrder(nextOrder, previousOrder);
+    } else {
+      pendingPinChanges.current.add(rideId);
+    }
   };
 
   return (
-    <RidePreferencesContext.Provider value={{ pinnedRideIds, setRidePinned }}>
+    <RidePreferencesContext.Provider
+      value={{
+        pinnedRideIds,
+        pinnedRideOrder,
+        setRidePinned,
+        setPinnedRideOrder,
+      }}
+    >
       {children}
     </RidePreferencesContext.Provider>
   );

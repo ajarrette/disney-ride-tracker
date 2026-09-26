@@ -1,12 +1,10 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { Image, type ImageSource } from 'expo-image';
 import {
-  ActivityIndicator,
   Animated,
   Dimensions,
   Pressable,
   StyleSheet,
-  Text,
   View,
 } from 'react-native';
 import { router } from 'expo-router';
@@ -14,8 +12,8 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { RideDetailsPanel } from '@/components/ride-details-panel';
 import { useAppState } from '@/components/app-state';
-import { RideListItem } from './ride-list-item';
-import { BottomTabInset, Colors } from '@/constants/theme';
+import { ParkRideList } from '@/components/park-ride-list';
+import { Colors } from '@/constants/theme';
 import { ParkLabels } from '@/constants/ride-labels';
 import {
   fetchParkLiveData,
@@ -69,7 +67,8 @@ export function ParkScreen({ park }: ParkScreenProps) {
   const insets = useSafeAreaInsets();
   const { setRideDetailsOpen } = useAppState();
   const { rides: catalogRides, isLoading, hasError } = useRideCatalog();
-  const { pinnedRideIds, setRidePinned } = useRidePreferences();
+  const { pinnedRideIds, pinnedRideOrder, setRidePinned, setPinnedRideOrder } =
+    useRidePreferences();
   const [selectedPark, setSelectedPark] = useState(park);
   const [selectedRide, setSelectedRide] = useState<Ride | null>(null);
   const [panelPosition] = useState(() => new Animated.Value(panelWidth));
@@ -79,15 +78,6 @@ export function ParkScreen({ park }: ParkScreenProps) {
   const [loadingParks, setLoadingParks] = useState<Set<Park>>(() => new Set());
   const loadedParks = useRef(new Set<Park>());
   const pendingParks = useRef(new Set<Park>());
-  const rides = catalogRides
-    .filter((ride) => ride.park === selectedPark)
-    .sort((firstRide, secondRide) => {
-      const pinOrder =
-        Number(pinnedRideIds.has(secondRide.id)) -
-        Number(pinnedRideIds.has(firstRide.id));
-      return pinOrder || firstRide.name.localeCompare(secondRide.name);
-    });
-
   const loadLiveData = useCallback(async (parkToLoad: Park) => {
     if (pendingParks.current.has(parkToLoad)) {
       return;
@@ -150,25 +140,6 @@ export function ParkScreen({ park }: ParkScreenProps) {
     setSelectedRide(ride);
   };
 
-  const renderRide = ({ item, index }: { item: Ride; index: number }) => {
-    const liveStatus =
-      liveDataByPark[selectedPark]?.[normalizeRideName(item.name)];
-    const isPinned = pinnedRideIds.has(item.id);
-    const nextRide = rides[index + 1];
-    const isPinnedDivider =
-      isPinned && nextRide !== undefined && !pinnedRideIds.has(nextRide.id);
-
-    return (
-      <RideListItem
-        isPinned={isPinned}
-        isPinnedDivider={isPinnedDivider}
-        liveStatus={liveStatus}
-        onPress={openRide}
-        ride={item}
-      />
-    );
-  };
-
   return (
     <View style={[styles.container, { backgroundColor: colors.background }]}>
       <View style={[styles.listViewport, { paddingTop: insets.top }]}>
@@ -203,34 +174,18 @@ export function ParkScreen({ park }: ParkScreenProps) {
             )}
           </View>
         </View>
-        <Animated.FlatList
-          contentContainerStyle={[
-            styles.listContent,
-            {
-              paddingBottom: insets.bottom + BottomTabInset + 24,
-            },
-          ]}
-          contentInsetAdjustmentBehavior='never'
-          data={rides}
-          extraData={{ liveData: liveDataByPark[selectedPark], pinnedRideIds }}
-          keyExtractor={(ride) => ride.id}
-          ListEmptyComponent={
-            isLoading ? (
-              <ActivityIndicator color={colors.accent} />
-            ) : hasError ? (
-              <Text
-                style={[styles.catalogMessage, { color: colors.textSecondary }]}
-              >
-                Ride catalog unavailable. Check your connection and Supabase
-                configuration.
-              </Text>
-            ) : null
-          }
+        <ParkRideList
+          bottomInset={insets.bottom}
+          hasCatalogError={hasError}
+          isCatalogLoading={isLoading}
+          isRefreshing={loadingParks.has(selectedPark)}
+          liveData={liveDataByPark[selectedPark]}
+          onPinnedRideOrderChange={setPinnedRideOrder}
           onRefresh={() => loadLiveData(selectedPark)}
-          renderItem={renderRide}
-          refreshing={loadingParks.has(selectedPark)}
-          scrollEventThrottle={16}
-          showsVerticalScrollIndicator={false}
+          onRidePress={openRide}
+          pinnedRideIds={pinnedRideIds}
+          pinnedRideOrder={pinnedRideOrder}
+          rides={catalogRides.filter((ride) => ride.park === selectedPark)}
         />
       </View>
 
@@ -262,14 +217,6 @@ const styles = StyleSheet.create({
   },
   listViewport: {
     flex: 1,
-  },
-  listContent: {
-    padding: 24,
-  },
-  catalogMessage: {
-    lineHeight: 20,
-    paddingVertical: 24,
-    textAlign: 'center',
   },
   parkHeader: {
     borderBottomColor: '#dce7f2',
