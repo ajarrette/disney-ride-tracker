@@ -23,6 +23,7 @@ import {
   RideLiveData,
 } from '@/data/live-wait-times';
 import { useRideCatalog } from '@/components/ride-catalog-provider';
+import { useRidePreferences } from '@/components/ride-preferences-provider';
 import { Park, Ride } from '@/models/ride';
 
 type ParkScreenProps = {
@@ -68,6 +69,7 @@ export function ParkScreen({ park }: ParkScreenProps) {
   const insets = useSafeAreaInsets();
   const { setRideDetailsOpen } = useAppState();
   const { rides: catalogRides, isLoading, hasError } = useRideCatalog();
+  const { pinnedRideIds, setRidePinned } = useRidePreferences();
   const [selectedPark, setSelectedPark] = useState(park);
   const [selectedRide, setSelectedRide] = useState<Ride | null>(null);
   const [panelPosition] = useState(() => new Animated.Value(panelWidth));
@@ -79,9 +81,12 @@ export function ParkScreen({ park }: ParkScreenProps) {
   const pendingParks = useRef(new Set<Park>());
   const rides = catalogRides
     .filter((ride) => ride.park === selectedPark)
-    .sort((firstRide, secondRide) =>
-      firstRide.name.localeCompare(secondRide.name),
-    );
+    .sort((firstRide, secondRide) => {
+      const pinOrder =
+        Number(pinnedRideIds.has(secondRide.id)) -
+        Number(pinnedRideIds.has(firstRide.id));
+      return pinOrder || firstRide.name.localeCompare(secondRide.name);
+    });
 
   const loadLiveData = useCallback(async (parkToLoad: Park) => {
     if (pendingParks.current.has(parkToLoad)) {
@@ -145,12 +150,22 @@ export function ParkScreen({ park }: ParkScreenProps) {
     setSelectedRide(ride);
   };
 
-  const renderRide = ({ item }: { item: Ride }) => {
+  const renderRide = ({ item, index }: { item: Ride; index: number }) => {
     const liveStatus =
       liveDataByPark[selectedPark]?.[normalizeRideName(item.name)];
+    const isPinned = pinnedRideIds.has(item.id);
+    const nextRide = rides[index + 1];
+    const isPinnedDivider =
+      isPinned && nextRide !== undefined && !pinnedRideIds.has(nextRide.id);
 
     return (
-      <RideListItem liveStatus={liveStatus} onPress={openRide} ride={item} />
+      <RideListItem
+        isPinned={isPinned}
+        isPinnedDivider={isPinnedDivider}
+        liveStatus={liveStatus}
+        onPress={openRide}
+        ride={item}
+      />
     );
   };
 
@@ -197,7 +212,7 @@ export function ParkScreen({ park }: ParkScreenProps) {
           ]}
           contentInsetAdjustmentBehavior='never'
           data={rides}
-          extraData={liveDataByPark[selectedPark]}
+          extraData={{ liveData: liveDataByPark[selectedPark], pinnedRideIds }}
           keyExtractor={(ride) => ride.id}
           ListEmptyComponent={
             isLoading ? (
@@ -228,6 +243,8 @@ export function ParkScreen({ park }: ParkScreenProps) {
               params: { rideId: selectedRide.id },
             })
           }
+          isPinned={pinnedRideIds.has(selectedRide.id)}
+          onTogglePin={(isPinned) => setRidePinned(selectedRide.id, isPinned)}
           panelPosition={panelPosition}
           ride={selectedRide}
           liveStatus={

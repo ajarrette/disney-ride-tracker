@@ -11,10 +11,14 @@ import { RideLiveStatusLine } from './ride-live-status-line';
 
 export function RideListItem({
   ride,
+  isPinned = false,
+  isPinnedDivider = false,
   liveStatus,
   onPress,
 }: {
   ride: Ride;
+  isPinned?: boolean;
+  isPinnedDivider?: boolean;
   liveStatus?: RideLiveData;
   onPress: (ride: Ride) => void;
 }) {
@@ -31,6 +35,7 @@ export function RideListItem({
       onPress={() => onPress(ride)}
       style={({ pressed }) => [
         styles.rideRow,
+        isPinnedDivider && styles.pinnedDivider,
         pressed && styles.rideRowPressed,
       ]}
     >
@@ -59,6 +64,13 @@ export function RideListItem({
         />
       </View>
       <View accessibilityElementsHidden style={styles.rideIndicators}>
+        {isPinned && (
+          <SymbolView
+            name={{ ios: 'pin.fill', android: 'push_pin', web: 'push_pin' }}
+            size={20}
+            tintColor='#2589e8'
+          />
+        )}
         {ride.photoPass && (
           <SymbolView
             name={{
@@ -90,6 +102,10 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     minHeight: 76,
     paddingVertical: 14,
+  },
+  pinnedDivider: {
+    borderBottomColor: Colors.light.accent,
+    borderBottomWidth: 2,
   },
   rideRowPressed: {
     opacity: 0.55,

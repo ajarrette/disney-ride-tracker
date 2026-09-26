@@ -4,6 +4,7 @@ import * as SplashScreen from 'expo-splash-screen';
 import { AuthGate } from '@/components/auth-gate';
 import AppTabs from '@/components/app-tabs';
 import { RideCatalogProvider } from '@/components/ride-catalog-provider';
+import { RidePreferencesProvider } from '@/components/ride-preferences-provider';
 
 SplashScreen.preventAutoHideAsync();
 
@@ -12,7 +13,9 @@ export default function TabLayout() {
     <AuthGate>
       <ThemeProvider value={DefaultTheme}>
         <RideCatalogProvider>
-          <AppTabs />
+          <RidePreferencesProvider>
+            <AppTabs />
+          </RidePreferencesProvider>
         </RideCatalogProvider>
       </ThemeProvider>
     </AuthGate>

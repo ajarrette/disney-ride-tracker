@@ -46,6 +46,8 @@ const formatHourRange = ({ startTime, endTime }: RideOperatingHour) =>
 type RideDetailsPanelProps = {
   onBack: () => void;
   onLogRide: () => void;
+  isPinned: boolean;
+  onTogglePin: (isPinned: boolean) => void;
   panelPosition: Animated.Value;
   ride: Ride;
   liveStatus?: RideLiveData;
@@ -54,6 +56,8 @@ type RideDetailsPanelProps = {
 export function RideDetailsPanel({
   onBack,
   onLogRide,
+  isPinned,
+  onTogglePin,
   panelPosition,
   ride,
   liveStatus,
@@ -259,7 +263,29 @@ export function RideDetailsPanel({
           <Text style={[styles.rideLand, { color: colors.textSecondary }]}>
             {LandLabels[ride.land]}
           </Text>
-          <RideLiveStatusLine liveStatus={liveStatus} />
+          <View style={styles.liveStatusActionRow}>
+            <RideLiveStatusLine liveStatus={liveStatus} />
+            <Pressable
+              accessibilityLabel={
+                isPinned ? `Unpin ${ride.name}` : `Pin ${ride.name}`
+              }
+              accessibilityRole='button'
+              accessibilityState={{ checked: isPinned }}
+              hitSlop={8}
+              onPress={() => onTogglePin(!isPinned)}
+              style={styles.pinButton}
+            >
+              <SymbolView
+                name={{
+                  ios: isPinned ? 'pin.fill' : 'pin',
+                  android: 'push_pin',
+                  web: 'push_pin',
+                }}
+                size={22}
+                tintColor={isPinned ? '#2589e8' : colors.textSecondary}
+              />
+            </Pressable>
+          </View>
         </Animated.View>
         {liveStatus && (
           <RideWaitForecastChart
@@ -424,6 +450,18 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     flexDirection: 'row',
     gap: 12,
+  },
+  liveStatusActionRow: {
+    alignItems: 'center',
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    minHeight: 36,
+  },
+  pinButton: {
+    alignItems: 'center',
+    height: 36,
+    justifyContent: 'center',
+    width: 36,
   },
   logRideButton: {
     alignItems: 'center',
