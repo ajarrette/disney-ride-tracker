@@ -4,18 +4,26 @@ import { SymbolView } from 'expo-symbols';
 
 import { Colors } from '@/constants/theme';
 import { LandLabels } from '@/constants/ride-labels';
+import { RideLiveData } from '@/data/live-wait-times';
 import { getRideLogo } from '@/data/ride-images';
 import { Ride } from '@/models/ride';
+import { RideLiveStatusLine } from './ride-live-status-line';
 
 export function RideListItem({
   ride,
+  liveStatus,
   onPress,
 }: {
   ride: Ride;
+  liveStatus?: RideLiveData;
   onPress: (ride: Ride) => void;
 }) {
   const colors = Colors.light;
+  const rideTextColor = '#263d5a';
   const logo = getRideLogo(ride.park, ride.logoUrl, ride.backgroundUrl);
+  const isClosedStatus =
+    liveStatus !== undefined &&
+    ['DOWN', 'CLOSED', 'REFURBISHMENT'].includes(liveStatus.status);
 
   return (
     <Pressable
@@ -39,12 +47,16 @@ export function RideListItem({
         )}
       </View>
       <View style={styles.rideCopy}>
-        <Text style={[styles.rideName, { color: colors.text }]}>
+        <Text style={[styles.rideName, { color: rideTextColor }]}>
           {ride.name}
         </Text>
-        <Text style={[styles.rideLand, { color: colors.textSecondary }]}>
+        <Text style={[styles.rideLand, { color: rideTextColor }]}>
           {LandLabels[ride.land]}
         </Text>
+        <RideLiveStatusLine
+          color={isClosedStatus ? undefined : rideTextColor}
+          liveStatus={liveStatus}
+        />
       </View>
       <View accessibilityElementsHidden style={styles.rideIndicators}>
         {ride.photoPass && (

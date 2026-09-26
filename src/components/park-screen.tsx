@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { Image } from 'expo-image';
 import {
   Animated,
@@ -16,6 +16,11 @@ import { useAppState } from '@/components/app-state';
 import { RideListItem } from './ride-list-item';
 import { BottomTabInset, Colors } from '@/constants/theme';
 import { ParkLabels } from '@/constants/ride-labels';
+import {
+  fetchParkLiveData,
+  normalizeRideName,
+  RideLiveData,
+} from '@/data/live-wait-times';
 import { seedRides } from '@/data/rides';
 import { Park, Ride } from '@/models/ride';
 
@@ -47,11 +52,50 @@ export function ParkScreen({ park }: ParkScreenProps) {
   const [selectedPark, setSelectedPark] = useState(park);
   const [selectedRide, setSelectedRide] = useState<Ride | null>(null);
   const [panelPosition] = useState(() => new Animated.Value(panelWidth));
+  const [liveDataByPark, setLiveDataByPark] = useState<
+    Partial<Record<Park, Record<string, RideLiveData>>>
+  >({});
+  const [loadingParks, setLoadingParks] = useState<Set<Park>>(() => new Set());
+  const loadedParks = useRef(new Set<Park>());
+  const pendingParks = useRef(new Set<Park>());
   const rides = seedRides
     .filter((ride) => ride.park === selectedPark)
     .sort((firstRide, secondRide) =>
       firstRide.name.localeCompare(secondRide.name),
     );
+
+  const loadLiveData = useCallback(async (parkToLoad: Park) => {
+    if (pendingParks.current.has(parkToLoad)) {
+      return;
+    }
+
+    pendingParks.current.add(parkToLoad);
+    setLoadingParks((current) => new Set(current).add(parkToLoad));
+
+    try {
+      const liveData = await fetchParkLiveData(parkToLoad);
+      setLiveDataByPark((current) => ({ ...current, [parkToLoad]: liveData }));
+      loadedParks.current.add(parkToLoad);
+    } catch (error) {
+      console.warn(
+        `Unable to load ${ParkLabels[parkToLoad]} live data.`,
+        error,
+      );
+    } finally {
+      pendingParks.current.delete(parkToLoad);
+      setLoadingParks((current) => {
+        const next = new Set(current);
+        next.delete(parkToLoad);
+        return next;
+      });
+    }
+  }, []);
+
+  useEffect(() => {
+    if (!loadedParks.current.has(selectedPark)) {
+      void loadLiveData(selectedPark);
+    }
+  }, [loadLiveData, selectedPark]);
 
   useEffect(() => {
     if (selectedRide) {
@@ -83,7 +127,12 @@ export function ParkScreen({ park }: ParkScreenProps) {
   };
 
   const renderRide = ({ item }: { item: Ride }) => {
-    return <RideListItem ride={item} onPress={openRide} />;
+    const liveStatus =
+      liveDataByPark[selectedPark]?.[normalizeRideName(item.name)];
+
+    return (
+      <RideListItem liveStatus={liveStatus} onPress={openRide} ride={item} />
+    );
   };
 
   return (
@@ -134,8 +183,11 @@ export function ParkScreen({ park }: ParkScreenProps) {
           ]}
           contentInsetAdjustmentBehavior='never'
           data={rides}
+          extraData={liveDataByPark[selectedPark]}
           keyExtractor={(ride) => ride.id}
+          onRefresh={() => loadLiveData(selectedPark)}
           renderItem={renderRide}
+          refreshing={loadingParks.has(selectedPark)}
           scrollEventThrottle={16}
           showsVerticalScrollIndicator={false}
         />
@@ -152,6 +204,9 @@ export function ParkScreen({ park }: ParkScreenProps) {
           }
           panelPosition={panelPosition}
           ride={selectedRide}
+          liveStatus={
+            liveDataByPark[selectedPark]?.[normalizeRideName(selectedRide.name)]
+          }
         />
       )}
     </View>

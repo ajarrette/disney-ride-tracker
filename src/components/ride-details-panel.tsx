@@ -6,8 +6,10 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { Colors, Fonts } from '@/constants/theme';
 import { LandLabels, ParkLabels } from '@/constants/ride-labels';
+import { RideLiveData } from '@/data/live-wait-times';
 import { getRideBackground } from '@/data/ride-images';
 import { Ride } from '@/models/ride';
+import { RideLiveStatusLine } from './ride-live-status-line';
 
 const formatLabel = (value: string) =>
   value
@@ -34,6 +36,7 @@ type RideDetailsPanelProps = {
   onLogRide: () => void;
   panelPosition: Animated.Value;
   ride: Ride;
+  liveStatus?: RideLiveData;
 };
 
 export function RideDetailsPanel({
@@ -41,6 +44,7 @@ export function RideDetailsPanel({
   onLogRide,
   panelPosition,
   ride,
+  liveStatus,
 }: RideDetailsPanelProps) {
   const colors = Colors.light;
   const insets = useSafeAreaInsets();
@@ -220,6 +224,7 @@ export function RideDetailsPanel({
           <Text style={[styles.rideLand, { color: colors.textSecondary }]}>
             {LandLabels[ride.land]}
           </Text>
+          <RideLiveStatusLine liveStatus={liveStatus} />
         </Animated.View>
         <View style={styles.featureSection}>
           <Text style={styles.featureIcon}>ϟ</Text>
