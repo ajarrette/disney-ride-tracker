@@ -48,6 +48,8 @@ type RideDetailsPanelProps = {
   onLogRide: () => void;
   isPinned: boolean;
   onTogglePin: (isPinned: boolean) => void;
+  isHidden: boolean;
+  onToggleHidden: (isHidden: boolean) => void;
   panelPosition: Animated.Value;
   ride: Ride;
   liveStatus?: RideLiveData;
@@ -58,6 +60,8 @@ export function RideDetailsPanel({
   onLogRide,
   isPinned,
   onTogglePin,
+  isHidden,
+  onToggleHidden,
   panelPosition,
   ride,
   liveStatus,
@@ -371,6 +375,26 @@ export function RideDetailsPanel({
             </Text>
           </View>
         )}
+        <Pressable
+          accessibilityLabel={`${isHidden ? 'Unhide' : 'Hide'} ${ride.name}`}
+          accessibilityRole='button'
+          accessibilityState={{ checked: isHidden }}
+          onPress={() => onToggleHidden(!isHidden)}
+          style={styles.hideRideAction}
+        >
+          <SymbolView
+            name={{
+              ios: isHidden ? 'eye' : 'eye.slash',
+              android: isHidden ? 'visibility' : 'visibility_off',
+              web: isHidden ? 'visibility' : 'visibility_off',
+            }}
+            size={20}
+            tintColor='#c62828'
+          />
+          <Text style={[styles.hideRideText, { color: '#c62828' }]}>
+            {isHidden ? 'Unhide ride' : 'Hide ride'}
+          </Text>
+        </Pressable>
       </Animated.ScrollView>
     </Animated.View>
   );
@@ -522,6 +546,19 @@ const styles = StyleSheet.create({
     minHeight: 88,
     paddingHorizontal: 24,
     paddingVertical: 12,
+  },
+  hideRideAction: {
+    alignItems: 'center',
+    flexDirection: 'row',
+    gap: 10,
+    justifyContent: 'center',
+    marginTop: 24,
+    minHeight: 56,
+    paddingHorizontal: 24,
+  },
+  hideRideText: {
+    fontSize: 15,
+    fontWeight: '600',
   },
   detailLabel: {
     fontSize: 14,

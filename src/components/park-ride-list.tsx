@@ -1,6 +1,13 @@
-import { ActivityIndicator, StyleSheet, Text, View } from 'react-native';
+import {
+  ActivityIndicator,
+  Pressable,
+  StyleSheet,
+  Text,
+  View,
+} from 'react-native';
 import DraggableFlatList from 'react-native-draggable-flatlist';
 import { SymbolView } from 'expo-symbols';
+import { useState } from 'react';
 
 import { RideListItem } from '@/components/ride-list-item';
 import { BottomTabInset, Colors } from '@/constants/theme';
@@ -12,6 +19,7 @@ type ParkRideListProps = {
   liveData?: Record<string, RideLiveData>;
   pinnedRideIds: Set<string>;
   pinnedRideOrder: string[];
+  hiddenRideIds: Set<string>;
   onPinnedRideOrderChange: (rideIds: string[]) => void;
   onRidePress: (ride: Ride) => void;
   isCatalogLoading: boolean;
@@ -27,6 +35,7 @@ export function ParkRideList({
   liveData,
   pinnedRideIds,
   pinnedRideOrder,
+  hiddenRideIds,
   onPinnedRideOrderChange,
   onRidePress,
   isCatalogLoading,
@@ -37,10 +46,17 @@ export function ParkRideList({
   bottomInset,
 }: ParkRideListProps) {
   const colors = Colors.light;
+  const [showHiddenRides, setShowHiddenRides] = useState(false);
+  const hiddenRides = rides
+    .filter((ride) => hiddenRideIds.has(ride.id))
+    .sort((firstRide, secondRide) =>
+      firstRide.name.localeCompare(secondRide.name),
+    );
+  const visibleRides = rides.filter((ride) => !hiddenRideIds.has(ride.id));
   const rideOrder = new Map(
     pinnedRideOrder.map((rideId, index) => [rideId, index]),
   );
-  const pinnedRides = rides
+  const pinnedRides = visibleRides
     .filter((ride) => pinnedRideIds.has(ride.id))
     .sort(
       (firstRide, secondRide) =>
@@ -48,7 +64,7 @@ export function ParkRideList({
           (rideOrder.get(secondRide.id) ?? Number.MAX_SAFE_INTEGER) ||
         firstRide.name.localeCompare(secondRide.name),
     );
-  const unpinnedRides = rides
+  const unpinnedRides = visibleRides
     .filter((ride) => !pinnedRideIds.has(ride.id))
     .sort((firstRide, secondRide) =>
       firstRide.name.localeCompare(secondRide.name),
@@ -112,6 +128,42 @@ export function ParkRideList({
           reserveLiveStatusSpace
         />
       ))}
+      {hiddenRides.length > 0 && (
+        <>
+          <Pressable
+            accessibilityLabel={`${showHiddenRides ? 'Hide' : 'Show'} ${hiddenRides.length} hidden ${hiddenRides.length === 1 ? 'ride' : 'rides'}`}
+            accessibilityRole='button'
+            accessibilityState={{ expanded: showHiddenRides }}
+            onPress={() => setShowHiddenRides((current) => !current)}
+            style={styles.hiddenRidesDisclosure}
+          >
+            <Text style={[styles.hiddenRidesLabel, { color: colors.accent }]}>
+              {showHiddenRides ? 'Hide' : 'Show'} hidden rides (
+              {hiddenRides.length})
+            </Text>
+            <SymbolView
+              name={{
+                ios: showHiddenRides ? 'chevron.up' : 'chevron.down',
+                android: showHiddenRides ? 'expand_less' : 'expand_more',
+                web: showHiddenRides ? 'expand_less' : 'expand_more',
+              }}
+              size={18}
+              tintColor={colors.accent}
+            />
+          </Pressable>
+          {showHiddenRides &&
+            hiddenRides.map((ride) => (
+              <RideListItem
+                key={ride.id}
+                isHidden
+                liveStatus={liveData?.[normalizeRideName(ride.name)]}
+                onPress={onRidePress}
+                ride={ride}
+                reserveLiveStatusSpace
+              />
+            ))}
+        </>
+      )}
     </View>
   );
 
@@ -123,7 +175,13 @@ export function ParkRideList({
       ]}
       contentInsetAdjustmentBehavior='never'
       data={pinnedRides}
-      extraData={{ liveData, pinnedRideIds, pinnedRideOrder }}
+      extraData={{
+        liveData,
+        pinnedRideIds,
+        pinnedRideOrder,
+        hiddenRideIds,
+        showHiddenRides,
+      }}
       keyExtractor={(ride) => ride.id}
       ListFooterComponent={unpinnedRidesFooter}
       ListEmptyComponent={
@@ -212,6 +270,19 @@ const styles = StyleSheet.create({
     lineHeight: 20,
     paddingVertical: 24,
     textAlign: 'center',
+  },
+  hiddenRidesDisclosure: {
+    alignItems: 'center',
+    borderTopColor: '#dce7f2',
+    borderTopWidth: StyleSheet.hairlineWidth,
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    minHeight: 52,
+    paddingHorizontal: 4,
+  },
+  hiddenRidesLabel: {
+    fontSize: 14,
+    fontWeight: '700',
   },
   skeletonRow: {
     alignItems: 'center',

@@ -13,6 +13,7 @@ export function RideListItem({
   ride,
   isPinned = false,
   isPinnedDivider = false,
+  isHidden = false,
   isDragging = false,
   drag,
   liveStatus,
@@ -22,6 +23,7 @@ export function RideListItem({
   ride: Ride;
   isPinned?: boolean;
   isPinnedDivider?: boolean;
+  isHidden?: boolean;
   isDragging?: boolean;
   drag?: () => void;
   liveStatus?: RideLiveData;
@@ -40,7 +42,13 @@ export function RideListItem({
       accessibilityHint={
         isPinned ? 'Touch and hold to change the pinned ride order.' : undefined
       }
-      accessibilityLabel={isPinned ? `${ride.name}, pinned` : ride.name}
+      accessibilityLabel={[
+        ride.name,
+        isPinned ? 'pinned' : null,
+        isHidden ? 'hidden' : null,
+      ]
+        .filter(Boolean)
+        .join(', ')}
       accessibilityRole='button'
       delayLongPress={180}
       disabled={isDragging}
@@ -49,6 +57,7 @@ export function RideListItem({
       style={({ pressed }) => [
         styles.rideRow,
         isPinnedDivider && styles.pinnedDivider,
+        isHidden && styles.hiddenRide,
         isDragging && styles.rideRowDragging,
         pressed && styles.rideRowPressed,
       ]}
@@ -133,6 +142,9 @@ const styles = StyleSheet.create({
   },
   rideRowPressed: {
     opacity: 0.55,
+  },
+  hiddenRide: {
+    opacity: 0.5,
   },
   rideLogo: {
     borderRadius: 28,
