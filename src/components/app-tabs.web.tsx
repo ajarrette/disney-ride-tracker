@@ -7,7 +7,7 @@ import {
   TabListProps,
 } from 'expo-router/ui';
 import { SymbolView } from 'expo-symbols';
-import { Pressable, View, StyleSheet } from 'react-native';
+import { Image, Pressable, View, StyleSheet } from 'react-native';
 import { usePathname, type Href } from 'expo-router';
 import { useEffect } from 'react';
 
@@ -37,13 +37,26 @@ function WebTabNavigator() {
         <TabList asChild>
           <CustomTabList>
             <TabTrigger name='index' href='/' asChild>
-              <TabButton icon='confirmation_number' label='Rides' />
+              <TabButton
+                icon='attractions'
+                iosIcon='tram.fill'
+                imageSource={require('../../assets/images/tabIcons/magic-kingdom.png')}
+                label='Disney World'
+              />
             </TabTrigger>
             <TabTrigger name='log' href={'/log' as Href} asChild>
-              <TabButton icon='add_circle' label='Log' />
+              <TabButton
+                icon='add_circle'
+                iosIcon='plus.circle.fill'
+                label='Log'
+              />
             </TabTrigger>
             <TabTrigger name='diary' href='/diary' asChild>
-              <TabButton icon='book' label='Diary' />
+              <TabButton
+                icon='auto_stories'
+                iosIcon='book.pages'
+                label='Diary'
+              />
             </TabTrigger>
           </CustomTabList>
         </TabList>
@@ -54,11 +67,15 @@ function WebTabNavigator() {
 
 export function TabButton({
   icon,
+  iosIcon,
+  imageSource,
   label,
   isFocused,
   ...props
 }: TabTriggerSlotProps & {
-  icon: 'confirmation_number' | 'add_circle' | 'book';
+  icon: 'attractions' | 'auto_stories' | 'add_circle';
+  iosIcon: 'tram.fill' | 'book.pages' | 'plus.circle.fill';
+  imageSource?: number;
   label: string;
 }) {
   const colors = Colors.light;
@@ -70,11 +87,29 @@ export function TabButton({
       accessibilityLabel={label}
       style={({ pressed }) => [styles.tabButtonView, pressed && styles.pressed]}
     >
-      <SymbolView
-        name={{ ios: 'ticket.fill', android: icon, web: icon }}
-        size={isLogTab ? 44 : 24}
-        tintColor={isLogTab || isFocused ? colors.accent : colors.textSecondary}
-      />
+      {imageSource ? (
+        <Image
+          source={imageSource}
+          resizeMode='contain'
+          style={{
+            width: isLogTab ? 44 : 32,
+            height: isLogTab ? 44 : 32,
+            tintColor: isLogTab
+              ? undefined
+              : isFocused
+                ? colors.accent
+                : colors.textSecondary,
+          }}
+        />
+      ) : (
+        <SymbolView
+          name={{ ios: iosIcon, android: icon, web: icon }}
+          size={isLogTab ? 44 : 24}
+          tintColor={
+            isLogTab || isFocused ? colors.accent : colors.textSecondary
+          }
+        />
+      )}
     </Pressable>
   );
 }

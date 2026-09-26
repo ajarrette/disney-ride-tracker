@@ -30,8 +30,10 @@ function NativeTabNavigator() {
       hidden={tabBarHidden || (rideDetailsOpen && pathname === '/')}
     >
       <NativeTabs.Trigger name='index' disableAutomaticContentInsets>
-        <NativeTabs.Trigger.Label hidden>Rides</NativeTabs.Trigger.Label>
-        <NativeTabs.Trigger.Icon sf='ticket.fill' md='attractions' />
+        <NativeTabs.Trigger.Label hidden>Disney World</NativeTabs.Trigger.Label>
+        <NativeTabs.Trigger.Icon
+          src={require('../../assets/images/tabIcons/magic-kingdom.png')}
+        />
       </NativeTabs.Trigger>
       <NativeTabs.Trigger name='log' disableAutomaticContentInsets>
         <NativeTabs.Trigger.Label hidden>Log</NativeTabs.Trigger.Label>
@@ -39,7 +41,7 @@ function NativeTabNavigator() {
       </NativeTabs.Trigger>
       <NativeTabs.Trigger name='diary' disableAutomaticContentInsets>
         <NativeTabs.Trigger.Label hidden>Diary</NativeTabs.Trigger.Label>
-        <NativeTabs.Trigger.Icon sf='book.closed.fill' md='book' />
+        <NativeTabs.Trigger.Icon sf='book.pages' md='auto_stories' />
       </NativeTabs.Trigger>
     </NativeTabs>
   );
