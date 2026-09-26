@@ -153,18 +153,43 @@ export function RideWaitForecastChart({
                     {Math.round(selectedWaitTime)} min
                   </Text>
                 )}
-                {hasWaitTime && heightPercent > 0 && (
+                {isCurrentHour ? (
                   <View
-                    style={[styles.bar, { height: `${heightPercent * 100}%` }]}
-                  />
-                )}
-                {isCurrentHour && liveHeightPercent > 0 && (
-                  <View
+                    pointerEvents='none'
                     style={[
-                      styles.liveBar,
-                      { height: `${liveHeightPercent * 100}%` },
+                      styles.currentBars,
+                      !hasWaitTime && styles.singleCurrentBar,
                     ]}
-                  />
+                  >
+                    {hasWaitTime && heightPercent > 0 && (
+                      <View
+                        style={[
+                          styles.bar,
+                          styles.pairedBar,
+                          { height: `${heightPercent * 100}%` },
+                        ]}
+                      />
+                    )}
+                    {liveHeightPercent > 0 && (
+                      <View
+                        style={[
+                          styles.liveBar,
+                          !hasWaitTime && styles.singleLiveBar,
+                          { height: `${liveHeightPercent * 100}%` },
+                        ]}
+                      />
+                    )}
+                  </View>
+                ) : (
+                  hasWaitTime &&
+                  heightPercent > 0 && (
+                    <View
+                      style={[
+                        styles.bar,
+                        { height: `${heightPercent * 100}%` },
+                      ]}
+                    />
+                  )
                 )}
               </Pressable>
             );
@@ -251,6 +276,18 @@ const styles = StyleSheet.create({
   selectedBarCell: {
     zIndex: 1,
   },
+  currentBars: {
+    ...StyleSheet.absoluteFill,
+    alignItems: 'flex-end',
+    bottom: 0,
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    left: '12%',
+    right: '12%',
+  },
+  singleCurrentBar: {
+    justifyContent: 'center',
+  },
   currentMarker: {
     borderColor: '#69777d',
     borderLeftWidth: 1,
@@ -277,14 +314,17 @@ const styles = StyleSheet.create({
     borderTopRightRadius: 7,
     width: '72%',
   },
+  pairedBar: {
+    width: '48%',
+  },
   liveBar: {
     backgroundColor: liveWaitColor,
     borderTopLeftRadius: 7,
     borderTopRightRadius: 7,
-    bottom: 0,
-    left: '24%',
-    position: 'absolute',
-    width: '52%',
+    width: '48%',
+  },
+  singleLiveBar: {
+    width: '72%',
   },
   hourLabels: {
     flexDirection: 'row',
