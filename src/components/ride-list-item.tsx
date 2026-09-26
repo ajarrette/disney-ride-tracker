@@ -54,7 +54,11 @@ export function RideListItem({
       ]}
     >
       <View
-        style={[styles.rideLogo, { backgroundColor: colors.backgroundElement }]}
+        style={[
+          styles.rideLogo,
+          isPinned && styles.pinnedRideLogo,
+          { backgroundColor: colors.backgroundElement },
+        ]}
       >
         {logo && (
           <Image
@@ -79,13 +83,6 @@ export function RideListItem({
         />
       </View>
       <View accessibilityElementsHidden style={styles.rideIndicators}>
-        {isPinned && (
-          <SymbolView
-            name={{ ios: 'pin.fill', android: 'push_pin', web: 'push_pin' }}
-            size={20}
-            tintColor='#2589e8'
-          />
-        )}
         {ride.photoPass && (
           <SymbolView
             name={{
@@ -101,7 +98,7 @@ export function RideListItem({
           <SymbolView
             name={{ ios: 'bolt.fill', android: 'bolt', web: 'bolt' }}
             size={20}
-            tintColor={colors.textSecondary}
+            tintColor={colors.accent}
           />
         )}
       </View>
@@ -143,6 +140,10 @@ const styles = StyleSheet.create({
     marginRight: 16,
     overflow: 'hidden',
     width: 56,
+  },
+  pinnedRideLogo: {
+    borderColor: '#2589e8',
+    borderWidth: 2,
   },
   rideLogoImage: {
     height: '100%',
