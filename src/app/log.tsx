@@ -422,7 +422,9 @@ export default function LogScreen() {
       ]}
     >
       <KeyboardAvoidingView
-        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+        behavior={
+          Platform.OS === 'ios' && !selectedRide ? 'padding' : undefined
+        }
         style={styles.content}
       >
         <Animated.View
@@ -563,266 +565,283 @@ export default function LogScreen() {
         </Animated.View>
 
         {selectedRide ? (
-          <Animated.ScrollView
-            contentContainerStyle={[
-              styles.formContent,
-              { paddingBottom: insets.bottom + 36 },
-            ]}
-            keyboardShouldPersistTaps='handled'
-            onScroll={Animated.event(
-              [{ nativeEvent: { contentOffset: { y: scrollY } } }],
-              { useNativeDriver: true },
-            )}
-            scrollEventThrottle={16}
-            showsVerticalScrollIndicator={false}
-            style={styles.formScroll}
-          >
-            {rideBackground ? (
-              <>
-                <View style={{ height: insets.top }} />
-                <Image
-                  contentFit='cover'
-                  source={rideBackground}
-                  style={styles.formHeroImage}
-                />
-              </>
-            ) : null}
-            {!logId && (
-              <Pressable
-                accessibilityRole='button'
-                onPress={() => {
-                  pendingRideIdRef.current = null;
-                  setSelectedRide(null);
-                }}
-                style={styles.changeRideButton}
-              >
-                <Text style={[styles.changeRideText, { color: colors.accent }]}>
-                  Choose a different ride
-                </Text>
-              </Pressable>
-            )}
-            <Animated.View
-              style={{ opacity: rideBackground ? largeTitleOpacity : 1 }}
+          <>
+            <Animated.ScrollView
+              automaticallyAdjustKeyboardInsets={Platform.OS === 'ios'}
+              contentContainerStyle={[
+                styles.formContent,
+                { paddingBottom: 28 },
+              ]}
+              keyboardShouldPersistTaps='handled'
+              onScroll={Animated.event(
+                [{ nativeEvent: { contentOffset: { y: scrollY } } }],
+                { useNativeDriver: true },
+              )}
+              scrollEventThrottle={16}
+              showsVerticalScrollIndicator={false}
+              style={styles.formScroll}
             >
-              <Text style={[styles.rideTitle, { color: '#263d5a' }]}>
-                {selectedRide.name}
-              </Text>
-              <Text
-                style={[styles.rideSubtitle, { color: colors.textSecondary }]}
-              >
-                {ParkLabels[selectedRide.park]} ·{' '}
-                {LandLabels[selectedRide.land]}
-              </Text>
-            </Animated.View>
-
-            <View style={styles.dateTimeRow}>
-              <Pressable
-                accessibilityLabel={`Change ride date and time, ${formatVisitedAt(visitedAt)}`}
-                accessibilityRole='button'
-                onPress={openDateTimePicker}
-                style={styles.dateTimeButton}
-              >
-                <Text style={[styles.dateTimeValue, { color: colors.accent }]}>
-                  {formatVisitedAt(visitedAt)}
-                </Text>
-                <SymbolView
-                  name={{
-                    ios: 'chevron.down',
-                    android: 'expand_more',
-                    web: 'expand_more',
-                  }}
-                  size={14}
-                  tintColor={colors.accent}
-                />
-              </Pressable>
-
-              {selectedRide.lightningLane && (
-                <Pressable
-                  accessibilityLabel='Lightning Lane used'
-                  accessibilityRole='radio'
-                  accessibilityState={{ selected: lightningLaneUsed }}
-                  onPress={() => setLightningLaneUsed((used) => !used)}
-                  style={({ pressed }) => [
-                    styles.lightningLaneButton,
-                    {
-                      backgroundColor: lightningLaneUsed
-                        ? colors.accent
-                        : colors.background,
-                      borderColor: colors.accent,
-                    },
-                    pressed && styles.lightningLaneButtonPressed,
-                  ]}
-                >
-                  <SymbolView
-                    name={{ ios: 'bolt.fill', android: 'bolt', web: 'bolt' }}
-                    size={20}
-                    tintColor={lightningLaneUsed ? '#ffffff' : colors.accent}
+              {rideBackground ? (
+                <>
+                  <View style={{ height: insets.top }} />
+                  <Image
+                    contentFit='cover'
+                    source={rideBackground}
+                    style={styles.formHeroImage}
                   />
+                </>
+              ) : null}
+              {!logId && (
+                <Pressable
+                  accessibilityRole='button'
+                  onPress={() => {
+                    pendingRideIdRef.current = null;
+                    setSelectedRide(null);
+                  }}
+                  style={styles.changeRideButton}
+                >
+                  <Text
+                    style={[styles.changeRideText, { color: colors.accent }]}
+                  >
+                    Choose a different ride
+                  </Text>
                 </Pressable>
               )}
-            </View>
-
-            <Text style={[styles.fieldLabel, { color: colors.text }]}>
-              Wait time (minutes)
-            </Text>
-            <TextInput
-              accessibilityLabel='Wait time in minutes'
-              keyboardType='number-pad'
-              onChangeText={setWaitTime}
-              placeholder='Optional'
-              placeholderTextColor={colors.textSecondary}
-              style={[
-                styles.textInput,
-                { borderColor: '#dce7f2', color: colors.text },
-              ]}
-              value={waitTime}
-            />
-
-            <Text style={[styles.fieldLabel, { color: colors.text }]}>
-              Rating
-            </Text>
-            <View style={styles.ratingRow}>
-              {[1, 2, 3, 4, 5].map((value) => (
-                <View key={value} style={styles.ratingButton}>
-                  {(() => {
-                    const currentRating = rating ?? 0;
-                    const isFull = currentRating >= value;
-                    const isHalf = !isFull && currentRating >= value - 0.5;
-
-                    return (
-                      <>
-                        <SymbolView
-                          name={{
-                            ios: isFull
-                              ? 'star.fill'
-                              : isHalf
-                                ? 'star.leadinghalf.filled'
-                                : 'star',
-                            android: isFull
-                              ? 'star'
-                              : isHalf
-                                ? 'star_half'
-                                : 'star_outline',
-                            web: isFull
-                              ? 'star'
-                              : isHalf
-                                ? 'star_half'
-                                : 'star_outline',
-                          }}
-                          size={28}
-                          tintColor={
-                            isFull || isHalf
-                              ? colors.accent
-                              : colors.textSecondary
-                          }
-                        />
-                        <Pressable
-                          accessibilityLabel={`Rate ${value - 0.5} out of 5`}
-                          accessibilityRole='button'
-                          accessibilityState={{
-                            selected: rating === value - 0.5,
-                          }}
-                          onPress={() => setRating(value - 0.5)}
-                          style={[
-                            styles.ratingHalfButton,
-                            styles.ratingHalfLeft,
-                          ]}
-                        />
-                        <Pressable
-                          accessibilityLabel={`Rate ${value} out of 5`}
-                          accessibilityRole='button'
-                          accessibilityState={{ selected: rating === value }}
-                          onPress={() => setRating(value)}
-                          style={[
-                            styles.ratingHalfButton,
-                            styles.ratingHalfRight,
-                          ]}
-                        />
-                      </>
-                    );
-                  })()}
-                </View>
-              ))}
-            </View>
-
-            <View style={styles.photoHeader}>
-              <Text style={[styles.photoLabel, { color: colors.text }]}>
-                Photos ({photos.length}/{MAX_PHOTOS})
-              </Text>
-              {photos.length < MAX_PHOTOS && (
-                <Pressable
-                  accessibilityLabel='Add photos'
-                  accessibilityRole='button'
-                  disabled={isMutating}
-                  onPress={addPhotos}
-                  style={({ pressed }) => [
-                    styles.addPhotosButton,
-                    {
-                      borderColor: colors.accent,
-                    },
-                    pressed && styles.addPhotosButtonPressed,
-                  ]}
+              <Animated.View
+                style={{ opacity: rideBackground ? largeTitleOpacity : 1 }}
+              >
+                <Text style={[styles.rideTitle, { color: '#263d5a' }]}>
+                  {selectedRide.name}
+                </Text>
+                <Text
+                  style={[styles.rideSubtitle, { color: colors.textSecondary }]}
                 >
+                  {ParkLabels[selectedRide.park]} ·{' '}
+                  {LandLabels[selectedRide.land]}
+                </Text>
+              </Animated.View>
+
+              <View style={styles.dateTimeRow}>
+                <Pressable
+                  accessibilityLabel={`Change ride date and time, ${formatVisitedAt(visitedAt)}`}
+                  accessibilityRole='button'
+                  onPress={openDateTimePicker}
+                  style={styles.dateTimeButton}
+                >
+                  <Text
+                    style={[styles.dateTimeValue, { color: colors.accent }]}
+                  >
+                    {formatVisitedAt(visitedAt)}
+                  </Text>
                   <SymbolView
                     name={{
-                      ios: 'camera',
-                      android: 'photo_camera',
-                      web: 'photo_camera',
+                      ios: 'chevron.down',
+                      android: 'expand_more',
+                      web: 'expand_more',
                     }}
-                    size={32}
+                    size={14}
                     tintColor={colors.accent}
                   />
                 </Pressable>
-              )}
-            </View>
-            <RideLogPhotos
-              onRemove={isMutating ? undefined : removePhoto}
-              photos={photos}
-              style={styles.formPhotoStrip}
-            />
 
-            <Text style={[styles.fieldLabel, { color: colors.text }]}>
-              Notes
-            </Text>
-            <TextInput
-              accessibilityLabel='Ride notes'
-              multiline
-              onChangeText={setNotes}
-              placeholder='Add a note about this ride'
-              placeholderTextColor={colors.textSecondary}
+                {selectedRide.lightningLane && (
+                  <Pressable
+                    accessibilityLabel='Lightning Lane used'
+                    accessibilityRole='radio'
+                    accessibilityState={{ selected: lightningLaneUsed }}
+                    onPress={() => setLightningLaneUsed((used) => !used)}
+                    style={({ pressed }) => [
+                      styles.lightningLaneButton,
+                      {
+                        backgroundColor: lightningLaneUsed
+                          ? colors.accent
+                          : colors.background,
+                        borderColor: colors.accent,
+                      },
+                      pressed && styles.lightningLaneButtonPressed,
+                    ]}
+                  >
+                    <SymbolView
+                      name={{ ios: 'bolt.fill', android: 'bolt', web: 'bolt' }}
+                      size={20}
+                      tintColor={lightningLaneUsed ? '#ffffff' : colors.accent}
+                    />
+                  </Pressable>
+                )}
+              </View>
+
+              <Text style={[styles.fieldLabel, { color: colors.text }]}>
+                Wait time (minutes)
+              </Text>
+              <TextInput
+                accessibilityLabel='Wait time in minutes'
+                keyboardType='number-pad'
+                onChangeText={setWaitTime}
+                placeholder='Optional'
+                placeholderTextColor={colors.textSecondary}
+                style={[
+                  styles.textInput,
+                  { borderColor: '#dce7f2', color: colors.text },
+                ]}
+                value={waitTime}
+              />
+
+              <Text style={[styles.fieldLabel, { color: colors.text }]}>
+                Rating
+              </Text>
+              <View style={styles.ratingRow}>
+                {[1, 2, 3, 4, 5].map((value) => (
+                  <View key={value} style={styles.ratingButton}>
+                    {(() => {
+                      const currentRating = rating ?? 0;
+                      const isFull = currentRating >= value;
+                      const isHalf = !isFull && currentRating >= value - 0.5;
+
+                      return (
+                        <>
+                          <SymbolView
+                            name={{
+                              ios: isFull
+                                ? 'star.fill'
+                                : isHalf
+                                  ? 'star.leadinghalf.filled'
+                                  : 'star',
+                              android: isFull
+                                ? 'star'
+                                : isHalf
+                                  ? 'star_half'
+                                  : 'star_outline',
+                              web: isFull
+                                ? 'star'
+                                : isHalf
+                                  ? 'star_half'
+                                  : 'star_outline',
+                            }}
+                            size={28}
+                            tintColor={
+                              isFull || isHalf
+                                ? colors.accent
+                                : colors.textSecondary
+                            }
+                          />
+                          <Pressable
+                            accessibilityLabel={`Rate ${value - 0.5} out of 5`}
+                            accessibilityRole='button'
+                            accessibilityState={{
+                              selected: rating === value - 0.5,
+                            }}
+                            onPress={() => setRating(value - 0.5)}
+                            style={[
+                              styles.ratingHalfButton,
+                              styles.ratingHalfLeft,
+                            ]}
+                          />
+                          <Pressable
+                            accessibilityLabel={`Rate ${value} out of 5`}
+                            accessibilityRole='button'
+                            accessibilityState={{ selected: rating === value }}
+                            onPress={() => setRating(value)}
+                            style={[
+                              styles.ratingHalfButton,
+                              styles.ratingHalfRight,
+                            ]}
+                          />
+                        </>
+                      );
+                    })()}
+                  </View>
+                ))}
+              </View>
+
+              <View style={styles.photoHeader}>
+                <Text style={[styles.photoLabel, { color: colors.text }]}>
+                  Photos ({photos.length}/{MAX_PHOTOS})
+                </Text>
+                {photos.length < MAX_PHOTOS && (
+                  <Pressable
+                    accessibilityLabel='Add photos'
+                    accessibilityRole='button'
+                    disabled={isMutating}
+                    onPress={addPhotos}
+                    style={({ pressed }) => [
+                      styles.addPhotosButton,
+                      {
+                        borderColor: colors.accent,
+                      },
+                      pressed && styles.addPhotosButtonPressed,
+                    ]}
+                  >
+                    <SymbolView
+                      name={{
+                        ios: 'camera',
+                        android: 'photo_camera',
+                        web: 'photo_camera',
+                      }}
+                      size={32}
+                      tintColor={colors.accent}
+                    />
+                  </Pressable>
+                )}
+              </View>
+              <RideLogPhotos
+                onRemove={isMutating ? undefined : removePhoto}
+                photos={photos}
+                style={styles.formPhotoStrip}
+              />
+
+              <Text style={[styles.fieldLabel, { color: colors.text }]}>
+                Notes
+              </Text>
+              <TextInput
+                accessibilityLabel='Ride notes'
+                multiline
+                onChangeText={setNotes}
+                placeholder='Add a note about this ride'
+                placeholderTextColor={colors.textSecondary}
+                style={[
+                  styles.textInput,
+                  styles.notesInput,
+                  { borderColor: '#dce7f2', color: colors.text },
+                ]}
+                textAlignVertical='top'
+                value={notes}
+              />
+            </Animated.ScrollView>
+            <View
               style={[
-                styles.textInput,
-                styles.notesInput,
-                { borderColor: '#dce7f2', color: colors.text },
-              ]}
-              textAlignVertical='top'
-              value={notes}
-            />
-
-            <Pressable
-              accessibilityRole='button'
-              accessibilityState={{
-                disabled: isMutating || !selectedRide || !rideLogsReady,
-              }}
-              disabled={isMutating || !selectedRide || !rideLogsReady}
-              onPress={() => void saveCurrentRideLog()}
-              style={({ pressed }) => [
-                styles.saveButton,
-                (isMutating || !selectedRide || !rideLogsReady) &&
-                  styles.saveButtonDisabled,
-                pressed && styles.saveButtonPressed,
+                styles.saveFooter,
+                {
+                  backgroundColor: colors.background,
+                  borderTopColor: '#dce7f2',
+                  paddingBottom: insets.bottom + 12,
+                },
               ]}
             >
-              {isMutating ? (
-                <View style={styles.saveButtonContent}>
-                  <ActivityIndicator color='#ffffff' size='small' />
-                  <Text style={styles.saveButtonText}>Saving</Text>
-                </View>
-              ) : (
-                <Text style={styles.saveButtonText}>Save Ride</Text>
-              )}
-            </Pressable>
-          </Animated.ScrollView>
+              <Pressable
+                accessibilityRole='button'
+                accessibilityState={{
+                  disabled: isMutating || !selectedRide || !rideLogsReady,
+                }}
+                disabled={isMutating || !selectedRide || !rideLogsReady}
+                onPress={() => void saveCurrentRideLog()}
+                style={({ pressed }) => [
+                  styles.saveButton,
+                  (isMutating || !selectedRide || !rideLogsReady) &&
+                    styles.saveButtonDisabled,
+                  pressed && styles.saveButtonPressed,
+                ]}
+              >
+                {isMutating ? (
+                  <View style={styles.saveButtonContent}>
+                    <ActivityIndicator color='#ffffff' size='small' />
+                    <Text style={styles.saveButtonText}>Saving</Text>
+                  </View>
+                ) : (
+                  <Text style={styles.saveButtonText}>Save Ride</Text>
+                )}
+              </Pressable>
+            </View>
+          </>
         ) : (
           <>
             <View style={styles.searchContainer}>
@@ -1279,12 +1298,16 @@ const styles = StyleSheet.create({
   ratingHalfRight: {
     right: 0,
   },
+  saveFooter: {
+    borderTopWidth: StyleSheet.hairlineWidth,
+    paddingHorizontal: 24,
+    paddingTop: 12,
+  },
   saveButton: {
     alignItems: 'center',
     backgroundColor: Colors.light.accent,
     borderRadius: 8,
     justifyContent: 'center',
-    marginTop: 32,
     minHeight: 52,
   },
   saveButtonDisabled: {
