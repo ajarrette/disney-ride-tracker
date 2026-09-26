@@ -10,6 +10,7 @@ import { RideLiveData, RideOperatingHour } from '@/data/live-wait-times';
 import { getRideBackground } from '@/data/ride-images';
 import { Ride } from '@/models/ride';
 import { RideLiveStatusLine } from './ride-live-status-line';
+import { RideWaitForecastChart } from './ride-wait-forecast-chart';
 
 const formatLabel = (value: string) =>
   value
@@ -259,7 +260,20 @@ export function RideDetailsPanel({
             {LandLabels[ride.land]}
           </Text>
           <RideLiveStatusLine liveStatus={liveStatus} />
+          {typeof liveStatus?.yesterdayWaitTime === 'number' && (
+            <Text
+              style={[styles.yesterdayWait, { color: colors.textSecondary }]}
+            >
+              Yesterday at this time: {liveStatus.yesterdayWaitTime} min
+            </Text>
+          )}
         </Animated.View>
+        {liveStatus && (
+          <RideWaitForecastChart
+            forecastedWaitTimes={liveStatus.forecastedWaitTimes}
+            operatingHours={operatingHours}
+          />
+        )}
         <View style={styles.featureSection}>
           <Text style={styles.featureIcon}>ϟ</Text>
           <Text style={[styles.featureTitle, { color: colors.text }]}>
@@ -436,6 +450,11 @@ const styles = StyleSheet.create({
     fontSize: 10,
     lineHeight: 14,
     marginTop: 2,
+  },
+  yesterdayWait: {
+    fontSize: 13,
+    lineHeight: 18,
+    marginTop: 4,
   },
   featureSection: {
     alignItems: 'center',

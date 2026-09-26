@@ -12,6 +12,8 @@ export type WaitTrend = 'lower' | 'higher';
 export type RideLiveData = {
   status: string;
   waitTime: number | null;
+  yesterdayWaitTime: number | null;
+  forecastedWaitTimes: (number | null)[];
   operatingHours: RideOperatingHour[];
   waitTrend?: WaitTrend;
 };
@@ -73,6 +75,7 @@ function getParkTimeParts(date: Date) {
 
   return {
     date: `${parts.year}-${parts.month}-${parts.day}`,
+    hourOfDay: Number(parts.hour),
     minuteOfDay: Number(parts.hour) * 60 + Number(parts.minute),
   };
 }
@@ -169,6 +172,78 @@ function getHistoricalWaitTime(
   return waitTime;
 }
 
+function getHistoricalWaitSamplesByHour(
+  entity: HistoricalEntity | undefined,
+  date: string,
+): number[][] {
+  const samplesByHour = Array.from({ length: 24 }, () => [] as number[]);
+  if (!entity) return samplesByHour;
+
+  const addSample = (time: unknown, waitTime: unknown) => {
+    if (
+      typeof time !== 'string' ||
+      typeof waitTime !== 'number' ||
+      !Number.isFinite(waitTime)
+    ) {
+      return;
+    }
+
+    const timestamp = new Date(time);
+    if (Number.isNaN(timestamp.getTime())) return;
+
+    const { date: sampleDate, hourOfDay } = getParkTimeParts(timestamp);
+    if (sampleDate !== date) return;
+    samplesByHour[hourOfDay].push(waitTime);
+  };
+
+  addSample(
+    entity.opening?.observedAt,
+    entity.opening?.queue?.STANDBY?.waitTime,
+  );
+
+  if (Array.isArray(entity.history)) {
+    for (const snapshot of entity.history as HistoricalSnapshot[]) {
+      if (
+        typeof snapshot.time === 'string' &&
+        Array.isArray(snapshot.changed) &&
+        snapshot.changed.includes('queue.STANDBY.waitTime')
+      ) {
+        addSample(snapshot.time, snapshot.queue?.STANDBY?.waitTime);
+      }
+    }
+  }
+
+  return samplesByHour;
+}
+
+function getForecastedWaitTimes(
+  entitiesByDay: (HistoricalEntity | undefined)[],
+  dates: string[],
+): (number | null)[] {
+  const dailyAveragesByHour = Array.from({ length: 24 }, () => [] as number[]);
+
+  entitiesByDay.forEach((entity, dayIndex) => {
+    const samplesByHour = getHistoricalWaitSamplesByHour(
+      entity,
+      dates[dayIndex],
+    );
+    samplesByHour.forEach((samples, hour) => {
+      if (samples.length > 0) {
+        dailyAveragesByHour[hour].push(
+          samples.reduce((total, sample) => total + sample, 0) / samples.length,
+        );
+      }
+    });
+  });
+
+  return dailyAveragesByHour.map((dailyAverages) =>
+    dailyAverages.length > 0
+      ? dailyAverages.reduce((total, average) => total + average, 0) /
+        dailyAverages.length
+      : null,
+  );
+}
+
 function isRideOperatingHour(value: unknown): value is RideOperatingHour {
   if (typeof value !== 'object' || value === null) {
     return false;
@@ -191,12 +266,18 @@ export async function fetchParkLiveData(
 ): Promise<Record<string, RideLiveData>> {
   const now = new Date();
   const currentParkTime = getParkTimeParts(now);
-  const yesterday = getPreviousParkDate(currentParkTime.date);
-  const [response, historyEntities] = await Promise.all([
+  const historyDates = Array.from({ length: 7 }, (_, index) => {
+    let date = currentParkTime.date;
+    for (let daysAgo = 0; daysAgo <= index; daysAgo += 1) {
+      date = getPreviousParkDate(date);
+    }
+    return date;
+  });
+  const [response, historyByDate] = await Promise.all([
     fetch(
       `https://api.themeparks.wiki/v1/entity/${themeParksParkIds[park]}/live`,
     ),
-    fetchParkHistory(park, yesterday),
+    Promise.all(historyDates.map((date) => fetchParkHistory(park, date))),
   ]);
 
   if (!response.ok) {
@@ -209,12 +290,18 @@ export async function fetchParkLiveData(
     throw new Error('ThemeParks.wiki response did not include live data.');
   }
 
-  const historyByRide: Record<string, HistoricalEntity> = {};
-  for (const entity of historyEntities) {
-    if (typeof entity.name === 'string' && entity.entityType === 'ATTRACTION') {
-      historyByRide[normalizeRideName(entity.name)] = entity;
+  const historyByRideByDate = historyByDate.map((entities) => {
+    const historyByRide: Record<string, HistoricalEntity> = {};
+    for (const entity of entities) {
+      if (
+        typeof entity.name === 'string' &&
+        entity.entityType === 'ATTRACTION'
+      ) {
+        historyByRide[normalizeRideName(entity.name)] = entity;
+      }
     }
-  }
+    return historyByRide;
+  });
 
   const rides: Record<string, RideLiveData> = {};
 
@@ -231,14 +318,20 @@ export async function fetchParkLiveData(
     const operatingHours = Array.isArray(entity.operatingHours)
       ? entity.operatingHours.filter(isRideOperatingHour)
       : [];
+    const normalizedName = normalizeRideName(entity.name);
+    const historyForRide = historyByRideByDate.map(
+      (historyByRide) => historyByRide[normalizedName],
+    );
     const historicalWaitTime = getHistoricalWaitTime(
-      historyByRide[normalizeRideName(entity.name)],
-      yesterday,
+      historyForRide[0],
+      historyDates[0],
       currentParkTime.minuteOfDay,
     );
     rides[normalizeRideName(entity.name)] = {
       status: entity.status,
       waitTime: typeof waitTime === 'number' ? waitTime : null,
+      yesterdayWaitTime: historicalWaitTime,
+      forecastedWaitTimes: getForecastedWaitTimes(historyForRide, historyDates),
       operatingHours,
       waitTrend:
         typeof waitTime === 'number' && historicalWaitTime !== null
