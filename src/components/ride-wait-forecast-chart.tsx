@@ -54,16 +54,30 @@ export function RideWaitForecastChart({
   const startHour = startHours.length > 0 ? Math.min(...startHours) : 8;
   const operatingEndHour = endHours.length > 0 ? Math.max(...endHours) : 17;
   const closingHour = operatingEndHour <= startHour ? 24 : operatingEndHour;
-  const endHour = Math.max(closingHour, Math.min(currentHour + 1, 24));
+  const latestForecastHour = forecastedWaitTimes.reduce<number>(
+    (latestHour, waitTime, hour) =>
+      typeof waitTime === 'number' && Number.isFinite(waitTime)
+        ? hour
+        : latestHour,
+    -1,
+  );
+  const hasCurrentWaitTime =
+    typeof currentWaitTime === 'number' && Number.isFinite(currentWaitTime);
+  const latestDataHour = Math.max(
+    latestForecastHour,
+    hasCurrentWaitTime ? currentHour : -1,
+  );
+  const dataEndHour =
+    latestDataHour >= startHour
+      ? Math.min(latestDataHour + 1, 24)
+      : closingHour;
+  const endHour = Math.max(startHour + 1, dataEndHour);
   const hours = Array.from(
     { length: Math.max(1, endHour - startHour) },
     (_, index) => startHour + index,
   );
   const currentHourTypicalWait = forecastedWaitTimes[currentHour];
-  const showLiveWait =
-    typeof currentWaitTime === 'number' &&
-    Number.isFinite(currentWaitTime) &&
-    hours.includes(currentHour);
+  const showLiveWait = hasCurrentWaitTime && hours.includes(currentHour);
 
   return (
     <View style={styles.section}>
