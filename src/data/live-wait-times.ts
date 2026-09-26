@@ -12,6 +12,7 @@ export type WaitTrend = 'lower' | 'higher';
 export type RideLiveData = {
   status: string;
   waitTime: number | null;
+  currentParkHour: number;
   yesterdayWaitTime: number | null;
   forecastedWaitTimes: (number | null)[];
   operatingHours: RideOperatingHour[];
@@ -330,6 +331,7 @@ export async function fetchParkLiveData(
     rides[normalizeRideName(entity.name)] = {
       status: entity.status,
       waitTime: typeof waitTime === 'number' ? waitTime : null,
+      currentParkHour: currentParkTime.hourOfDay,
       yesterdayWaitTime: historicalWaitTime,
       forecastedWaitTimes: getForecastedWaitTimes(historyForRide, historyDates),
       operatingHours,

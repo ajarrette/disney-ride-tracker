@@ -1,12 +1,13 @@
 import { useState } from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 
-import { Fonts } from '@/constants/theme';
+import { Colors, Fonts } from '@/constants/theme';
 import { RideOperatingHour } from '@/data/live-wait-times';
 
 const maximumWaitTime = 120;
 const chartTitleColor = '#263d5a';
 const chartAxisLabelColor = '#8094a0';
+const liveWaitColor = Colors.light.accent;
 
 function getHour(dateTime: string): number | null {
   const match = dateTime.match(/T(\d{2}):/);
@@ -17,12 +18,29 @@ function formatHour(hour: number): string {
   return `${hour % 12 || 12}${hour >= 12 ? 'pm' : 'am'}`;
 }
 
+function formatLiveHour(hour: number): string {
+  return `${hour % 12 || 12} ${hour >= 12 ? 'PM' : 'AM'}`;
+}
+
+function getBusyDescription(currentWait: number, typicalWait: number): string {
+  const difference = currentWait - typicalWait;
+  const threshold = Math.max(5, typicalWait * 0.25);
+
+  if (difference > threshold) return 'Busier than usual';
+  if (difference < -threshold) return 'Quieter than usual';
+  return 'About as busy as usual';
+}
+
 type RideWaitForecastChartProps = {
+  currentHour: number;
+  currentWaitTime: number | null;
   forecastedWaitTimes: (number | null)[];
   operatingHours: RideOperatingHour[];
 };
 
 export function RideWaitForecastChart({
+  currentHour,
+  currentWaitTime,
   forecastedWaitTimes,
   operatingHours,
 }: RideWaitForecastChartProps) {
@@ -35,18 +53,42 @@ export function RideWaitForecastChart({
     .filter((hour): hour is number => hour !== null);
   const startHour = startHours.length > 0 ? Math.min(...startHours) : 8;
   const operatingEndHour = endHours.length > 0 ? Math.max(...endHours) : 17;
-  const endHour = operatingEndHour <= startHour ? 24 : operatingEndHour;
+  const closingHour = operatingEndHour <= startHour ? 24 : operatingEndHour;
+  const endHour = Math.max(closingHour, Math.min(currentHour + 1, 24));
   const hours = Array.from(
     { length: Math.max(1, endHour - startHour) },
     (_, index) => startHour + index,
   );
+  const currentHourTypicalWait = forecastedWaitTimes[currentHour];
+  const showLiveWait =
+    typeof currentWaitTime === 'number' &&
+    Number.isFinite(currentWaitTime) &&
+    hours.includes(currentHour);
 
   return (
     <View style={styles.section}>
       <Text style={styles.title}>Forecasted Wait</Text>
-      <Text style={styles.subtitle}>
-        Estimated wait times (subject to change)
-      </Text>
+      {showLiveWait ? (
+        <View style={styles.currentSummary}>
+          <Text style={styles.currentHeadline}>
+            <Text style={styles.liveAccent}>
+              Live {formatLiveHour(currentHour)}:
+            </Text>{' '}
+            {typeof currentHourTypicalWait === 'number'
+              ? getBusyDescription(currentWaitTime, currentHourTypicalWait)
+              : 'Current conditions'}
+          </Text>
+          <Text style={styles.subtitle}>
+            {typeof currentHourTypicalWait === 'number'
+              ? `Usually around ${Math.round(currentHourTypicalWait)} min wait`
+              : 'Typical wait unavailable for this hour'}
+          </Text>
+        </View>
+      ) : (
+        <Text style={styles.subtitle}>
+          Estimated wait times (subject to change)
+        </Text>
+      )}
       <View
         accessibilityLabel='Hourly forecasted wait times for today'
         style={styles.plot}
@@ -60,39 +102,68 @@ export function RideWaitForecastChart({
           {hours.map((hour) => {
             const waitTime = forecastedWaitTimes[hour];
             const hasWaitTime = typeof waitTime === 'number';
+            const isCurrentHour = showLiveWait && hour === currentHour;
             const isSelected = selectedHour === hour;
             const heightPercent = hasWaitTime
               ? Math.min(Math.max(waitTime, 0), maximumWaitTime) /
                 maximumWaitTime
               : 0;
+            const liveHeightPercent = isCurrentHour
+              ? Math.min(Math.max(currentWaitTime, 0), maximumWaitTime) /
+                maximumWaitTime
+              : 0;
+            const selectedWaitTime = isCurrentHour ? currentWaitTime : waitTime;
+            const selectedHeightPercent = isCurrentHour
+              ? liveHeightPercent
+              : heightPercent;
+            const hasSelectedWait = typeof selectedWaitTime === 'number';
 
             return (
               <Pressable
                 key={hour}
                 accessibilityLabel={
-                  hasWaitTime
-                    ? `${formatHour(hour)}, ${Math.round(waitTime)} minute average wait`
-                    : `${formatHour(hour)}, no wait time data`
+                  isCurrentHour && hasSelectedWait
+                    ? `Live ${formatHour(hour)}, ${Math.round(selectedWaitTime)} minute wait${typeof waitTime === 'number' ? `, usually ${Math.round(waitTime)} minutes` : ''}`
+                    : hasWaitTime
+                      ? `${formatHour(hour)}, ${Math.round(waitTime)} minute average wait`
+                      : `${formatHour(hour)}, no wait time data`
                 }
                 accessibilityRole='button'
                 accessibilityState={{ selected: isSelected }}
-                disabled={!hasWaitTime}
+                disabled={!hasWaitTime && !isCurrentHour}
                 onPress={() => setSelectedHour(isSelected ? null : hour)}
                 style={[styles.barCell, isSelected && styles.selectedBarCell]}
               >
-                {isSelected && hasWaitTime && (
+                {isCurrentHour && (
+                  <View
+                    pointerEvents='none'
+                    style={[
+                      styles.currentMarker,
+                      { bottom: `${liveHeightPercent * 100}%` },
+                    ]}
+                  />
+                )}
+                {isSelected && hasSelectedWait && (
                   <Text
                     style={[
                       styles.waitValue,
-                      { bottom: `${heightPercent * 100}%` },
+                      { bottom: `${selectedHeightPercent * 100}%` },
                     ]}
                   >
-                    {Math.round(waitTime)} min
+                    {Math.round(selectedWaitTime)} min
                   </Text>
                 )}
                 {hasWaitTime && heightPercent > 0 && (
                   <View
                     style={[styles.bar, { height: `${heightPercent * 100}%` }]}
+                  />
+                )}
+                {isCurrentHour && liveHeightPercent > 0 && (
+                  <View
+                    style={[
+                      styles.liveBar,
+                      { height: `${liveHeightPercent * 100}%` },
+                    ]}
                   />
                 )}
               </Pressable>
@@ -104,7 +175,9 @@ export function RideWaitForecastChart({
         {hours.map((hour, index) => (
           <View key={hour} style={styles.hourLabelCell}>
             {index % 2 === 0 && (
-              <Text style={styles.hourLabel}>{formatHour(hour)}</Text>
+              <Text numberOfLines={1} style={styles.hourLabel}>
+                {formatHour(hour)}
+              </Text>
             )}
           </View>
         ))}
@@ -136,6 +209,21 @@ const styles = StyleSheet.create({
     lineHeight: 21,
     textAlign: 'center',
   },
+  currentSummary: {
+    alignItems: 'center',
+    marginTop: 2,
+  },
+  currentHeadline: {
+    color: chartTitleColor,
+    fontFamily: Fonts.rounded,
+    fontSize: 18,
+    lineHeight: 24,
+    textAlign: 'center',
+  },
+  liveAccent: {
+    color: liveWaitColor,
+    fontFamily: Fonts.rounded,
+  },
   plot: {
     height: 90,
     marginTop: 24,
@@ -163,6 +251,14 @@ const styles = StyleSheet.create({
   selectedBarCell: {
     zIndex: 1,
   },
+  currentMarker: {
+    borderColor: '#69777d',
+    borderLeftWidth: 1,
+    borderStyle: 'dashed',
+    left: '50%',
+    position: 'absolute',
+    top: 0,
+  },
   waitValue: {
     color: chartAxisLabelColor,
     fontFamily: Fonts.rounded,
@@ -181,6 +277,15 @@ const styles = StyleSheet.create({
     borderTopRightRadius: 7,
     width: '72%',
   },
+  liveBar: {
+    backgroundColor: liveWaitColor,
+    borderTopLeftRadius: 7,
+    borderTopRightRadius: 7,
+    bottom: 0,
+    left: '24%',
+    position: 'absolute',
+    width: '52%',
+  },
   hourLabels: {
     flexDirection: 'row',
     marginTop: 8,
@@ -191,8 +296,11 @@ const styles = StyleSheet.create({
   },
   hourLabel: {
     color: chartAxisLabelColor,
+    flexShrink: 0,
     fontFamily: Fonts.rounded,
     fontSize: 13,
     lineHeight: 18,
+    textAlign: 'center',
+    width: 44,
   },
 });

@@ -260,16 +260,11 @@ export function RideDetailsPanel({
             {LandLabels[ride.land]}
           </Text>
           <RideLiveStatusLine liveStatus={liveStatus} />
-          {typeof liveStatus?.yesterdayWaitTime === 'number' && (
-            <Text
-              style={[styles.yesterdayWait, { color: colors.textSecondary }]}
-            >
-              Yesterday at this time: {liveStatus.yesterdayWaitTime} min
-            </Text>
-          )}
         </Animated.View>
         {liveStatus && (
           <RideWaitForecastChart
+            currentHour={liveStatus.currentParkHour}
+            currentWaitTime={liveStatus.waitTime}
             forecastedWaitTimes={liveStatus.forecastedWaitTimes}
             operatingHours={operatingHours}
           />
