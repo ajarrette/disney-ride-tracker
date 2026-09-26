@@ -134,14 +134,14 @@ export function ParkRideList({
       {hiddenRides.length > 0 && (
         <>
           <Pressable
-            accessibilityLabel={`${showHiddenRides ? 'Hide' : 'Show'} ${hiddenRides.length} hidden ${hiddenRides.length === 1 ? 'ride' : 'rides'}`}
+            accessibilityLabel={`${showHiddenRides ? 'Hide' : 'Show'} ${hiddenRides.length} hidden attractions`}
             accessibilityRole='button'
             accessibilityState={{ expanded: showHiddenRides }}
             onPress={() => setShowHiddenRides((current) => !current)}
             style={styles.hiddenRidesDisclosure}
           >
             <Text style={[styles.hiddenRidesLabel, { color: colors.accent }]}>
-              {showHiddenRides ? 'Hide' : 'Show'} hidden rides (
+              {showHiddenRides ? 'Hide' : 'Show'} hidden attractions (
               {hiddenRides.length})
             </Text>
             <SymbolView

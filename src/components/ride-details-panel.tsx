@@ -68,6 +68,7 @@ export function RideDetailsPanel({
 }: RideDetailsPanelProps) {
   const colors = Colors.light;
   const insets = useSafeAreaInsets();
+  const attractionTypeLabel = formatLabel(ride.attractionType).toLowerCase();
   const background = getRideBackground(ride.park, ride.backgroundUrl);
   const [scrollY] = useState(() => new Animated.Value(0));
   const titleCollapseOffset = background ? 220 : 56;
@@ -376,7 +377,7 @@ export function RideDetailsPanel({
           </View>
         )}
         <Pressable
-          accessibilityLabel={`${isHidden ? 'Unhide' : 'Hide'} ${ride.name}`}
+          accessibilityLabel={`${isHidden ? 'Unhide' : 'Hide'} ${attractionTypeLabel} ${ride.name}`}
           accessibilityRole='button'
           accessibilityState={{ checked: isHidden }}
           onPress={() => onToggleHidden(!isHidden)}
@@ -392,7 +393,7 @@ export function RideDetailsPanel({
             tintColor='#c62828'
           />
           <Text style={[styles.hideRideText, { color: '#c62828' }]}>
-            {isHidden ? 'Unhide ride' : 'Hide ride'}
+            {isHidden ? 'Unhide' : 'Hide'} {attractionTypeLabel}
           </Text>
         </Pressable>
       </Animated.ScrollView>
