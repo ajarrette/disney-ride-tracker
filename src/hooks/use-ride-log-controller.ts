@@ -78,13 +78,36 @@ export function useRideLogController() {
   const [isDeleting, setIsDeleting] = useState(false);
   const filteredRides = searchRideCatalog(rides, query);
 
-  const closePanel = (destination: string) => {
+  const animatePanelOut = (onClose: () => void) => {
     Animated.timing(panelPosition, {
       toValue: panelOffset,
       duration: 240,
       useNativeDriver: true,
     }).start(({ finished }) => {
-      if (finished) router.replace(destination as Href);
+      if (finished) onClose();
+    });
+  };
+
+  const closePanel = (destination: string) => {
+    animatePanelOut(() => router.replace(destination as Href));
+  };
+
+  const closeRideForm = () => {
+    if (!logId && !rideId) {
+      if (selectedRide) {
+        setSelectedRide(null);
+      } else {
+        closePanel(previousTabPath);
+      }
+      return;
+    }
+
+    animatePanelOut(() => {
+      if (router.canGoBack()) {
+        router.back();
+      } else {
+        router.replace(previousTabPath as Href);
+      }
     });
   };
 
@@ -245,6 +268,7 @@ export function useRideLogController() {
     clearPendingRideId,
     closeDateTimePicker,
     closePanel,
+    closeRideForm,
     confirmDeleteRideLog,
     dateTimePickerVisible,
     draftVisitedAt,

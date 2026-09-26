@@ -50,7 +50,7 @@ export default function LogScreen() {
           isDeleting={controller.isDeleting}
           isEditing={Boolean(controller.logId)}
           isMutating={controller.isMutating}
-          onClose={() => controller.closePanel(controller.previousTabPath)}
+          onClose={controller.closeRideForm}
           onDelete={controller.confirmDeleteRideLog}
           scrollY={controller.scrollY}
         />
