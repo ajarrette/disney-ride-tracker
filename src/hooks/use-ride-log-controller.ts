@@ -1,16 +1,16 @@
+import { router, useLocalSearchParams, type Href } from 'expo-router';
 import { useState } from 'react';
 import { Alert, Animated, Dimensions } from 'react-native';
-import { router, useLocalSearchParams, type Href } from 'expo-router';
 
 import { useAppState } from '@/components/app-state';
 import { useRideCatalog } from '@/components/ride-catalog-provider';
-import { deleteCachedRideLogPhotos } from '@/data/ride-logs';
 import {
   MAX_RIDE_LOG_PHOTOS,
   pickRideLogPhotos,
 } from '@/data/ride-log-photo-picker';
-import { pickRideLogVideo } from '@/data/ride-log-video-picker';
 import { searchRideCatalog } from '@/data/ride-log-search';
+import { pickRideLogVideo } from '@/data/ride-log-video-picker';
+import { deleteCachedRideLogPhotos } from '@/data/ride-logs';
 import { useRideLogFormState } from '@/hooks/use-ride-log-form-state';
 import { Ride } from '@/models/ride';
 import { RideLog } from '@/models/ride-log';
@@ -82,8 +82,15 @@ export function useRideLogController() {
     setSelectedRide,
     setVisitedAt,
     setWaitTime,
+    onChangeWaitTime,
+    resetWaitTimer,
+    startWaitTimer,
+    stopWaitTimer,
     visitedAt,
     waitTime,
+    waitTimeManuallyChanged,
+    waitTimerElapsedSeconds,
+    waitTimerStartedAt,
   } = draft;
   const [isMutating, setIsMutating] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
@@ -104,6 +111,7 @@ export function useRideLogController() {
   };
 
   const closeRideForm = () => {
+    resetWaitTimer();
     if (!logId && !rideId) {
       if (selectedRide) {
         setSelectedRide(null);
@@ -168,6 +176,7 @@ export function useRideLogController() {
   const recordRecentSearch = () => addRecentRideSearch(query);
 
   const chooseRide = (ride: Ride) => {
+    resetWaitTimer();
     clearPendingRideId();
     recordRecentSearch();
     scrollY.setValue(0);
@@ -255,15 +264,26 @@ export function useRideLogController() {
 
   const saveCurrentRideLog = async () => {
     if (!selectedRide || isMutating) return;
+    const savedAt = new Date();
+    const waitTimeToSave =
+      waitTimerStartedAt !== null && !waitTimeManuallyChanged
+        ? String(Math.round((savedAt.getTime() - waitTimerStartedAt) / 60000))
+        : waitTime;
+    const visitedAtToSave = waitTimerStartedAt === null ? visitedAt : savedAt;
+    if (waitTimerStartedAt !== null) {
+      setWaitTime(waitTimeToSave);
+      setVisitedAt(savedAt);
+      resetWaitTimer();
+    }
     setIsMutating(true);
     try {
-      const now = new Date().toISOString();
-      const parsedWaitTime = Number.parseInt(waitTime, 10);
+      const now = savedAt.toISOString();
+      const parsedWaitTime = Number.parseInt(waitTimeToSave, 10);
       const rideLog: RideLog = {
         id: existingLog?.id ?? `${selectedRide.id}-${Date.now()}`,
         rideId: selectedRide.id,
         tripId: existingLog?.tripId ?? null,
-        visitedAt: visitedAt.toISOString(),
+        visitedAt: visitedAtToSave.toISOString(),
         waitTimeMinutes:
           Number.isFinite(parsedWaitTime) && parsedWaitTime >= 0
             ? parsedWaitTime
@@ -329,17 +349,22 @@ export function useRideLogController() {
     saveDateTimePicker,
     scrollY,
     selectedRide,
+    resetWaitTimer,
+    startWaitTimer,
+    stopWaitTimer,
     setDraftVisitedAt,
     setLightningLaneUsed,
     setNotes,
     setQuery,
     setRating,
     setSelectedRide,
-    setWaitTime,
+    setWaitTime: onChangeWaitTime,
     slideFromRight,
     visitedAt,
     videoAssetId,
     waitTime,
+    waitTimerElapsedSeconds,
+    waitTimerStartedAt,
     lightningLaneUsed,
   };
 }

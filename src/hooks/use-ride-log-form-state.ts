@@ -1,3 +1,4 @@
+import { useFocusEffect } from 'expo-router';
 import {
   Dispatch,
   SetStateAction,
@@ -7,11 +8,10 @@ import {
   useState,
 } from 'react';
 import { Animated, Keyboard } from 'react-native';
-import { useFocusEffect } from 'expo-router';
 
+import { MAX_RIDE_LOG_PHOTOS } from '@/data/ride-log-photo-picker';
 import { Ride } from '@/models/ride';
 import { getRideLogPhotos, RideLog } from '@/models/ride-log';
-import { MAX_RIDE_LOG_PHOTOS } from '@/data/ride-log-photo-picker';
 
 type RideLogFormStateOptions = {
   logId?: string;
@@ -39,6 +39,11 @@ export function useRideLogFormState({
   const [query, setQuery] = useState('');
   const [selectedRide, setSelectedRide] = useState<Ride | null>(null);
   const [waitTime, setWaitTime] = useState('');
+  const [waitTimeManuallyChanged, setWaitTimeManuallyChanged] = useState(false);
+  const [waitTimerStartedAt, setWaitTimerStartedAt] = useState<number | null>(
+    null,
+  );
+  const [waitTimerElapsedSeconds, setWaitTimerElapsedSeconds] = useState(0);
   const [lightningLaneUsed, setLightningLaneUsed] = useState(false);
   const [rating, setRating] = useState<number | null>(null);
   const [notes, setNotes] = useState('');
@@ -66,6 +71,18 @@ export function useRideLogFormState({
     }
   }, [rides]);
 
+  useEffect(() => {
+    if (waitTimerStartedAt === null) return;
+
+    const updateElapsedTime = () =>
+      setWaitTimerElapsedSeconds(
+        Math.floor((Date.now() - waitTimerStartedAt) / 1000),
+      );
+    updateElapsedTime();
+    const intervalId = setInterval(updateElapsedTime, 1000);
+    return () => clearInterval(intervalId);
+  }, [waitTimerStartedAt]);
+
   useFocusEffect(
     useCallback(() => {
       if (logId) Keyboard.dismiss();
@@ -83,6 +100,9 @@ export function useRideLogFormState({
           ? ''
           : String(log.waitTimeMinutes),
       );
+      setWaitTimeManuallyChanged(false);
+      setWaitTimerStartedAt(null);
+      setWaitTimerElapsedSeconds(0);
       setLightningLaneUsed(log?.lightningLaneUsed ?? false);
       setRating(log?.rating ?? null);
       setNotes(log?.notes ?? '');
@@ -129,8 +149,36 @@ export function useRideLogFormState({
     setVisitedAt,
     setVideoAssetId,
     setWaitTime,
+    onChangeWaitTime: (value: string) => {
+      setWaitTime(value);
+      setWaitTimeManuallyChanged(value.trim().length > 0);
+    },
+    startWaitTimer: () => {
+      setWaitTimerElapsedSeconds(0);
+      setWaitTimerStartedAt(Date.now());
+    },
+    stopWaitTimer: () => {
+      if (waitTimerStartedAt === null) return;
+      const stoppedAt = new Date();
+      const elapsedSeconds = Math.floor(
+        (stoppedAt.getTime() - waitTimerStartedAt) / 1000,
+      );
+      setWaitTime(String(Math.round(elapsedSeconds / 60)));
+      setWaitTimeManuallyChanged(false);
+      setVisitedAt(stoppedAt);
+      setWaitTimerElapsedSeconds(elapsedSeconds);
+      setWaitTimerStartedAt(null);
+    },
+    resetWaitTimer: () => {
+      setWaitTimerStartedAt(null);
+      setWaitTimerElapsedSeconds(0);
+      setWaitTimeManuallyChanged(false);
+    },
     visitedAt,
     videoAssetId,
     waitTime,
+    waitTimeManuallyChanged,
+    waitTimerElapsedSeconds,
+    waitTimerStartedAt,
   };
 }

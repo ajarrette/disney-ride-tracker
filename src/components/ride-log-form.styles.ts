@@ -76,6 +76,58 @@ export const rideLogFormStyles = StyleSheet.create({
     paddingHorizontal: 14,
     paddingVertical: 12,
   },
+  waitTimeRow: {
+    alignItems: 'center',
+    flexDirection: 'row',
+    gap: 12,
+  },
+  waitTimeInput: {
+    flexShrink: 0,
+    width: 104,
+  },
+  waitTimerControls: {
+    alignItems: 'center',
+    flex: 1,
+    flexDirection: 'row',
+    gap: 10,
+    justifyContent: 'space-between',
+  },
+  waitTimerValue: {
+    fontSize: 17,
+    fontVariant: ['tabular-nums'],
+    fontWeight: '600',
+  },
+  waitTimerButton: {
+    alignItems: 'center',
+    borderRadius: 8,
+    borderWidth: 1,
+    flexDirection: 'row',
+    gap: 6,
+    justifyContent: 'center',
+    minHeight: 44,
+    paddingHorizontal: 8,
+    width: 84,
+  },
+  waitTimerStartButton: {
+    backgroundColor: Colors.light.background,
+    marginLeft: 'auto',
+  },
+  waitTimerStopButton: {
+    backgroundColor: '#B12228',
+    borderColor: '#B12228',
+  },
+  waitTimerButtonPressed: {
+    opacity: 0.72,
+  },
+  waitTimerStartText: {
+    fontSize: 14,
+    fontWeight: '600',
+  },
+  waitTimerStopText: {
+    color: '#ffffff',
+    fontSize: 14,
+    fontWeight: '600',
+  },
   notesInput: {
     minHeight: 120,
   },

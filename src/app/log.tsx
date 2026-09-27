@@ -63,6 +63,7 @@ export default function LogScreen() {
               onChangeRating: controller.setRating,
               onChangeWaitTime: controller.setWaitTime,
               onChooseDifferentRide: () => {
+                controller.resetWaitTimer();
                 controller.clearPendingRideId();
                 controller.setSelectedRide(null);
               },
@@ -70,6 +71,8 @@ export default function LogScreen() {
               onRemovePhoto: controller.removePhoto,
               onRemoveVideo: controller.removeVideo,
               onSave: () => void controller.saveCurrentRideLog(),
+              onStartWaitTimer: controller.startWaitTimer,
+              onStopWaitTimer: controller.stopWaitTimer,
               onToggleLightningLane: () =>
                 controller.setLightningLaneUsed((used) => !used),
             }}
@@ -81,6 +84,8 @@ export default function LogScreen() {
               visitedAt: controller.visitedAt,
               videoAssetId: controller.videoAssetId,
               waitTime: controller.waitTime,
+              waitTimerElapsedSeconds: controller.waitTimerElapsedSeconds,
+              waitTimerStartedAt: controller.waitTimerStartedAt,
             }}
             isEditing={Boolean(controller.logId)}
             isMutating={controller.isMutating}

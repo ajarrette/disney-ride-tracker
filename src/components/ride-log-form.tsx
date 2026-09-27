@@ -11,16 +11,16 @@ import {
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
+import { RideFavoriteMark } from '@/components/ride-favorite-mark';
+import { rideLogFormStyles as styles } from '@/components/ride-log-form.styles';
 import { RideLogPhotos } from '@/components/ride-log-photos';
-import { RideLogVideo } from '@/components/ride-log-video';
 import { RideLogRating } from '@/components/ride-log-rating';
+import { RideLogVideo } from '@/components/ride-log-video';
+import { useRidePreferences } from '@/components/ride-preferences-provider';
 import { LandLabels, ParkLabels } from '@/constants/ride-labels';
 import { Colors } from '@/constants/theme';
-import { rideLogFormStyles as styles } from '@/components/ride-log-form.styles';
-import { RideFavoriteMark } from '@/components/ride-favorite-mark';
-import { useRidePreferences } from '@/components/ride-preferences-provider';
-import { MAX_RIDE_LOG_PHOTOS } from '@/data/ride-log-photo-picker';
 import { getRideBackground } from '@/data/ride-images';
+import { MAX_RIDE_LOG_PHOTOS } from '@/data/ride-log-photo-picker';
 import { Ride } from '@/models/ride';
 
 export type RideLogFormValue = {
@@ -31,6 +31,8 @@ export type RideLogFormValue = {
   visitedAt: Date;
   videoAssetId: string | null;
   waitTime: string;
+  waitTimerElapsedSeconds: number;
+  waitTimerStartedAt: number | null;
 };
 
 export type RideLogFormActions = {
@@ -44,6 +46,8 @@ export type RideLogFormActions = {
   onRemovePhoto: (index: number) => void;
   onRemoveVideo: () => void;
   onSave: () => void;
+  onStartWaitTimer: () => void;
+  onStopWaitTimer: () => void;
   onToggleLightningLane: () => void;
 };
 
@@ -67,6 +71,16 @@ const formatVisitedAt = (value: Date) =>
     hour: 'numeric',
     minute: '2-digit',
   })}`;
+
+const formatWaitTimer = (elapsedSeconds: number) => {
+  const seconds = elapsedSeconds % 60;
+  const totalMinutes = Math.floor(elapsedSeconds / 60);
+  const minutes = totalMinutes % 60;
+  const hours = Math.floor(totalMinutes / 60);
+  return hours > 0
+    ? `${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`
+    : `${String(totalMinutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
+};
 
 export function RideLogForm({
   actions,
@@ -193,18 +207,95 @@ export function RideLogForm({
         <Text style={[styles.fieldLabel, { color: colors.text }]}>
           Wait time (minutes)
         </Text>
-        <TextInput
-          accessibilityLabel='Wait time in minutes'
-          keyboardType='number-pad'
-          onChangeText={actions.onChangeWaitTime}
-          placeholder='Optional'
-          placeholderTextColor={colors.textSecondary}
-          style={[
-            styles.textInput,
-            { borderColor: '#dce7f2', color: colors.text },
-          ]}
-          value={draft.waitTime}
-        />
+        {isEditing ? (
+          <TextInput
+            accessibilityLabel='Wait time in minutes'
+            keyboardType='number-pad'
+            onChangeText={actions.onChangeWaitTime}
+            placeholder='Optional'
+            placeholderTextColor={colors.textSecondary}
+            style={[
+              styles.textInput,
+              { borderColor: '#dce7f2', color: colors.text },
+            ]}
+            value={draft.waitTime}
+          />
+        ) : (
+          <View style={styles.waitTimeRow}>
+            <TextInput
+              accessibilityLabel='Wait time in minutes'
+              keyboardType='number-pad'
+              onChangeText={actions.onChangeWaitTime}
+              placeholder='Minutes'
+              placeholderTextColor={colors.textSecondary}
+              style={[
+                styles.textInput,
+                styles.waitTimeInput,
+                { borderColor: '#dce7f2', color: colors.text },
+              ]}
+              value={draft.waitTime}
+            />
+            <View style={styles.waitTimerControls}>
+              {draft.waitTimerStartedAt === null ? (
+                <Pressable
+                  accessibilityLabel='Start wait timer'
+                  accessibilityRole='button'
+                  onPress={actions.onStartWaitTimer}
+                  style={({ pressed }) => [
+                    styles.waitTimerButton,
+                    styles.waitTimerStartButton,
+                    { borderColor: colors.accent },
+                    pressed && styles.waitTimerButtonPressed,
+                  ]}
+                >
+                  <SymbolView
+                    name={{
+                      ios: 'play.fill',
+                      android: 'play_arrow',
+                      web: 'play_arrow',
+                    }}
+                    size={16}
+                    tintColor={colors.accent}
+                  />
+                  <Text
+                    style={[
+                      styles.waitTimerStartText,
+                      { color: colors.accent },
+                    ]}
+                  >
+                    Start
+                  </Text>
+                </Pressable>
+              ) : (
+                <>
+                  <Text
+                    accessibilityLabel={`Elapsed wait time ${formatWaitTimer(draft.waitTimerElapsedSeconds)}`}
+                    style={[styles.waitTimerValue, { color: colors.text }]}
+                  >
+                    {formatWaitTimer(draft.waitTimerElapsedSeconds)}
+                  </Text>
+                  <Pressable
+                    accessibilityLabel='Stop wait timer'
+                    accessibilityRole='button'
+                    onPress={actions.onStopWaitTimer}
+                    style={({ pressed }) => [
+                      styles.waitTimerButton,
+                      styles.waitTimerStopButton,
+                      pressed && styles.waitTimerButtonPressed,
+                    ]}
+                  >
+                    <SymbolView
+                      name={{ ios: 'stop.fill', android: 'stop', web: 'stop' }}
+                      size={14}
+                      tintColor='#ffffff'
+                    />
+                    <Text style={styles.waitTimerStopText}>Stop</Text>
+                  </Pressable>
+                </>
+              )}
+            </View>
+          </View>
+        )}
 
         <Text style={[styles.fieldLabel, { color: colors.text }]}>Rating</Text>
         <RideLogRating
