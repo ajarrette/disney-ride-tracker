@@ -8,12 +8,15 @@ const requireSupabase = () => {
 export async function fetchRidePreferences() {
   const { data, error } = await requireSupabase()
     .from('user_ride_preferences')
-    .select('ride_id, is_pinned, pinned_order, is_hidden')
+    .select('ride_id, is_pinned, pinned_order, is_favorite, is_hidden')
     .order('pinned_order', { ascending: true });
   if (error) throw error;
   return {
     pinnedRideOrder: data
       .filter((preference) => preference.is_pinned)
+      .map((preference) => preference.ride_id as string),
+    favoriteRideIds: data
+      .filter((preference) => preference.is_favorite)
       .map((preference) => preference.ride_id as string),
     hiddenRideIds: data
       .filter((preference) => preference.is_hidden)
@@ -39,6 +42,23 @@ export async function saveRideHidden(rideId: string, isHidden: boolean) {
       user_id: data.user.id,
       ride_id: rideId,
       is_hidden: isHidden,
+    },
+    { onConflict: 'user_id,ride_id' },
+  );
+  if (error) throw error;
+}
+
+export async function saveRideFavorite(rideId: string, isFavorite: boolean) {
+  const client = requireSupabase();
+  const { data, error: userError } = await client.auth.getUser();
+  if (userError) throw userError;
+  if (!data.user) throw new Error('Sign in to save ride preferences.');
+
+  const { error } = await client.from('user_ride_preferences').upsert(
+    {
+      user_id: data.user.id,
+      ride_id: rideId,
+      is_favorite: isFavorite,
     },
     { onConflict: 'user_id,ride_id' },
   );

@@ -12,6 +12,7 @@ import { RideLiveStatusLine } from './ride-live-status-line';
 export function RideListItem({
   ride,
   isPinned = false,
+  isFavorite = false,
   isPinnedDivider = false,
   isHidden = false,
   isDragging = false,
@@ -22,6 +23,7 @@ export function RideListItem({
 }: {
   ride: Ride;
   isPinned?: boolean;
+  isFavorite?: boolean;
   isPinnedDivider?: boolean;
   isHidden?: boolean;
   isDragging?: boolean;
@@ -81,35 +83,44 @@ export function RideListItem({
       <View style={styles.rideCopy}>
         <Text style={[styles.rideName, { color: rideTextColor }]}>
           {ride.name}
+          {isFavorite && <Text style={styles.rideFavorite}> {'\u2665'}</Text>}
         </Text>
-        <Text style={[styles.rideLand, { color: rideTextColor }]}>
-          {LandLabels[ride.land]}
-        </Text>
-        <RideLiveStatusLine
-          color={isClosedStatus ? undefined : rideTextColor}
-          liveStatus={liveStatus}
-          reserveSpaceWhenEmpty={reserveLiveStatusSpace}
-        />
-      </View>
-      <View accessibilityElementsHidden style={styles.rideIndicators}>
-        {ride.photoPass && (
-          <SymbolView
-            name={{
-              ios: 'camera.fill',
-              android: 'photo_camera',
-              web: 'photo_camera',
-            }}
-            size={20}
-            tintColor={colors.textSecondary}
-          />
-        )}
-        {ride.lightningLane && (
-          <SymbolView
-            name={{ ios: 'bolt.fill', android: 'bolt', web: 'bolt' }}
-            size={20}
-            tintColor={colors.accent}
-          />
-        )}
+        <View style={styles.rideMetadata}>
+          <View style={styles.rideLandRow}>
+            <Text style={[styles.rideLand, { color: rideTextColor }]}>
+              {LandLabels[ride.land]}
+            </Text>
+            {ride.photoPass && (
+              <View accessibilityElementsHidden style={styles.rideIndicators}>
+                <SymbolView
+                  name={{
+                    ios: 'camera.fill',
+                    android: 'photo_camera',
+                    web: 'photo_camera',
+                  }}
+                  size={20}
+                  tintColor={colors.textSecondary}
+                />
+              </View>
+            )}
+          </View>
+          <View style={styles.rideWaitRow}>
+            <RideLiveStatusLine
+              color={isClosedStatus ? undefined : rideTextColor}
+              liveStatus={liveStatus}
+              reserveSpaceWhenEmpty={reserveLiveStatusSpace}
+            />
+            {ride.lightningLane && (
+              <View accessibilityElementsHidden style={styles.rideIndicators}>
+                <SymbolView
+                  name={{ ios: 'bolt.fill', android: 'bolt', web: 'bolt' }}
+                  size={20}
+                  tintColor={colors.accent}
+                />
+              </View>
+            )}
+          </View>
+        </View>
       </View>
     </Pressable>
   );
@@ -163,22 +174,35 @@ const styles = StyleSheet.create({
   },
   rideCopy: {
     flex: 1,
-    paddingRight: 16,
   },
   rideName: {
     fontSize: 17,
     fontWeight: '700',
     lineHeight: 23,
   },
+  rideFavorite: {
+    color: '#B12228',
+  },
   rideLand: {
     fontSize: 13,
     lineHeight: 19,
+  },
+  rideMetadata: {
     marginTop: 3,
+  },
+  rideLandRow: {
+    alignItems: 'center',
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+  },
+  rideWaitRow: {
+    alignItems: 'center',
+    flexDirection: 'row',
+    justifyContent: 'space-between',
   },
   rideIndicators: {
     alignItems: 'center',
     gap: 6,
-    justifyContent: 'center',
-    minWidth: 24,
+    flexDirection: 'row',
   },
 });

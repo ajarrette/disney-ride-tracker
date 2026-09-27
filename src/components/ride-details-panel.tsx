@@ -48,6 +48,8 @@ type RideDetailsPanelProps = {
   onLogRide: () => void;
   isPinned: boolean;
   onTogglePin: (isPinned: boolean) => void;
+  isFavorite: boolean;
+  onToggleFavorite: (isFavorite: boolean) => void;
   isHidden: boolean;
   onToggleHidden: (isHidden: boolean) => void;
   panelPosition: Animated.Value;
@@ -60,6 +62,8 @@ export function RideDetailsPanel({
   onLogRide,
   isPinned,
   onTogglePin,
+  isFavorite,
+  onToggleFavorite,
   isHidden,
   onToggleHidden,
   panelPosition,
@@ -240,9 +244,30 @@ export function RideDetailsPanel({
         <Animated.View
           style={[styles.rideSummary, { opacity: largeTitleOpacity }]}
         >
-          <View style={styles.rideTitleRow}>
-            <Text style={[styles.rideName, { color: rideTitleColor }]}>
-              {ride.name}
+          <Text style={[styles.rideName, { color: rideTitleColor }]}>
+            {ride.name}
+            <Text
+              accessibilityLabel={
+                isFavorite
+                  ? `Remove ${ride.name} from favorites`
+                  : `Add ${ride.name} to favorites`
+              }
+              accessibilityRole='button'
+              accessibilityState={{ checked: isFavorite }}
+              onPress={() => onToggleFavorite(!isFavorite)}
+              suppressHighlighting
+              style={[
+                styles.rideFavorite,
+                !isFavorite && styles.rideFavoriteOutline,
+              ]}
+            >
+              {' '}
+              {isFavorite ? '\u2665' : '\u2661'}
+            </Text>
+          </Text>
+          <View style={styles.rideParkRow}>
+            <Text style={[styles.ridePark, { color: colors.textSecondary }]}>
+              {ParkLabels[ride.park]}
             </Text>
             <Pressable
               accessibilityLabel={`Log ${ride.name}`}
@@ -262,9 +287,6 @@ export function RideDetailsPanel({
               />
             </Pressable>
           </View>
-          <Text style={[styles.ridePark, { color: colors.textSecondary }]}>
-            {ParkLabels[ride.park]}
-          </Text>
           <Text style={[styles.rideLand, { color: colors.textSecondary }]}>
             {LandLabels[ride.land]}
           </Text>
@@ -465,16 +487,22 @@ const styles = StyleSheet.create({
     paddingTop: 16,
   },
   rideName: {
-    flex: 1,
     fontFamily: Fonts.rounded,
     fontSize: 28,
     fontWeight: '800',
     lineHeight: 34,
   },
-  rideTitleRow: {
+  rideFavorite: {
+    color: '#B12228',
+  },
+  rideFavoriteOutline: {
+    color: '#B0B4BA',
+    fontWeight: '300',
+  },
+  rideParkRow: {
     alignItems: 'center',
     flexDirection: 'row',
-    gap: 12,
+    justifyContent: 'space-between',
   },
   liveStatusActionRow: {
     alignItems: 'center',
@@ -495,6 +523,7 @@ const styles = StyleSheet.create({
     width: 40,
   },
   ridePark: {
+    flex: 1,
     fontSize: 18,
     fontWeight: '600',
     lineHeight: 22,

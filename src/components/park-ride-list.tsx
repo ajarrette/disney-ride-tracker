@@ -25,6 +25,7 @@ type ParkRideListProps = {
   rides: Ride[];
   liveData?: Record<string, RideLiveData>;
   pinnedRideIds: Set<string>;
+  favoriteRideIds: Set<string>;
   pinnedRideOrder: string[];
   hiddenRideIds: Set<string>;
   onPinnedRideOrderChange: (rideIds: string[]) => void;
@@ -41,6 +42,7 @@ export function ParkRideList({
   rides,
   liveData,
   pinnedRideIds,
+  favoriteRideIds,
   pinnedRideOrder,
   hiddenRideIds,
   onPinnedRideOrderChange,
@@ -94,6 +96,7 @@ export function ParkRideList({
       <RideListItem
         drag={drag}
         isDragging={isActive}
+        isFavorite={favoriteRideIds.has(item.id)}
         isPinned
         isPinnedDivider={
           index === pinnedRides.length - 1 && unpinnedRides.length > 0
@@ -125,6 +128,7 @@ export function ParkRideList({
       {unpinnedRides.map((ride) => (
         <RideListItem
           key={ride.id}
+          isFavorite={favoriteRideIds.has(ride.id)}
           liveStatus={liveData?.[normalizeRideName(ride.name)]}
           onPress={onRidePress}
           ride={ride}
@@ -158,6 +162,7 @@ export function ParkRideList({
             hiddenRides.map((ride) => (
               <RideListItem
                 key={ride.id}
+                isFavorite={favoriteRideIds.has(ride.id)}
                 isHidden
                 liveStatus={liveData?.[normalizeRideName(ride.name)]}
                 onPress={onRidePress}
@@ -181,6 +186,7 @@ export function ParkRideList({
       extraData={{
         liveData,
         pinnedRideIds,
+        favoriteRideIds,
         pinnedRideOrder,
         hiddenRideIds,
         showHiddenRides,

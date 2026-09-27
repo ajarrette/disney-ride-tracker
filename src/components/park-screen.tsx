@@ -70,10 +70,12 @@ export function ParkScreen({ park }: ParkScreenProps) {
   const {
     pinnedRideIds,
     pinnedRideOrder,
+    favoriteRideIds,
     hiddenRideIds,
     isLoading: isPreferencesLoading,
     setRidePinned,
     setPinnedRideOrder,
+    setRideFavorite,
     setRideHidden,
   } = useRidePreferences();
   const [selectedPark, setSelectedPark] = useState(park);
@@ -188,6 +190,7 @@ export function ParkScreen({ park }: ParkScreenProps) {
           isPreferencesLoading={isPreferencesLoading}
           isRefreshing={loadingParks.has(selectedPark)}
           liveData={liveDataByPark[selectedPark]}
+          favoriteRideIds={favoriteRideIds}
           onPinnedRideOrderChange={setPinnedRideOrder}
           onRefresh={() => loadLiveData(selectedPark)}
           onRidePress={openRide}
@@ -209,6 +212,10 @@ export function ParkScreen({ park }: ParkScreenProps) {
           }
           isPinned={pinnedRideIds.has(selectedRide.id)}
           onTogglePin={(isPinned) => setRidePinned(selectedRide.id, isPinned)}
+          isFavorite={favoriteRideIds.has(selectedRide.id)}
+          onToggleFavorite={(isFavorite) =>
+            setRideFavorite(selectedRide.id, isFavorite)
+          }
           isHidden={hiddenRideIds.has(selectedRide.id)}
           onToggleHidden={(isHidden) =>
             setRideHidden(selectedRide.id, isHidden)
