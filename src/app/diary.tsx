@@ -177,7 +177,11 @@ export default function DiaryScreen() {
                         onPress={() =>
                           router.push({
                             pathname: '/log',
-                            params: { rideId: log.rideId, logId: log.id },
+                            params: {
+                              rideId: log.rideId,
+                              logId: log.id,
+                              returnTo: '/diary',
+                            },
                           })
                         }
                         style={styles.entryMain}

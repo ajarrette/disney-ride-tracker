@@ -16,12 +16,20 @@ import { Ride } from '@/models/ride';
 import { RideLog } from '@/models/ride-log';
 
 export function useRideLogController() {
-  const { rideId: rideIdParam, logId: logIdParam } = useLocalSearchParams<{
+  const {
+    rideId: rideIdParam,
+    logId: logIdParam,
+    returnTo: returnToParam,
+  } = useLocalSearchParams<{
     rideId?: string | string[];
     logId?: string | string[];
+    returnTo?: string | string[];
   }>();
   const rideId = Array.isArray(rideIdParam) ? rideIdParam[0] : rideIdParam;
   const logId = Array.isArray(logIdParam) ? logIdParam[0] : logIdParam;
+  const returnTo = Array.isArray(returnToParam)
+    ? returnToParam[0]
+    : returnToParam;
   const slideFromRight = Boolean(rideId);
   const panelOffset = slideFromRight
     ? Dimensions.get('window').width
@@ -106,7 +114,9 @@ export function useRideLogController() {
     }
 
     animatePanelOut(() => {
-      if (router.canGoBack()) {
+      if (returnTo) {
+        router.replace(returnTo as Href);
+      } else if (router.canGoBack()) {
         router.back();
       } else {
         router.replace(previousTabPath as Href);
