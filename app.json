@@ -1,6 +1,6 @@
 {
   "expo": {
-    "name": "disney-ride-tracker",
+    "name": "Disney Ride Tracker",
     "slug": "disney-ride-tracker",
     "version": "1.0.0",
     "orientation": "portrait",
@@ -8,6 +8,7 @@
     "scheme": "disneyridetracker",
     "userInterfaceStyle": "light",
     "ios": {
+      "bundleIdentifier": "com.aaron.disneyridetracker",
       "icon": "./assets/expo.icon"
     },
     "android": {
