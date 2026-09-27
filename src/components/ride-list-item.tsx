@@ -1,10 +1,10 @@
 import { Image } from 'expo-image';
-import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { SymbolView } from 'expo-symbols';
+import { Pressable, StyleSheet, Text, View } from 'react-native';
 
-import { Colors } from '@/constants/theme';
 import { RideFavoriteMark } from '@/components/ride-favorite-mark';
 import { LandLabels } from '@/constants/ride-labels';
+import { Colors } from '@/constants/theme';
 import { RideLiveData } from '@/data/live-wait-times';
 import { getRideLogo } from '@/data/ride-images';
 import { Ride } from '@/models/ride';
@@ -91,19 +91,6 @@ export function RideListItem({
             <Text style={[styles.rideLand, { color: rideTextColor }]}>
               {LandLabels[ride.land]}
             </Text>
-            {ride.photoPass && (
-              <View accessibilityElementsHidden style={styles.rideIndicators}>
-                <SymbolView
-                  name={{
-                    ios: 'camera.fill',
-                    android: 'photo_camera',
-                    web: 'photo_camera',
-                  }}
-                  size={20}
-                  tintColor={colors.textSecondary}
-                />
-              </View>
-            )}
           </View>
           <View style={styles.rideWaitRow}>
             <RideLiveStatusLine
@@ -111,18 +98,31 @@ export function RideListItem({
               liveStatus={liveStatus}
               reserveSpaceWhenEmpty={reserveLiveStatusSpace}
             />
-            {ride.lightningLane && (
-              <View accessibilityElementsHidden style={styles.rideIndicators}>
-                <SymbolView
-                  name={{ ios: 'bolt.fill', android: 'bolt', web: 'bolt' }}
-                  size={20}
-                  tintColor={colors.accent}
-                />
-              </View>
-            )}
           </View>
         </View>
       </View>
+      {(ride.photoPass || ride.lightningLane) && (
+        <View accessibilityElementsHidden style={styles.rideIndicators}>
+          {ride.photoPass && (
+            <SymbolView
+              name={{
+                ios: 'camera.fill',
+                android: 'photo_camera',
+                web: 'photo_camera',
+              }}
+              size={20}
+              tintColor={colors.textSecondary}
+            />
+          )}
+          {ride.lightningLane && (
+            <SymbolView
+              name={{ ios: 'bolt.fill', android: 'bolt', web: 'bolt' }}
+              size={20}
+              tintColor={colors.accent}
+            />
+          )}
+        </View>
+      )}
     </Pressable>
   );
 }
@@ -200,7 +200,7 @@ const styles = StyleSheet.create({
   },
   rideIndicators: {
     alignItems: 'center',
-    gap: 6,
-    flexDirection: 'row',
+    flexDirection: 'column',
+    gap: 8,
   },
 });

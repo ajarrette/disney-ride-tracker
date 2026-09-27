@@ -1,4 +1,6 @@
 import { Image } from 'expo-image';
+import { router } from 'expo-router';
+import { SymbolView } from 'expo-symbols';
 import { useState } from 'react';
 import {
   ActivityIndicator,
@@ -9,22 +11,20 @@ import {
   Text,
   View,
 } from 'react-native';
-import { router } from 'expo-router';
-import { SymbolView } from 'expo-symbols';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { useAppState } from '@/components/app-state';
 import { MickeyRatingMark } from '@/components/mickey-rating-mark';
 import { useRideCatalog } from '@/components/ride-catalog-provider';
 import { RideFavoriteMark } from '@/components/ride-favorite-mark';
+import { RideLogPhotos } from '@/components/ride-log-photos';
+import { RideLogVideo } from '@/components/ride-log-video';
 import { useRidePreferences } from '@/components/ride-preferences-provider';
 import { LandLabels, ParkLabels } from '@/constants/ride-labels';
 import { Colors } from '@/constants/theme';
 import { getRideLogo } from '@/data/ride-images';
 import { supabase } from '@/data/supabase';
 import { getRideLogPhotos } from '@/models/ride-log';
-import { RideLogPhotos } from '@/components/ride-log-photos';
-import { RideLogVideo } from '@/components/ride-log-video';
 
 export default function DiaryScreen() {
   const colors = Colors.light;
@@ -220,36 +220,39 @@ export default function DiaryScreen() {
                                 isFavorite={favoriteRideIds.has(ride.id)}
                               />
                             </Text>
-                            <View style={styles.ratingRow}>
-                              {[1, 2, 3, 4, 5].map((star) => {
-                                const rating = log.rating ?? 0;
-                                const isFull = rating >= star;
-                                const isHalf = !isFull && rating >= star - 0.5;
+                            {log.rating !== null && (
+                              <View style={styles.ratingRow}>
+                                {[1, 2, 3, 4, 5].map((star) => {
+                                  const rating = log.rating ?? 0;
+                                  const isFull = rating >= star;
+                                  const isHalf =
+                                    !isFull && rating >= star - 0.5;
 
-                                return (
-                                  <View key={star} style={styles.ratingMark}>
-                                    <MickeyRatingMark
-                                      color={
-                                        isFull
-                                          ? colors.accent
-                                          : colors.backgroundSelected
-                                      }
-                                      filled={isFull}
-                                      width={16}
-                                    />
-                                    {isHalf && (
-                                      <View style={styles.halfRatingClip}>
-                                        <MickeyRatingMark
-                                          color={colors.accent}
-                                          filled
-                                          width={16}
-                                        />
-                                      </View>
-                                    )}
-                                  </View>
-                                );
-                              })}
-                            </View>
+                                  return (
+                                    <View key={star} style={styles.ratingMark}>
+                                      <MickeyRatingMark
+                                        color={
+                                          isFull
+                                            ? colors.accent
+                                            : colors.backgroundSelected
+                                        }
+                                        filled={isFull}
+                                        width={16}
+                                      />
+                                      {isHalf && (
+                                        <View style={styles.halfRatingClip}>
+                                          <MickeyRatingMark
+                                            color={colors.accent}
+                                            filled
+                                            width={16}
+                                          />
+                                        </View>
+                                      )}
+                                    </View>
+                                  );
+                                })}
+                              </View>
+                            )}
                           </View>
                           <View style={styles.metadataRow}>
                             {log.lightningLaneUsed && ride.lightningLane && (
