@@ -1,4 +1,6 @@
-import { StyleSheet, Text, View } from 'react-native';
+import { SymbolView } from 'expo-symbols';
+import { useState } from 'react';
+import { Pressable, StyleSheet, Text, View } from 'react-native';
 
 import { ParkLabels } from '@/constants/ride-labels';
 import { Colors } from '@/constants/theme';
@@ -21,6 +23,7 @@ export function RideDiarySummary({
   rideLogs,
   ridesById,
 }: RideDiarySummaryProps) {
+  const [isExpanded, setIsExpanded] = useState(false);
   if (rideLogs.length === 0) return null;
 
   const rideCounts = new Map<string, number>();
@@ -68,6 +71,9 @@ export function RideDiarySummary({
   const maxParkCount = Math.max(1, ...parkCounts.values());
   const parksVisited = [...parkCounts.values()].filter(
     (count) => count > 0,
+  ).length;
+  const lightningLaneUses = rideLogs.filter(
+    (log) => log.lightningLaneUsed === true,
   ).length;
   const roundedWaitMinutes = Math.round(totalWaitMinutes);
   const waitHours = Math.floor(roundedWaitMinutes / 60);
@@ -122,79 +128,130 @@ export function RideDiarySummary({
         </View>
       </View>
 
-      <View style={[styles.divider, { backgroundColor: '#EBDDD7' }]} />
+      {isExpanded && (
+        <>
+          <View style={[styles.divider, { backgroundColor: '#EBDDD7' }]} />
 
-      <View style={styles.highlightRow}>
-        <View style={styles.highlight}>
-          <Text style={[styles.eyebrow, { color: colors.textSecondary }]}>
-            MOST RIDDEN
-          </Text>
-          <Text
-            numberOfLines={2}
-            style={[styles.highlightTitle, { color: colors.text }]}
-          >
-            {mostRiddenName}
-          </Text>
-          <Text style={[styles.highlightDetail, { color: '#B12228' }]}>
-            {mostRidden[1]} {mostRidden[1] === 1 ? 'ride' : 'rides'}
-          </Text>
-        </View>
-        <View style={[styles.highlight, styles.alignRight]}>
-          <Text style={[styles.eyebrow, { color: colors.textSecondary }]}>
-            BIGGEST RIDE DAY
-          </Text>
-          <Text style={[styles.highlightTitle, { color: colors.text }]}>
-            {biggestRideDay.count}{' '}
-            {biggestRideDay.count === 1 ? 'ride' : 'rides'}
-          </Text>
-          <Text
-            style={[styles.highlightDetail, { color: colors.textSecondary }]}
-          >
-            {biggestRideDay.date.toLocaleDateString(undefined, {
-              month: 'short',
-              day: 'numeric',
-              year: 'numeric',
-            })}
-          </Text>
-        </View>
-      </View>
-
-      <View style={styles.parkHeadingRow}>
-        <Text style={[styles.eyebrow, { color: colors.textSecondary }]}>
-          PARK MIX
-        </Text>
-        <Text style={[styles.parkCount, { color: colors.textSecondary }]}>
-          {parksVisited}{' '}
-          {parksVisited === 1 ? 'park explored' : 'parks explored'}
-        </Text>
-      </View>
-      {Object.values(Park).map((park) => {
-        const count = parkCounts.get(park) ?? 0;
-        return (
-          <View key={park} style={styles.parkRow}>
-            <Text
-              numberOfLines={1}
-              style={[styles.parkLabel, { color: colors.text }]}
-            >
-              {ParkLabels[park]}
-            </Text>
-            <View style={[styles.parkTrack, { backgroundColor: '#EDE6E2' }]}>
-              <View
-                style={[
-                  styles.parkBar,
-                  {
-                    backgroundColor: parkColors[park],
-                    width: `${(count / maxParkCount) * 100}%`,
-                  },
-                ]}
-              />
+          <View style={styles.highlightRow}>
+            <View style={styles.highlight}>
+              <Text style={[styles.eyebrow, { color: colors.textSecondary }]}>
+                MOST RIDDEN
+              </Text>
+              <Text
+                numberOfLines={2}
+                style={[styles.highlightTitle, { color: colors.text }]}
+              >
+                {mostRiddenName}
+              </Text>
+              <Text style={[styles.highlightDetail, { color: '#B12228' }]}>
+                {mostRidden[1]} {mostRidden[1] === 1 ? 'ride' : 'rides'}
+              </Text>
             </View>
-            <Text style={[styles.parkValue, { color: colors.textSecondary }]}>
-              {count}
+            <View style={[styles.highlight, styles.alignRight]}>
+              <Text style={[styles.eyebrow, { color: colors.textSecondary }]}>
+                BIGGEST RIDE DAY
+              </Text>
+              <Text style={[styles.highlightTitle, { color: colors.text }]}>
+                {biggestRideDay.count}{' '}
+                {biggestRideDay.count === 1 ? 'ride' : 'rides'}
+              </Text>
+              <Text
+                style={[
+                  styles.highlightDetail,
+                  { color: colors.textSecondary },
+                ]}
+              >
+                {biggestRideDay.date.toLocaleDateString(undefined, {
+                  month: 'short',
+                  day: 'numeric',
+                  year: 'numeric',
+                })}
+              </Text>
+            </View>
+          </View>
+
+          <View style={styles.lightningLaneRow}>
+            <View style={styles.lightningLaneLabel}>
+              <SymbolView
+                name={{ ios: 'bolt.fill', android: 'bolt', web: 'bolt' }}
+                size={15}
+                tintColor={colors.accent}
+              />
+              <Text style={[styles.lightningLaneText, { color: colors.text }]}>
+                Lightning Lanes
+              </Text>
+            </View>
+            <Text style={[styles.lightningLaneValue, { color: colors.accent }]}>
+              {lightningLaneUses} {lightningLaneUses === 1 ? 'use' : 'uses'}
             </Text>
           </View>
-        );
-      })}
+
+          <View style={styles.parkHeadingRow}>
+            <Text style={[styles.eyebrow, { color: colors.textSecondary }]}>
+              PARK MIX
+            </Text>
+            <Text style={[styles.parkCount, { color: colors.textSecondary }]}>
+              {parksVisited}{' '}
+              {parksVisited === 1 ? 'park explored' : 'parks explored'}
+            </Text>
+          </View>
+          {Object.values(Park).map((park) => {
+            const count = parkCounts.get(park) ?? 0;
+            return (
+              <View key={park} style={styles.parkRow}>
+                <Text
+                  numberOfLines={1}
+                  style={[styles.parkLabel, { color: colors.text }]}
+                >
+                  {ParkLabels[park]}
+                </Text>
+                <View
+                  style={[styles.parkTrack, { backgroundColor: '#EDE6E2' }]}
+                >
+                  <View
+                    style={[
+                      styles.parkBar,
+                      {
+                        backgroundColor: parkColors[park],
+                        width: `${(count / maxParkCount) * 100}%`,
+                      },
+                    ]}
+                  />
+                </View>
+                <Text
+                  style={[styles.parkValue, { color: colors.textSecondary }]}
+                >
+                  {count}
+                </Text>
+              </View>
+            );
+          })}
+        </>
+      )}
+
+      <Pressable
+        accessibilityLabel={
+          isExpanded ? 'Show fewer summary stats' : 'Show more summary stats'
+        }
+        accessibilityRole='button'
+        accessibilityState={{ expanded: isExpanded }}
+        hitSlop={{ top: 8, bottom: 8 }}
+        onPress={() => setIsExpanded(!isExpanded)}
+        style={styles.expandButton}
+      >
+        <Text style={[styles.expandText, { color: colors.accent }]}>
+          {isExpanded ? 'Show less' : 'More stats'}
+        </Text>
+        <SymbolView
+          name={{
+            ios: isExpanded ? 'chevron.up' : 'chevron.down',
+            android: isExpanded ? 'keyboard_arrow_up' : 'keyboard_arrow_down',
+            web: isExpanded ? 'keyboard_arrow_up' : 'keyboard_arrow_down',
+          }}
+          size={14}
+          tintColor={colors.accent}
+        />
+      </Pressable>
     </View>
   );
 }
@@ -206,6 +263,7 @@ const styles = StyleSheet.create({
     borderWidth: StyleSheet.hairlineWidth,
     marginBottom: 20,
     padding: 16,
+    paddingBottom: 8,
   },
   statNote: {
     fontSize: 9,
@@ -215,6 +273,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     flexDirection: 'row',
     justifyContent: 'space-between',
+    minHeight: 44,
   },
   heading: {
     fontSize: 18,
@@ -223,6 +282,18 @@ const styles = StyleSheet.create({
   period: {
     fontSize: 10,
     fontWeight: '700',
+  },
+  expandButton: {
+    alignItems: 'center',
+    flexDirection: 'row',
+    gap: 6,
+    justifyContent: 'center',
+    marginTop: 2,
+    minHeight: 28,
+  },
+  expandText: {
+    fontSize: 12,
+    fontWeight: '600',
   },
   statsRow: {
     flexDirection: 'row',
@@ -270,6 +341,25 @@ const styles = StyleSheet.create({
   highlightDetail: {
     fontSize: 12,
     marginTop: 2,
+  },
+  lightningLaneRow: {
+    alignItems: 'center',
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginTop: 14,
+  },
+  lightningLaneLabel: {
+    alignItems: 'center',
+    flexDirection: 'row',
+    gap: 6,
+  },
+  lightningLaneText: {
+    fontSize: 12,
+    fontWeight: '600',
+  },
+  lightningLaneValue: {
+    fontSize: 13,
+    fontWeight: '700',
   },
   parkHeadingRow: {
     alignItems: 'center',
