@@ -9,7 +9,14 @@
     "userInterfaceStyle": "light",
     "ios": {
       "bundleIdentifier": "com.aaron.disneyridetracker",
-      "icon": "./assets/expo.icon"
+      "icon": "./assets/expo.icon",
+      "version": "1.0",
+      "buildNumber": "1",
+      "deploymentTarget": "16.4",
+      "infoPlist": {
+        "CFBundleDisplayName": "Ride Tracker",
+        "LSApplicationCategoryType": "public.app-category.entertainment"
+      }
     },
     "android": {
       "adaptiveIcon": {
