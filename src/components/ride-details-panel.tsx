@@ -5,6 +5,7 @@ import { useState } from 'react';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { Colors, Fonts } from '@/constants/theme';
+import { MickeyRatingMark } from '@/components/mickey-rating-mark';
 import { RideFavoriteMark } from '@/components/ride-favorite-mark';
 import { LandLabels, ParkLabels } from '@/constants/ride-labels';
 import { RideLiveData, RideOperatingHour } from '@/data/live-wait-times';
@@ -55,6 +56,7 @@ type RideDetailsPanelProps = {
   onToggleHidden: (isHidden: boolean) => void;
   panelPosition: Animated.Value;
   ride: Ride;
+  latestRating: number | null;
   liveStatus?: RideLiveData;
 };
 
@@ -69,6 +71,7 @@ export function RideDetailsPanel({
   onToggleHidden,
   panelPosition,
   ride,
+  latestRating,
   liveStatus,
 }: RideDetailsPanelProps) {
   const colors = Colors.light;
@@ -283,6 +286,37 @@ export function RideDetailsPanel({
           <Text style={[styles.rideLand, { color: colors.textSecondary }]}>
             {LandLabels[ride.land]}
           </Text>
+          {latestRating !== null && (
+            <View
+              accessible
+              accessibilityLabel={`Your rating: ${latestRating} out of 5`}
+              style={styles.ratingRow}
+            >
+              {[1, 2, 3, 4, 5].map((value) => {
+                const isFull = latestRating >= value;
+                const isHalf = !isFull && latestRating >= value - 0.5;
+
+                return (
+                  <View key={value} style={styles.ratingMark}>
+                    <MickeyRatingMark
+                      color={isFull ? colors.accent : colors.backgroundSelected}
+                      filled={isFull}
+                      width={16}
+                    />
+                    {isHalf && (
+                      <View style={styles.halfRatingClip}>
+                        <MickeyRatingMark
+                          color={colors.accent}
+                          filled
+                          width={16}
+                        />
+                      </View>
+                    )}
+                  </View>
+                );
+              })}
+            </View>
+          )}
           <View style={styles.liveStatusActionRow}>
             <RideLiveStatusLine liveStatus={liveStatus} />
             <Pressable
@@ -518,6 +552,23 @@ const styles = StyleSheet.create({
   rideLand: {
     fontSize: 16,
     lineHeight: 22,
+  },
+  ratingRow: {
+    flexDirection: 'row',
+    marginTop: 6,
+  },
+  ratingMark: {
+    height: 14,
+    position: 'relative',
+    width: 20,
+  },
+  halfRatingClip: {
+    height: 14,
+    left: 4,
+    overflow: 'hidden',
+    position: 'absolute',
+    top: 0,
+    width: 8,
   },
   dataAttribution: {
     fontSize: 10,

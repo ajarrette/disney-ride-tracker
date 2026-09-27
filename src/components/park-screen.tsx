@@ -65,7 +65,7 @@ const parkSelectionColors: Partial<Record<Park, string>> = {
 export function ParkScreen({ park }: ParkScreenProps) {
   const colors = Colors.light;
   const insets = useSafeAreaInsets();
-  const { setRideDetailsOpen } = useAppState();
+  const { rideLogs, setRideDetailsOpen } = useAppState();
   const { rides: catalogRides, isLoading, hasError } = useRideCatalog();
   const {
     pinnedRideIds,
@@ -222,6 +222,11 @@ export function ParkScreen({ park }: ParkScreenProps) {
           }
           panelPosition={panelPosition}
           ride={selectedRide}
+          latestRating={
+            rideLogs.find(
+              (log) => log.rideId === selectedRide.id && log.rating !== null,
+            )?.rating ?? null
+          }
           liveStatus={
             liveDataByPark[selectedPark]?.[normalizeRideName(selectedRide.name)]
           }
