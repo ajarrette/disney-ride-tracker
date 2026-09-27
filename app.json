@@ -1,6 +1,6 @@
 {
   "expo": {
-    "name": "Disney Ride Tracker",
+    "name": "Ride Tracker",
     "slug": "disney-ride-tracker",
     "version": "1.0.0",
     "orientation": "portrait",
@@ -9,7 +9,7 @@
     "userInterfaceStyle": "light",
     "ios": {
       "bundleIdentifier": "com.aaron.disneyridetracker",
-      "icon": "./assets/expo.icon",
+      "appleTeamId": "33EW9K7GFS",
       "version": "1.0",
       "buildNumber": "1",
       "deploymentTarget": "16.4",
@@ -44,11 +44,12 @@
         "expo-splash-screen",
         {
           "backgroundColor": "#208AEF",
-          "image": "./assets/images/splash-icon.png",
-          "imageWidth": 76
+          "image": "./assets/images/castle-splash.png",
+          "imageWidth": 200
         }
       ],
-      "expo-sqlite"
+      "expo-sqlite",
+      "./plugins/with-ios-project-settings"
     ],
     "experiments": {
       "typedRoutes": true,
