@@ -58,6 +58,7 @@ export default function LogScreen() {
           <RideLogForm
             actions={{
               onAddPhotos: () => void controller.addPhotos(),
+              onAddVideo: () => void controller.addVideo(),
               onChangeNotes: controller.setNotes,
               onChangeRating: controller.setRating,
               onChangeWaitTime: controller.setWaitTime,
@@ -67,6 +68,7 @@ export default function LogScreen() {
               },
               onOpenDateTimePicker: controller.openDateTimePicker,
               onRemovePhoto: controller.removePhoto,
+              onRemoveVideo: controller.removeVideo,
               onSave: () => void controller.saveCurrentRideLog(),
               onToggleLightningLane: () =>
                 controller.setLightningLaneUsed((used) => !used),
@@ -77,6 +79,7 @@ export default function LogScreen() {
               photos: controller.photos,
               rating: controller.rating,
               visitedAt: controller.visitedAt,
+              videoAssetId: controller.videoAssetId,
               waitTime: controller.waitTime,
             }}
             isEditing={Boolean(controller.logId)}

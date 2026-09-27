@@ -12,6 +12,7 @@ import {
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { RideLogPhotos } from '@/components/ride-log-photos';
+import { RideLogVideo } from '@/components/ride-log-video';
 import { RideLogRating } from '@/components/ride-log-rating';
 import { LandLabels, ParkLabels } from '@/constants/ride-labels';
 import { Colors } from '@/constants/theme';
@@ -28,17 +29,20 @@ export type RideLogFormValue = {
   photos: string[];
   rating: number | null;
   visitedAt: Date;
+  videoAssetId: string | null;
   waitTime: string;
 };
 
 export type RideLogFormActions = {
   onAddPhotos: () => void;
+  onAddVideo: () => void;
   onChangeNotes: (notes: string) => void;
   onChangeRating: (rating: number) => void;
   onChangeWaitTime: (waitTime: string) => void;
   onChooseDifferentRide: () => void;
   onOpenDateTimePicker: () => void;
   onRemovePhoto: (index: number) => void;
+  onRemoveVideo: () => void;
   onSave: () => void;
   onToggleLightningLane: () => void;
 };
@@ -241,6 +245,41 @@ export function RideLogForm({
           photos={draft.photos}
           style={styles.formPhotoStrip}
         />
+
+        <View style={styles.photoHeader}>
+          <Text style={[styles.photoLabel, { color: colors.text }]}>Video</Text>
+          <Pressable
+            accessibilityLabel={
+              draft.videoAssetId ? 'Replace video' : 'Add video'
+            }
+            accessibilityRole='button'
+            disabled={isMutating}
+            onPress={actions.onAddVideo}
+            style={({ pressed }) => [
+              styles.addPhotosButton,
+              { borderColor: colors.accent },
+              pressed && styles.addPhotosButtonPressed,
+            ]}
+          >
+            <SymbolView
+              name={{
+                ios: draft.videoAssetId
+                  ? 'arrow.triangle.2.circlepath'
+                  : 'video.badge.plus',
+                android: draft.videoAssetId ? 'autorenew' : 'video_call',
+                web: draft.videoAssetId ? 'autorenew' : 'video_call',
+              }}
+              size={28}
+              tintColor={colors.accent}
+            />
+          </Pressable>
+        </View>
+        {draft.videoAssetId && (
+          <RideLogVideo
+            assetId={draft.videoAssetId}
+            onRemove={isMutating ? undefined : actions.onRemoveVideo}
+          />
+        )}
 
         <Text style={[styles.fieldLabel, { color: colors.text }]}>Notes</Text>
         <TextInput

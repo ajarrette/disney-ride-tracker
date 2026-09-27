@@ -24,6 +24,7 @@ import { getRideLogo } from '@/data/ride-images';
 import { supabase } from '@/data/supabase';
 import { getRideLogPhotos } from '@/models/ride-log';
 import { RideLogPhotos } from '@/components/ride-log-photos';
+import { RideLogVideo } from '@/components/ride-log-video';
 
 export default function DiaryScreen() {
   const colors = Colors.light;
@@ -315,6 +316,9 @@ export default function DiaryScreen() {
                           photos={getRideLogPhotos(log)}
                           style={styles.photoGallery}
                         />
+                      )}
+                      {log.videoAssetId && (
+                        <RideLogVideo assetId={log.videoAssetId} />
                       )}
                     </View>
                   );

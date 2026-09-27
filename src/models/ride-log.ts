@@ -8,6 +8,7 @@ export interface RideLog {
   notes: string;
   photos?: string[];
   photoPaths?: string[];
+  videoAssetId?: string | null;
   photoUrl?: string | null;
   rating: number | null;
   createdAt: string;

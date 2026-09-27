@@ -29,7 +29,7 @@
         "expo-image-picker",
         {
           "microphonePermission": false,
-          "photosPermission": "Allow Disney Ride Tracker to attach selected photos to ride logs."
+          "photosPermission": "Allow Disney Ride Tracker to attach selected photos and videos to ride logs."
         }
       ],
       [

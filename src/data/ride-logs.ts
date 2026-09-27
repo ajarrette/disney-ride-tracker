@@ -15,6 +15,7 @@ type RideLogRow = {
   lightning_lane_used: boolean;
   notes: string;
   photo_paths: string[];
+  video_asset_id: string | null;
   rating: number | null;
   created_at: string;
   updated_at: string;
@@ -77,6 +78,7 @@ async function toRideLog(row: RideLogRow): Promise<RideLog> {
     notes: row.notes,
     photoPaths,
     photos,
+    videoAssetId: row.video_asset_id,
     rating: row.rating,
     createdAt: row.created_at,
     updatedAt: row.client_updated_at,
@@ -127,7 +129,7 @@ export async function fetchRideLogs() {
   const { data, error } = await requireSupabase()
     .from('ride_logs')
     .select(
-      'id, ride_id, trip_id, visited_at, wait_time_minutes, lightning_lane_used, notes, photo_paths, rating, created_at, updated_at, client_updated_at',
+      'id, ride_id, trip_id, visited_at, wait_time_minutes, lightning_lane_used, notes, photo_paths, video_asset_id, rating, created_at, updated_at, client_updated_at',
     )
     .order('visited_at', { ascending: false });
   if (error) throw error;
@@ -155,6 +157,7 @@ export async function fetchRideLogs() {
     notes: row.notes,
     photoPaths: row.photo_paths ?? [],
     photos: (row.photo_paths ?? []).map((path) => urlsByPath.get(path) ?? ''),
+    videoAssetId: row.video_asset_id,
     rating: row.rating,
     createdAt: row.created_at,
     updatedAt: row.client_updated_at,
@@ -182,6 +185,7 @@ export async function saveRideLog(
         lightning_lane_used: rideLog.lightningLaneUsed ?? false,
         notes: rideLog.notes,
         photo_paths: photoPaths,
+        video_asset_id: rideLog.videoAssetId ?? null,
         rating: rideLog.rating,
         created_at: rideLog.createdAt,
         updated_at: rideLog.updatedAt,
@@ -190,7 +194,7 @@ export async function saveRideLog(
       { onConflict: 'user_id,id' },
     )
     .select(
-      'id, ride_id, trip_id, visited_at, wait_time_minutes, lightning_lane_used, notes, photo_paths, rating, created_at, updated_at, client_updated_at',
+      'id, ride_id, trip_id, visited_at, wait_time_minutes, lightning_lane_used, notes, photo_paths, video_asset_id, rating, created_at, updated_at, client_updated_at',
     )
     .single();
 

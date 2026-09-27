@@ -44,6 +44,7 @@ export function useRideLogFormState({
   const [notes, setNotes] = useState('');
   const [photos, setPhotos] = useState<string[]>([]);
   const [photoPaths, setPhotoPaths] = useState<string[]>([]);
+  const [videoAssetId, setVideoAssetId] = useState<string | null>(null);
   const [visitedAt, setVisitedAt] = useState(() => new Date());
   const [draftVisitedAt, setDraftVisitedAt] = useState(() => new Date());
   const [dateTimePickerVisible, setDateTimePickerVisible] = useState(false);
@@ -87,6 +88,7 @@ export function useRideLogFormState({
       setNotes(log?.notes ?? '');
       setPhotos(log ? getRideLogPhotos(log).slice(0, MAX_RIDE_LOG_PHOTOS) : []);
       setPhotoPaths(log?.photoPaths?.slice(0, MAX_RIDE_LOG_PHOTOS) ?? []);
+      setVideoAssetId(log?.videoAssetId ?? null);
       setVisitedAt(log ? new Date(log.visitedAt) : new Date());
       setDateTimePickerVisible(false);
       panelPosition.setValue(panelOffset);
@@ -125,8 +127,10 @@ export function useRideLogFormState({
     setRating,
     setSelectedRide,
     setVisitedAt,
+    setVideoAssetId,
     setWaitTime,
     visitedAt,
+    videoAssetId,
     waitTime,
   };
 }

@@ -9,6 +9,7 @@ import {
   MAX_RIDE_LOG_PHOTOS,
   pickRideLogPhotos,
 } from '@/data/ride-log-photo-picker';
+import { pickRideLogVideo } from '@/data/ride-log-video-picker';
 import { searchRideCatalog } from '@/data/ride-log-search';
 import { useRideLogFormState } from '@/hooks/use-ride-log-form-state';
 import { Ride } from '@/models/ride';
@@ -56,6 +57,7 @@ export function useRideLogController() {
     notes,
     photos,
     photoPaths,
+    videoAssetId,
     query,
     rating,
     scrollY,
@@ -66,6 +68,7 @@ export function useRideLogController() {
     setNotes,
     setPhotos,
     setPhotoPaths,
+    setVideoAssetId,
     setQuery,
     setRating,
     setSelectedRide,
@@ -165,6 +168,7 @@ export function useRideLogController() {
     setNotes('');
     setPhotos([]);
     setPhotoPaths([]);
+    setVideoAssetId(null);
   };
 
   const removePhoto = (index: number) => {
@@ -222,6 +226,23 @@ export function useRideLogController() {
     }
   };
 
+  const addVideo = async () => {
+    if (isMutating) return;
+    try {
+      const assetId = await pickRideLogVideo();
+      if (assetId) setVideoAssetId(assetId);
+    } catch (error) {
+      Alert.alert(
+        'Unable to add video',
+        error instanceof Error
+          ? error.message
+          : 'Please try selecting it again.',
+      );
+    }
+  };
+
+  const removeVideo = () => setVideoAssetId(null);
+
   const saveCurrentRideLog = async () => {
     if (!selectedRide || isMutating) return;
     setIsMutating(true);
@@ -241,6 +262,7 @@ export function useRideLogController() {
         notes: notes.trim(),
         photos: photos.slice(0, MAX_RIDE_LOG_PHOTOS),
         photoPaths: photoPaths.slice(0, MAX_RIDE_LOG_PHOTOS),
+        videoAssetId,
         photoUrl: null,
         rating,
         createdAt: existingLog?.createdAt ?? now,
@@ -263,6 +285,7 @@ export function useRideLogController() {
   };
 
   return {
+    addVideo,
     addPhotos,
     chooseRide,
     clearPendingRideId,
@@ -289,6 +312,7 @@ export function useRideLogController() {
     recentRideSearches,
     recordRecentSearch,
     removePhoto,
+    removeVideo,
     rideLogsReady,
     rides,
     saveCurrentRideLog,
@@ -304,6 +328,7 @@ export function useRideLogController() {
     setWaitTime,
     slideFromRight,
     visitedAt,
+    videoAssetId,
     waitTime,
     lightningLaneUsed,
   };
