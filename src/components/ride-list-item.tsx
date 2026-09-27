@@ -3,6 +3,7 @@ import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { SymbolView } from 'expo-symbols';
 
 import { Colors } from '@/constants/theme';
+import { RideFavoriteMark } from '@/components/ride-favorite-mark';
 import { LandLabels } from '@/constants/ride-labels';
 import { RideLiveData } from '@/data/live-wait-times';
 import { getRideLogo } from '@/data/ride-images';
@@ -83,7 +84,7 @@ export function RideListItem({
       <View style={styles.rideCopy}>
         <Text style={[styles.rideName, { color: rideTextColor }]}>
           {ride.name}
-          {isFavorite && <Text style={styles.rideFavorite}> {'\u2665'}</Text>}
+          <RideFavoriteMark isFavorite={isFavorite} />
         </Text>
         <View style={styles.rideMetadata}>
           <View style={styles.rideLandRow}>
@@ -179,9 +180,6 @@ const styles = StyleSheet.create({
     fontSize: 17,
     fontWeight: '700',
     lineHeight: 23,
-  },
-  rideFavorite: {
-    color: '#B12228',
   },
   rideLand: {
     fontSize: 13,

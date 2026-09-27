@@ -11,6 +11,7 @@ import { SymbolView } from 'expo-symbols';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { Colors } from '@/constants/theme';
+import { useRidePreferences } from '@/components/ride-preferences-provider';
 import { Ride } from '@/models/ride';
 import { RideListItem } from './ride-list-item';
 
@@ -40,6 +41,7 @@ export function RideLogPicker({
   rideCount,
 }: RideLogPickerProps) {
   const colors = Colors.light;
+  const { favoriteRideIds } = useRidePreferences();
   const insets = useSafeAreaInsets();
   const normalizedQuery = query.trim();
 
@@ -144,7 +146,11 @@ export function RideLogPicker({
           ) : null
         }
         renderItem={({ item }) => (
-          <RideListItem ride={item} onPress={onChooseRide} />
+          <RideListItem
+            isFavorite={favoriteRideIds.has(item.id)}
+            ride={item}
+            onPress={onChooseRide}
+          />
         )}
         showsVerticalScrollIndicator={false}
       />

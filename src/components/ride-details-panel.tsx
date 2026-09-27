@@ -5,6 +5,7 @@ import { useState } from 'react';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { Colors, Fonts } from '@/constants/theme';
+import { RideFavoriteMark } from '@/components/ride-favorite-mark';
 import { LandLabels, ParkLabels } from '@/constants/ride-labels';
 import { RideLiveData, RideOperatingHour } from '@/data/live-wait-times';
 import { getRideBackground } from '@/data/ride-images';
@@ -220,6 +221,7 @@ export function RideDetailsPanel({
           ]}
         >
           {ride.name}
+          <RideFavoriteMark isFavorite={isFavorite} />
         </Animated.Text>
       </Animated.View>
       <Animated.ScrollView
@@ -246,24 +248,15 @@ export function RideDetailsPanel({
         >
           <Text style={[styles.rideName, { color: rideTitleColor }]}>
             {ride.name}
-            <Text
+            <RideFavoriteMark
               accessibilityLabel={
                 isFavorite
                   ? `Remove ${ride.name} from favorites`
                   : `Add ${ride.name} to favorites`
               }
-              accessibilityRole='button'
-              accessibilityState={{ checked: isFavorite }}
-              onPress={() => onToggleFavorite(!isFavorite)}
-              suppressHighlighting
-              style={[
-                styles.rideFavorite,
-                !isFavorite && styles.rideFavoriteOutline,
-              ]}
-            >
-              {' '}
-              {isFavorite ? '\u2665' : '\u2661'}
-            </Text>
+              isFavorite={isFavorite}
+              onToggle={onToggleFavorite}
+            />
           </Text>
           <View style={styles.rideParkRow}>
             <Text style={[styles.ridePark, { color: colors.textSecondary }]}>
@@ -491,13 +484,6 @@ const styles = StyleSheet.create({
     fontSize: 28,
     fontWeight: '800',
     lineHeight: 34,
-  },
-  rideFavorite: {
-    color: '#B12228',
-  },
-  rideFavoriteOutline: {
-    color: '#B0B4BA',
-    fontWeight: '300',
   },
   rideParkRow: {
     alignItems: 'center',

@@ -16,6 +16,8 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useAppState } from '@/components/app-state';
 import { MickeyRatingMark } from '@/components/mickey-rating-mark';
 import { useRideCatalog } from '@/components/ride-catalog-provider';
+import { RideFavoriteMark } from '@/components/ride-favorite-mark';
+import { useRidePreferences } from '@/components/ride-preferences-provider';
 import { LandLabels, ParkLabels } from '@/constants/ride-labels';
 import { Colors } from '@/constants/theme';
 import { getRideLogo } from '@/data/ride-images';
@@ -35,6 +37,7 @@ export default function DiaryScreen() {
     reloadRideLogs,
   } = useAppState();
   const { rides } = useRideCatalog();
+  const { favoriteRideIds } = useRidePreferences();
   const ridesById = new Map(rides.map((ride) => [ride.id, ride]));
   const groupedLogs = new Map<string, typeof rideLogs>();
 
@@ -208,6 +211,9 @@ export default function DiaryScreen() {
                               style={[styles.rideName, { color: colors.text }]}
                             >
                               {ride.name}
+                              <RideFavoriteMark
+                                isFavorite={favoriteRideIds.has(ride.id)}
+                              />
                             </Text>
                             <View style={styles.ratingRow}>
                               {[1, 2, 3, 4, 5].map((star) => {

@@ -16,6 +16,8 @@ import { RideLogRating } from '@/components/ride-log-rating';
 import { LandLabels, ParkLabels } from '@/constants/ride-labels';
 import { Colors } from '@/constants/theme';
 import { rideLogFormStyles as styles } from '@/components/ride-log-form.styles';
+import { RideFavoriteMark } from '@/components/ride-favorite-mark';
+import { useRidePreferences } from '@/components/ride-preferences-provider';
 import { MAX_RIDE_LOG_PHOTOS } from '@/data/ride-log-photo-picker';
 import { getRideBackground } from '@/data/ride-images';
 import { Ride } from '@/models/ride';
@@ -73,6 +75,7 @@ export function RideLogForm({
   topInset,
 }: RideLogFormProps) {
   const colors = Colors.light;
+  const { favoriteRideIds, setRideFavorite } = useRidePreferences();
   const insets = useSafeAreaInsets();
   const rideBackground = getRideBackground(ride.park, ride.backgroundUrl);
   const largeTitleOpacity = scrollY.interpolate({
@@ -121,6 +124,15 @@ export function RideLogForm({
         >
           <Text style={[styles.rideTitle, { color: '#263d5a' }]}>
             {ride.name}
+            <RideFavoriteMark
+              accessibilityLabel={
+                favoriteRideIds.has(ride.id)
+                  ? `Remove ${ride.name} from favorites`
+                  : `Add ${ride.name} to favorites`
+              }
+              isFavorite={favoriteRideIds.has(ride.id)}
+              onToggle={(isFavorite) => setRideFavorite(ride.id, isFavorite)}
+            />
           </Text>
           <Text style={[styles.rideSubtitle, { color: colors.textSecondary }]}>
             {ParkLabels[ride.park]} · {LandLabels[ride.land]}
