@@ -61,6 +61,7 @@ export function useRideLogFormState({
   const [visitedAt, setVisitedAt] = useState(() => new Date());
   const [draftVisitedAt, setDraftVisitedAt] = useState(() => new Date());
   const [dateTimePickerVisible, setDateTimePickerVisible] = useState(false);
+  const [tripIdOverride, setTripIdOverride] = useState<string | null>();
   const [isDraftHydrated, setIsDraftHydrated] = useState(false);
   const draftPersistenceEnabledRef = useRef(true);
 
@@ -115,6 +116,7 @@ export function useRideLogFormState({
       photoPaths,
       videoAssetId,
       visitedAt: visitedAt.toISOString(),
+      tripIdOverride,
     });
   }, [
     isDraftHydrated,
@@ -126,6 +128,7 @@ export function useRideLogFormState({
     query,
     rating,
     selectedRide,
+    tripIdOverride,
     videoAssetId,
     visitedAt,
     waitTime,
@@ -211,6 +214,7 @@ export function useRideLogFormState({
           [],
       );
       setVideoAssetId(log?.videoAssetId ?? restoredDraft?.videoAssetId ?? null);
+      setTripIdOverride(log ? undefined : restoredDraft?.tripIdOverride);
       setVisitedAt(
         log
           ? new Date(log.visitedAt)
@@ -261,6 +265,8 @@ export function useRideLogFormState({
     setVisitedAt,
     setVideoAssetId,
     setWaitTime,
+    setTripIdOverride,
+    tripIdOverride,
     onChangeWaitTime: (value: string) => {
       setWaitTime(value);
       setWaitTimeManuallyChanged(value.trim().length > 0);

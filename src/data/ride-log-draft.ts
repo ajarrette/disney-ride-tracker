@@ -16,6 +16,7 @@ export type RideLogDraft = {
   photoPaths: string[];
   videoAssetId: string | null;
   visitedAt: string;
+  tripIdOverride?: string | null;
 };
 
 export type PersistedWaitTimer = {
@@ -52,6 +53,9 @@ const isRideLogDraft = (value: unknown): value is RideLogDraft => {
     isStringArray(draft.photos) &&
     isStringArray(draft.photoPaths) &&
     (draft.videoAssetId === null || typeof draft.videoAssetId === 'string') &&
+    (draft.tripIdOverride === undefined ||
+      draft.tripIdOverride === null ||
+      typeof draft.tripIdOverride === 'string') &&
     typeof draft.visitedAt === 'string' &&
     Number.isFinite(Date.parse(draft.visitedAt))
   );

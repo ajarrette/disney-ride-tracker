@@ -2,6 +2,8 @@ import { SymbolView } from 'expo-symbols';
 import { useState } from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 
+import { RideTripSelector } from '@/components/ride-trip-selector';
+import { useRideTrips } from '@/components/ride-trips-provider';
 import { ParkLabels } from '@/constants/ride-labels';
 import { Colors } from '@/constants/theme';
 import { Park, Ride } from '@/models/ride';
@@ -15,16 +17,22 @@ const parkColors: Record<Park, string> = {
 };
 
 type RideDiarySummaryProps = {
+  onSelectTrip: (tripId: string | null) => void;
   rideLogs: RideLog[];
   ridesById: ReadonlyMap<string, Ride>;
+  selectedTripId: string | null;
 };
 
 export function RideDiarySummary({
+  onSelectTrip,
   rideLogs,
   ridesById,
+  selectedTripId,
 }: RideDiarySummaryProps) {
   const [isExpanded, setIsExpanded] = useState(false);
-  if (rideLogs.length === 0) return null;
+  const { trips } = useRideTrips();
+  if (rideLogs.length === 0 && trips.length === 0 && selectedTripId === null)
+    return null;
 
   const rideCounts = new Map<string, number>();
   const parkCounts = new Map<Park, number>();
@@ -60,14 +68,14 @@ export function RideDiarySummary({
     }
   });
 
-  const mostRidden = [...rideCounts.entries()].reduce((most, entry) =>
-    entry[1] > most[1] ? entry : most,
-  );
+  const mostRidden = [...rideCounts.entries()].sort(
+    (first, second) => second[1] - first[1],
+  )[0] ?? ['', 0];
   const mostRiddenName =
-    ridesById.get(mostRidden[0])?.name ?? 'Unknown attraction';
-  const biggestRideDay = [...dayCounts.values()].reduce((biggest, day) =>
-    day.count > biggest.count ? day : biggest,
-  );
+    (mostRidden[0] ? ridesById.get(mostRidden[0])?.name : null) ?? '—';
+  const biggestRideDay = [...dayCounts.values()].sort(
+    (first, second) => second.count - first.count,
+  )[0] ?? { count: 0, date: new Date() };
   const maxParkCount = Math.max(1, ...parkCounts.values());
   const parksVisited = [...parkCounts.values()].filter(
     (count) => count > 0,
@@ -93,9 +101,15 @@ export function RideDiarySummary({
         <Text style={[styles.heading, { color: colors.text }]}>
           Your ride story
         </Text>
-        <Text style={[styles.period, { color: colors.textSecondary }]}>
-          ALL TIME
-        </Text>
+        <RideTripSelector
+          allowNone
+          isCompact
+          label='Ride story period'
+          noneLabel='All Time'
+          noneSubtitle='Include every ride'
+          onSelect={onSelectTrip}
+          selectedTripId={selectedTripId}
+        />
       </View>
 
       <View style={styles.statsRow}>
@@ -161,11 +175,13 @@ export function RideDiarySummary({
                   { color: colors.textSecondary },
                 ]}
               >
-                {biggestRideDay.date.toLocaleDateString(undefined, {
-                  month: 'short',
-                  day: 'numeric',
-                  year: 'numeric',
-                })}
+                {rideLogs.length === 0
+                  ? '—'
+                  : biggestRideDay.date.toLocaleDateString(undefined, {
+                      month: 'short',
+                      day: 'numeric',
+                      year: 'numeric',
+                    })}
               </Text>
             </View>
           </View>
@@ -277,10 +293,6 @@ const styles = StyleSheet.create({
   },
   heading: {
     fontSize: 18,
-    fontWeight: '700',
-  },
-  period: {
-    fontSize: 10,
     fontWeight: '700',
   },
   expandButton: {

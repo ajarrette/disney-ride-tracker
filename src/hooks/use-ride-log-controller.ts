@@ -4,6 +4,7 @@ import { Alert, Animated, Dimensions } from 'react-native';
 
 import { useAppState } from '@/components/app-state';
 import { useRideCatalog } from '@/components/ride-catalog-provider';
+import { useRideTrips } from '@/components/ride-trips-provider';
 import {
   MAX_RIDE_LOG_PHOTOS,
   pickRideLogPhotos,
@@ -14,6 +15,7 @@ import { deleteCachedRideLogPhotos } from '@/data/ride-logs';
 import { useRideLogFormState } from '@/hooks/use-ride-log-form-state';
 import { Ride } from '@/models/ride';
 import { RideLog } from '@/models/ride-log';
+import { getRideTripForDate } from '@/models/ride-trip';
 
 export function useRideLogController() {
   const {
@@ -46,6 +48,7 @@ export function useRideLogController() {
     setTabBarHidden,
   } = useAppState();
   const { rides, isLoading, hasError } = useRideCatalog();
+  const { trips, isLoading: tripsLoading } = useRideTrips();
   const existingLog = rideLogs.find((log) => log.id === logId);
   const [panelPosition] = useState(() => new Animated.Value(panelOffset));
   const draft = useRideLogFormState({
@@ -81,6 +84,7 @@ export function useRideLogController() {
     setQuery,
     setRating,
     setSelectedRide,
+    setTripIdOverride,
     setVisitedAt,
     setWaitTime,
     onChangeWaitTime,
@@ -92,7 +96,14 @@ export function useRideLogController() {
     waitTimeManuallyChanged,
     waitTimerElapsedSeconds,
     waitTimerStartedAt,
+    tripIdOverride,
   } = draft;
+  const tripId =
+    tripIdOverride !== undefined
+      ? tripIdOverride
+      : existingLog
+        ? existingLog.tripId
+        : (getRideTripForDate(trips, visitedAt)?.id ?? null);
   const [isMutating, setIsMutating] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
   const filteredRides = searchRideCatalog(rides, query);
@@ -285,7 +296,12 @@ export function useRideLogController() {
       const rideLog: RideLog = {
         id: existingLog?.id ?? `${selectedRide.id}-${Date.now()}`,
         rideId: selectedRide.id,
-        tripId: existingLog?.tripId ?? null,
+        tripId:
+          tripIdOverride !== undefined
+            ? tripIdOverride
+            : existingLog
+              ? existingLog.tripId
+              : (getRideTripForDate(trips, visitedAtToSave)?.id ?? null),
         visitedAt: visitedAtToSave.toISOString(),
         waitTimeMinutes:
           Number.isFinite(parsedWaitTime) && parsedWaitTime >= 0
@@ -347,7 +363,7 @@ export function useRideLogController() {
     recordRecentSearch,
     removePhoto,
     removeVideo,
-    rideLogsReady,
+    rideLogsReady: rideLogsReady && !tripsLoading,
     rides,
     saveCurrentRideLog,
     saveDateTimePicker,
@@ -362,6 +378,7 @@ export function useRideLogController() {
     setQuery,
     setRating,
     setSelectedRide,
+    setTripId: (value: string | null) => setTripIdOverride(value),
     setWaitTime: onChangeWaitTime,
     slideFromRight,
     visitedAt,
@@ -370,5 +387,6 @@ export function useRideLogController() {
     waitTimerElapsedSeconds,
     waitTimerStartedAt,
     lightningLaneUsed,
+    tripId,
   };
 }

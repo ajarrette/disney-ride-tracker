@@ -31,6 +31,7 @@ export default function DiaryScreen() {
   const colors = Colors.light;
   const insets = useSafeAreaInsets();
   const [scrollY] = useState(() => new Animated.Value(0));
+  const [selectedTripId, setSelectedTripId] = useState<string | null>(null);
   const {
     rideLogs,
     rideLogSyncStatuses,
@@ -40,10 +41,14 @@ export default function DiaryScreen() {
   } = useAppState();
   const { rides } = useRideCatalog();
   const { favoriteRideIds } = useRidePreferences();
+  const visibleRideLogs =
+    selectedTripId === null
+      ? rideLogs
+      : rideLogs.filter((log) => log.tripId === selectedTripId);
   const ridesById = new Map(rides.map((ride) => [ride.id, ride]));
   const groupedLogs = new Map<string, typeof rideLogs>();
 
-  [...rideLogs]
+  [...visibleRideLogs]
     .sort(
       (first, second) =>
         new Date(second.visitedAt).getTime() -
@@ -103,7 +108,12 @@ export default function DiaryScreen() {
         >
           Diary
         </Animated.Text>
-        <RideDiarySummary rideLogs={rideLogs} ridesById={ridesById} />
+        <RideDiarySummary
+          onSelectTrip={setSelectedTripId}
+          rideLogs={visibleRideLogs}
+          ridesById={ridesById}
+          selectedTripId={selectedTripId}
+        />
         {rideLogsError && rideLogs.length > 0 && (
           <Pressable
             accessibilityRole='button'
@@ -127,9 +137,11 @@ export default function DiaryScreen() {
               Could not load your diary. Tap to retry.
             </Text>
           </Pressable>
-        ) : rideLogs.length === 0 ? (
+        ) : visibleRideLogs.length === 0 ? (
           <Text style={[styles.emptyText, { color: colors.textSecondary }]}>
-            Rides you log will appear here.
+            {selectedTripId
+              ? 'No rides logged for this trip yet.'
+              : 'Rides you log will appear here.'}
           </Text>
         ) : (
           [...groupedLogs.entries()].map(([dayKey, logs]) => {

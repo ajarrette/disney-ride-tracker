@@ -17,6 +17,7 @@ import { RideLogPhotos } from '@/components/ride-log-photos';
 import { RideLogRating } from '@/components/ride-log-rating';
 import { RideLogVideo } from '@/components/ride-log-video';
 import { useRidePreferences } from '@/components/ride-preferences-provider';
+import { RideTripSelector } from '@/components/ride-trip-selector';
 import { LandLabels, ParkLabels } from '@/constants/ride-labels';
 import { Colors } from '@/constants/theme';
 import { getRideBackground } from '@/data/ride-images';
@@ -28,6 +29,7 @@ export type RideLogFormValue = {
   notes: string;
   photos: string[];
   rating: number | null;
+  tripId: string | null;
   visitedAt: Date;
   videoAssetId: string | null;
   waitTime: string;
@@ -40,6 +42,7 @@ export type RideLogFormActions = {
   onAddVideo: () => void;
   onChangeNotes: (notes: string) => void;
   onChangeRating: (rating: number) => void;
+  onChangeTrip: (tripId: string | null) => void;
   onChangeWaitTime: (waitTime: string) => void;
   onChooseDifferentRide: () => void;
   onOpenDateTimePicker: () => void;
@@ -371,6 +374,16 @@ export function RideLogForm({
             onRemove={isMutating ? undefined : actions.onRemoveVideo}
           />
         )}
+
+        <RideTripSelector
+          allowNone
+          editable
+          label='Trip'
+          noneLabel='No trip'
+          onSelect={actions.onChangeTrip}
+          selectedTripId={draft.tripId}
+          showFieldLabel
+        />
 
         <Text style={[styles.fieldLabel, { color: colors.text }]}>Notes</Text>
         <TextInput

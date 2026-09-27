@@ -61,6 +61,7 @@ export default function LogScreen() {
               onAddVideo: () => void controller.addVideo(),
               onChangeNotes: controller.setNotes,
               onChangeRating: controller.setRating,
+              onChangeTrip: controller.setTripId,
               onChangeWaitTime: controller.setWaitTime,
               onChooseDifferentRide: () => {
                 controller.resetWaitTimer();
@@ -81,6 +82,7 @@ export default function LogScreen() {
               notes: controller.notes,
               photos: controller.photos,
               rating: controller.rating,
+              tripId: controller.tripId,
               visitedAt: controller.visitedAt,
               videoAssetId: controller.videoAssetId,
               waitTime: controller.waitTime,
