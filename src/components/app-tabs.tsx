@@ -1,8 +1,9 @@
+import { router, usePathname } from 'expo-router';
 import { NativeTabs } from 'expo-router/unstable-native-tabs';
-import { usePathname } from 'expo-router';
-import { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
 
 import { Colors } from '@/constants/theme';
+import { hasRideLogDraftToResume } from '@/data/ride-log-draft';
 import { AppStateProvider, useAppState } from './app-state';
 
 export default function AppTabs() {
@@ -17,6 +18,17 @@ function NativeTabNavigator() {
   const colors = Colors.light;
   const pathname = usePathname();
   const { tabBarHidden, rideDetailsOpen, setPreviousTabPath } = useAppState();
+  const resumeCheckCompleteRef = useRef(false);
+
+  useEffect(() => {
+    if (resumeCheckCompleteRef.current) return;
+    if (pathname !== '/') {
+      resumeCheckCompleteRef.current = true;
+      return;
+    }
+    resumeCheckCompleteRef.current = true;
+    if (hasRideLogDraftToResume()) router.replace('/log');
+  }, [pathname]);
 
   useEffect(() => {
     if (pathname !== '/log') setPreviousTabPath(pathname);

@@ -59,6 +59,7 @@ export function useRideLogController() {
   });
   const {
     clearPendingRideId,
+    discardRideLogDraft,
     dateTimePickerVisible,
     draftVisitedAt,
     lightningLaneUsed,
@@ -116,11 +117,13 @@ export function useRideLogController() {
       if (selectedRide) {
         setSelectedRide(null);
       } else {
+        discardRideLogDraft();
         closePanel(previousTabPath);
       }
       return;
     }
 
+    if (!logId) discardRideLogDraft();
     animatePanelOut(() => {
       if (returnTo) {
         router.replace(returnTo as Href);
@@ -303,6 +306,7 @@ export function useRideLogController() {
       } else {
         await addRideLog(rideLog);
       }
+      if (!logId) discardRideLogDraft();
       closePanel('/diary');
     } catch (error) {
       Alert.alert(
