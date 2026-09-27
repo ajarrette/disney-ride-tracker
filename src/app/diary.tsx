@@ -16,6 +16,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useAppState } from '@/components/app-state';
 import { MickeyRatingMark } from '@/components/mickey-rating-mark';
 import { useRideCatalog } from '@/components/ride-catalog-provider';
+import { RideDiarySummary } from '@/components/ride-diary-summary';
 import { RideFavoriteMark } from '@/components/ride-favorite-mark';
 import { RideLogPhotos } from '@/components/ride-log-photos';
 import { RideLogVideo } from '@/components/ride-log-video';
@@ -102,6 +103,7 @@ export default function DiaryScreen() {
         >
           Diary
         </Animated.Text>
+        <RideDiarySummary rideLogs={rideLogs} ridesById={ridesById} />
         {rideLogsError && rideLogs.length > 0 && (
           <Pressable
             accessibilityRole='button'
