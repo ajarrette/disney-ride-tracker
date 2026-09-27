@@ -3,7 +3,7 @@ import { SymbolView } from 'expo-symbols';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 
 import { RideFavoriteMark } from '@/components/ride-favorite-mark';
-import { LandLabels } from '@/constants/ride-labels';
+import { LandLabels, ParkLabels } from '@/constants/ride-labels';
 import { Colors } from '@/constants/theme';
 import { RideLiveData } from '@/data/live-wait-times';
 import { getRideLogo } from '@/data/ride-images';
@@ -20,6 +20,7 @@ export function RideListItem({
   drag,
   liveStatus,
   reserveLiveStatusSpace = false,
+  showPark = false,
   onPress,
 }: {
   ride: Ride;
@@ -31,6 +32,7 @@ export function RideListItem({
   drag?: () => void;
   liveStatus?: RideLiveData;
   reserveLiveStatusSpace?: boolean;
+  showPark?: boolean;
   onPress: (ride: Ride) => void;
 }) {
   const colors = Colors.light;
@@ -88,9 +90,17 @@ export function RideListItem({
         </Text>
         <View style={styles.rideMetadata}>
           <View style={styles.rideLandRow}>
-            <Text style={[styles.rideLand, { color: rideTextColor }]}>
-              {LandLabels[ride.land]}
-            </Text>
+            {showPark ? (
+              <Text style={[styles.rideLand, { color: colors.textSecondary }]}>
+                <Text style={styles.parkName}>{ParkLabels[ride.park]}</Text>
+                {' - '}
+                {LandLabels[ride.land]}
+              </Text>
+            ) : (
+              <Text style={[styles.rideLand, { color: rideTextColor }]}>
+                {LandLabels[ride.land]}
+              </Text>
+            )}
           </View>
           <View style={styles.rideWaitRow}>
             <RideLiveStatusLine
@@ -184,6 +194,9 @@ const styles = StyleSheet.create({
   rideLand: {
     fontSize: 13,
     lineHeight: 19,
+  },
+  parkName: {
+    fontWeight: '600',
   },
   rideMetadata: {
     marginTop: 3,

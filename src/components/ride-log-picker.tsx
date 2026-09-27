@@ -1,3 +1,4 @@
+import { SymbolView } from 'expo-symbols';
 import {
   ActivityIndicator,
   FlatList,
@@ -7,11 +8,10 @@ import {
   TextInput,
   View,
 } from 'react-native';
-import { SymbolView } from 'expo-symbols';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-import { Colors } from '@/constants/theme';
 import { useRidePreferences } from '@/components/ride-preferences-provider';
+import { Colors } from '@/constants/theme';
 import { Ride } from '@/models/ride';
 import { RideListItem } from './ride-list-item';
 
@@ -149,6 +149,7 @@ export function RideLogPicker({
           <RideListItem
             isFavorite={favoriteRideIds.has(item.id)}
             ride={item}
+            showPark
             onPress={onChooseRide}
           />
         )}
