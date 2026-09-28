@@ -428,7 +428,7 @@ export function RideLogForm({
               <Text style={styles.saveButtonText}>Saving</Text>
             </View>
           ) : (
-            <Text style={styles.saveButtonText}>Save Ride</Text>
+            <Text style={styles.saveButtonText}>Log Ride</Text>
           )}
         </Pressable>
       </View>

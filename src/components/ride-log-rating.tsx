@@ -1,7 +1,7 @@
 import { Pressable, StyleSheet, View } from 'react-native';
 
-import { Colors } from '@/constants/theme';
 import { MickeyRatingMark } from '@/components/mickey-rating-mark';
+import { Colors } from '@/constants/theme';
 
 type RideLogRatingProps = {
   onChange: (rating: number) => void;
@@ -21,7 +21,7 @@ export function RideLogRating({ onChange, rating }: RideLogRatingProps) {
         return (
           <View key={value} style={styles.markContainer}>
             <MickeyRatingMark
-              color={isFull ? colors.accent : colors.textSecondary}
+              color={isFull ? colors.accent : colors.backgroundSelected}
               filled={isFull}
             />
             {isHalf && (
