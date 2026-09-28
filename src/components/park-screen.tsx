@@ -5,6 +5,7 @@ import {
   Animated,
   Dimensions,
   Pressable,
+  ScrollView,
   StyleSheet,
   View,
 } from 'react-native';
@@ -159,7 +160,11 @@ export function ParkScreen({ park }: ParkScreenProps) {
     <View style={[styles.container, { backgroundColor: colors.background }]}>
       <View style={[styles.listViewport, { paddingTop: insets.top }]}>
         <View style={styles.parkHeader}>
-          <View style={styles.parkTabs}>
+          <ScrollView
+            contentContainerStyle={styles.parkTabs}
+            horizontal
+            showsHorizontalScrollIndicator={false}
+          >
             {parkTabs.map(
               ({ park: parkOption, unselectedIcon, selectedIcon }) => (
                 <Pressable
@@ -187,7 +192,7 @@ export function ParkScreen({ park }: ParkScreenProps) {
                 </Pressable>
               ),
             )}
-          </View>
+          </ScrollView>
         </View>
         <ParkRideList
           bottomInset={insets.bottom}
@@ -271,13 +276,16 @@ const styles = StyleSheet.create({
   },
   parkTabs: {
     flexDirection: 'row',
+    minWidth: '100%',
     paddingHorizontal: 8,
   },
   parkTab: {
     alignItems: 'center',
-    flex: 1,
+    flexBasis: 0,
+    flexGrow: 1,
     height: 64,
     justifyContent: 'center',
+    minWidth: 72,
     paddingHorizontal: 2,
     borderBottomWidth: 3,
     borderBottomColor: 'transparent',

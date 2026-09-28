@@ -310,31 +310,12 @@ export function RideLogForm({
           <Text style={[styles.photoLabel, { color: colors.text }]}>
             Photos ({draft.photos.length}/{MAX_RIDE_LOG_PHOTOS})
           </Text>
-          {draft.photos.length < MAX_RIDE_LOG_PHOTOS && (
-            <Pressable
-              accessibilityLabel='Add photos'
-              accessibilityRole='button'
-              disabled={isMutating}
-              onPress={actions.onAddPhotos}
-              style={({ pressed }) => [
-                styles.addPhotosButton,
-                { borderColor: colors.accent },
-                pressed && styles.addPhotosButtonPressed,
-              ]}
-            >
-              <SymbolView
-                name={{
-                  ios: 'camera',
-                  android: 'photo_camera',
-                  web: 'photo_camera',
-                }}
-                size={32}
-                tintColor={colors.accent}
-              />
-            </Pressable>
-          )}
         </View>
         <RideLogPhotos
+          addPhotoDisabled={
+            isMutating || draft.photos.length >= MAX_RIDE_LOG_PHOTOS
+          }
+          onAddPhoto={actions.onAddPhotos}
           onRemove={isMutating ? undefined : actions.onRemovePhoto}
           photos={draft.photos}
           style={styles.formPhotoStrip}
