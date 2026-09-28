@@ -269,7 +269,7 @@ export async function fetchParkLiveData(
   const currentParkTime = getParkTimeParts(now);
   const historyDates = Array.from({ length: 7 }, (_, index) => {
     let date = currentParkTime.date;
-    for (let daysAgo = 0; daysAgo <= index; daysAgo += 1) {
+    for (let daysAgo = 0; daysAgo < index; daysAgo += 1) {
       date = getPreviousParkDate(date);
     }
     return date;
