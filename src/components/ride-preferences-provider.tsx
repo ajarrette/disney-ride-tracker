@@ -9,20 +9,23 @@ import {
 
 import {
   fetchRidePreferences,
+  savePinnedRideOrder,
   saveRideFavorite,
   saveRideHidden,
-  savePinnedRideOrder,
+  saveRideRating,
 } from '@/data/ride-preferences';
 
 type RidePreferencesContextValue = {
   pinnedRideIds: Set<string>;
   pinnedRideOrder: string[];
   favoriteRideIds: Set<string>;
+  rideRatings: Map<string, number>;
   hiddenRideIds: Set<string>;
   isLoading: boolean;
   setRidePinned: (rideId: string, isPinned: boolean) => void;
   setPinnedRideOrder: (rideIds: string[]) => void;
   setRideFavorite: (rideId: string, isFavorite: boolean) => void;
+  setRideRating: (rideId: string, rating: number) => void;
   setRideHidden: (rideId: string, isHidden: boolean) => void;
 };
 
@@ -39,21 +42,29 @@ export function RidePreferencesProvider({ children }: React.PropsWithChildren) {
   const [favoriteRideIds, setFavoriteRideIds] = useState<Set<string>>(
     () => new Set(),
   );
+  const [rideRatings, setRideRatings] = useState<Map<string, number>>(
+    () => new Map(),
+  );
   const [pinnedRideOrder, setPinnedRideOrderState] = useState<string[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const pinnedRideIdsRef = useRef(pinnedRideIds);
   const hiddenRideIdsRef = useRef(hiddenRideIds);
   const favoriteRideIdsRef = useRef(favoriteRideIds);
+  const rideRatingsRef = useRef(rideRatings);
   const pinnedRideOrderRef = useRef(pinnedRideOrder);
   const locallyChangedRideIds = useRef(new Set<string>());
   const locallyChangedHiddenRideIds = useRef(new Set<string>());
   const locallyChangedFavoriteRideIds = useRef(new Set<string>());
+  const locallyChangedRatingIds = useRef(new Set<string>());
   const pendingPinChanges = useRef(new Set<string>());
   const pendingHiddenChanges = useRef(
     new Map<string, { isHidden: boolean; previousValue: boolean }>(),
   );
   const pendingFavoriteChanges = useRef(
     new Map<string, { isFavorite: boolean; previousValue: boolean }>(),
+  );
+  const pendingRatingChanges = useRef(
+    new Map<string, { rating: number; previousValue: number | undefined }>(),
   );
   const preferencesLoaded = useRef(false);
   const writeSequence = useRef(0);
@@ -62,6 +73,8 @@ export function RidePreferencesProvider({ children }: React.PropsWithChildren) {
   const pendingHiddenWrites = useRef(new Map<string, Promise<void>>());
   const favoriteWriteSequences = useRef(new Map<string, number>());
   const pendingFavoriteWrites = useRef(new Map<string, Promise<void>>());
+  const ratingWriteSequences = useRef(new Map<string, number>());
+  const pendingRatingWrites = useRef(new Map<string, Promise<void>>());
 
   const updatePinnedRideOrder = useCallback((rideIds: string[]) => {
     const nextOrder = [...new Set(rideIds)];
@@ -82,6 +95,12 @@ export function RidePreferencesProvider({ children }: React.PropsWithChildren) {
     const nextIds = new Set(rideIds);
     favoriteRideIdsRef.current = nextIds;
     setFavoriteRideIds(nextIds);
+  }, []);
+
+  const updateRideRatings = useCallback((ratings: Map<string, number>) => {
+    const nextRatings = new Map(ratings);
+    rideRatingsRef.current = nextRatings;
+    setRideRatings(nextRatings);
   }, []);
 
   const persistRideHidden = useCallback(
@@ -128,6 +147,29 @@ export function RidePreferencesProvider({ children }: React.PropsWithChildren) {
       pendingFavoriteWrites.current.set(rideId, write);
     },
     [updateFavoriteRideIds],
+  );
+
+  const persistRideRating = useCallback(
+    (rideId: string, rating: number, previousValue: number | undefined) => {
+      const sequence = (ratingWriteSequences.current.get(rideId) ?? 0) + 1;
+      ratingWriteSequences.current.set(rideId, sequence);
+      const previousWrite =
+        pendingRatingWrites.current.get(rideId) ?? Promise.resolve();
+      const write = previousWrite
+        .catch(() => undefined)
+        .then(() => saveRideRating(rideId, rating))
+        .catch((error) => {
+          console.warn('Unable to save ride rating.', error);
+          if (ratingWriteSequences.current.get(rideId) === sequence) {
+            const nextRatings = new Map(rideRatingsRef.current);
+            if (previousValue === undefined) nextRatings.delete(rideId);
+            else nextRatings.set(rideId, previousValue);
+            updateRideRatings(nextRatings);
+          }
+        });
+      pendingRatingWrites.current.set(rideId, write);
+    },
+    [updateRideRatings],
   );
 
   const persistPinnedRideOrder = useCallback(
@@ -198,6 +240,26 @@ export function RidePreferencesProvider({ children }: React.PropsWithChildren) {
     }
   };
 
+  const setRideRating = (rideId: string, rating: number) => {
+    const previousValue = rideRatingsRef.current.get(rideId);
+    if (previousValue === rating) return;
+
+    locallyChangedRatingIds.current.add(rideId);
+    const nextRatings = new Map(rideRatingsRef.current);
+    nextRatings.set(rideId, rating);
+    updateRideRatings(nextRatings);
+
+    if (preferencesLoaded.current) {
+      persistRideRating(rideId, rating, previousValue);
+    } else {
+      const pending = pendingRatingChanges.current.get(rideId);
+      pendingRatingChanges.current.set(rideId, {
+        rating,
+        previousValue: pending ? pending.previousValue : previousValue,
+      });
+    }
+  };
+
   useEffect(() => {
     let isMounted = true;
 
@@ -206,6 +268,7 @@ export function RidePreferencesProvider({ children }: React.PropsWithChildren) {
         ({
           pinnedRideOrder: rideIds,
           favoriteRideIds: fetchedFavoriteIds,
+          rideRatings: fetchedRatings,
           hiddenRideIds: fetchedHiddenIds,
         }) => {
           if (!isMounted) return;
@@ -230,6 +293,15 @@ export function RidePreferencesProvider({ children }: React.PropsWithChildren) {
             if (hiddenRideIdsRef.current.has(rideId)) nextHiddenIds.add(rideId);
           });
           const fetchedFavoriteIdSet = new Set(fetchedFavoriteIds);
+          const nextRatings = new Map(
+            [...fetchedRatings].filter(
+              ([rideId]) => !locallyChangedRatingIds.current.has(rideId),
+            ),
+          );
+          locallyChangedRatingIds.current.forEach((rideId) => {
+            const rating = rideRatingsRef.current.get(rideId);
+            if (rating !== undefined) nextRatings.set(rideId, rating);
+          });
           const nextFavoriteIds = new Set(
             fetchedFavoriteIds.filter(
               (rideId) => !locallyChangedFavoriteRideIds.current.has(rideId),
@@ -243,6 +315,7 @@ export function RidePreferencesProvider({ children }: React.PropsWithChildren) {
           updatePinnedRideOrder(nextOrder);
           updateHiddenRideIds(nextHiddenIds);
           updateFavoriteRideIds(nextFavoriteIds);
+          updateRideRatings(nextRatings);
           preferencesLoaded.current = true;
           setIsLoading(false);
           if (pendingPinChanges.current.size > 0) {
@@ -261,6 +334,10 @@ export function RidePreferencesProvider({ children }: React.PropsWithChildren) {
             );
           });
           pendingFavoriteChanges.current.clear();
+          pendingRatingChanges.current.forEach(({ rating }, rideId) => {
+            persistRideRating(rideId, rating, fetchedRatings.get(rideId));
+          });
+          pendingRatingChanges.current.clear();
         },
       )
       .catch((error) => {
@@ -287,6 +364,12 @@ export function RidePreferencesProvider({ children }: React.PropsWithChildren) {
           },
         );
         pendingFavoriteChanges.current.clear();
+        pendingRatingChanges.current.forEach(
+          ({ rating, previousValue }, rideId) => {
+            persistRideRating(rideId, rating, previousValue);
+          },
+        );
+        pendingRatingChanges.current.clear();
       });
 
     return () => {
@@ -296,9 +379,11 @@ export function RidePreferencesProvider({ children }: React.PropsWithChildren) {
     persistPinnedRideOrder,
     persistRideFavorite,
     persistRideHidden,
+    persistRideRating,
     updateFavoriteRideIds,
     updateHiddenRideIds,
     updatePinnedRideOrder,
+    updateRideRatings,
   ]);
 
   const setRidePinned = (rideId: string, isPinned: boolean) => {
@@ -325,11 +410,13 @@ export function RidePreferencesProvider({ children }: React.PropsWithChildren) {
         pinnedRideIds,
         pinnedRideOrder,
         favoriteRideIds,
+        rideRatings,
         hiddenRideIds,
         isLoading,
         setRidePinned,
         setPinnedRideOrder,
         setRideFavorite,
+        setRideRating,
         setRideHidden,
       }}
     >

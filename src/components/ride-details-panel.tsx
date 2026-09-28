@@ -1,13 +1,13 @@
 import { Image } from 'expo-image';
 import { SymbolView } from 'expo-symbols';
-import { Animated, Pressable, StyleSheet, Text, View } from 'react-native';
 import { useState } from 'react';
+import { Animated, Pressable, StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-import { Colors, Fonts } from '@/constants/theme';
-import { MickeyRatingMark } from '@/components/mickey-rating-mark';
 import { RideFavoriteMark } from '@/components/ride-favorite-mark';
+import { RideLogRating } from '@/components/ride-log-rating';
 import { LandLabels, ParkLabels } from '@/constants/ride-labels';
+import { Colors, Fonts } from '@/constants/theme';
 import { RideLiveData, RideOperatingHour } from '@/data/live-wait-times';
 import { getRideBackground } from '@/data/ride-images';
 import { Ride } from '@/models/ride';
@@ -48,6 +48,7 @@ const formatHourRange = ({ startTime, endTime }: RideOperatingHour) =>
 type RideDetailsPanelProps = {
   onBack: () => void;
   onLogRide: () => void;
+  onViewRideLogs: () => void;
   isPinned: boolean;
   onTogglePin: (isPinned: boolean) => void;
   isFavorite: boolean;
@@ -56,13 +57,16 @@ type RideDetailsPanelProps = {
   onToggleHidden: (isHidden: boolean) => void;
   panelPosition: Animated.Value;
   ride: Ride;
-  latestRating: number | null;
+  rideCount: number | null;
+  rating: number | null;
+  onChangeRating: (rating: number) => void;
   liveStatus?: RideLiveData;
 };
 
 export function RideDetailsPanel({
   onBack,
   onLogRide,
+  onViewRideLogs,
   isPinned,
   onTogglePin,
   isFavorite,
@@ -71,7 +75,9 @@ export function RideDetailsPanel({
   onToggleHidden,
   panelPosition,
   ride,
-  latestRating,
+  rideCount,
+  rating,
+  onChangeRating,
   liveStatus,
 }: RideDetailsPanelProps) {
   const colors = Colors.light;
@@ -265,6 +271,31 @@ export function RideDetailsPanel({
             <Text style={[styles.ridePark, { color: colors.textSecondary }]}>
               {ParkLabels[ride.park]}
             </Text>
+            {rideCount !== null && (
+              <Pressable
+                accessible
+                accessibilityLabel={`${rideCount} ${rideCount === 1 ? 'ride' : 'rides'} logged. View ${ride.name} diary entries.`}
+                accessibilityRole='button'
+                onPress={onViewRideLogs}
+                style={[
+                  styles.rideCountBadge,
+                  { backgroundColor: colors.backgroundSelected },
+                ]}
+              >
+                <SymbolView
+                  name={{
+                    ios: 'repeat',
+                    android: 'repeat',
+                    web: 'repeat',
+                  }}
+                  size={14}
+                  tintColor={colors.accent}
+                />
+                <Text style={[styles.rideCountText, { color: colors.accent }]}>
+                  {rideCount} {rideCount === 1 ? 'ride' : 'rides'}
+                </Text>
+              </Pressable>
+            )}
             <Pressable
               accessibilityLabel={`Log ${ride.name}`}
               accessibilityRole='button'
@@ -286,37 +317,7 @@ export function RideDetailsPanel({
           <Text style={[styles.rideLand, { color: colors.textSecondary }]}>
             {LandLabels[ride.land]}
           </Text>
-          {latestRating !== null && (
-            <View
-              accessible
-              accessibilityLabel={`Your rating: ${latestRating} out of 5`}
-              style={styles.ratingRow}
-            >
-              {[1, 2, 3, 4, 5].map((value) => {
-                const isFull = latestRating >= value;
-                const isHalf = !isFull && latestRating >= value - 0.5;
-
-                return (
-                  <View key={value} style={styles.ratingMark}>
-                    <MickeyRatingMark
-                      color={isFull ? colors.accent : colors.backgroundSelected}
-                      filled={isFull}
-                      width={16}
-                    />
-                    {isHalf && (
-                      <View style={styles.halfRatingClip}>
-                        <MickeyRatingMark
-                          color={colors.accent}
-                          filled
-                          width={16}
-                        />
-                      </View>
-                    )}
-                  </View>
-                );
-              })}
-            </View>
-          )}
+          <RideLogRating onChange={onChangeRating} rating={rating} />
           <View style={styles.liveStatusActionRow}>
             <RideLiveStatusLine liveStatus={liveStatus} />
             <Pressable
@@ -524,6 +525,19 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
   },
+  rideCountBadge: {
+    alignItems: 'center',
+    borderRadius: 14,
+    flexDirection: 'row',
+    gap: 5,
+    height: 28,
+    marginRight: 8,
+    paddingHorizontal: 9,
+  },
+  rideCountText: {
+    fontSize: 13,
+    fontWeight: '700',
+  },
   liveStatusActionRow: {
     alignItems: 'center',
     flexDirection: 'row',
@@ -552,23 +566,6 @@ const styles = StyleSheet.create({
   rideLand: {
     fontSize: 16,
     lineHeight: 22,
-  },
-  ratingRow: {
-    flexDirection: 'row',
-    marginTop: 6,
-  },
-  ratingMark: {
-    height: 14,
-    position: 'relative',
-    width: 20,
-  },
-  halfRatingClip: {
-    height: 14,
-    left: 4,
-    overflow: 'hidden',
-    position: 'absolute',
-    top: 0,
-    width: 8,
   },
   dataAttribution: {
     fontSize: 10,

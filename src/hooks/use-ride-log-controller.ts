@@ -4,6 +4,7 @@ import { Alert, Animated, Dimensions } from 'react-native';
 
 import { useAppState } from '@/components/app-state';
 import { useRideCatalog } from '@/components/ride-catalog-provider';
+import { useRidePreferences } from '@/components/ride-preferences-provider';
 import { useRideTrips } from '@/components/ride-trips-provider';
 import {
   MAX_RIDE_LOG_PHOTOS,
@@ -48,6 +49,7 @@ export function useRideLogController() {
     setTabBarHidden,
   } = useAppState();
   const { rides, isLoading, hasError } = useRideCatalog();
+  const { setRideRating } = useRidePreferences();
   const { trips, isLoading: tripsLoading } = useRideTrips();
   const existingLog = rideLogs.find((log) => log.id === logId);
   const [panelPosition] = useState(() => new Animated.Value(panelOffset));
@@ -321,6 +323,9 @@ export function useRideLogController() {
         if (existingLog) await updateRideLog(rideLog);
       } else {
         await addRideLog(rideLog);
+      }
+      if ((!logId || existingLog) && rating !== null) {
+        setRideRating(selectedRide.id, rating);
       }
       if (!logId) discardRideLogDraft();
       closePanel('/diary');

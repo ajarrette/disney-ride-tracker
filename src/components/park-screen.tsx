@@ -65,17 +65,19 @@ const parkSelectionColors: Partial<Record<Park, string>> = {
 export function ParkScreen({ park }: ParkScreenProps) {
   const colors = Colors.light;
   const insets = useSafeAreaInsets();
-  const { rideLogs, setRideDetailsOpen } = useAppState();
+  const { rideLogs, rideLogsReady, setRideDetailsOpen } = useAppState();
   const { rides: catalogRides, isLoading, hasError } = useRideCatalog();
   const {
     pinnedRideIds,
     pinnedRideOrder,
     favoriteRideIds,
+    rideRatings,
     hiddenRideIds,
     isLoading: isPreferencesLoading,
     setRidePinned,
     setPinnedRideOrder,
     setRideFavorite,
+    setRideRating,
     setRideHidden,
   } = useRidePreferences();
   const [selectedPark, setSelectedPark] = useState(park);
@@ -214,6 +216,12 @@ export function ParkScreen({ park }: ParkScreenProps) {
               params: { rideId: selectedRide.id },
             })
           }
+          onViewRideLogs={() =>
+            router.push({
+              pathname: '/diary',
+              params: { rideId: selectedRide.id, tripId: undefined },
+            })
+          }
           isPinned={pinnedRideIds.has(selectedRide.id)}
           onTogglePin={(isPinned) => setRidePinned(selectedRide.id, isPinned)}
           isFavorite={favoriteRideIds.has(selectedRide.id)}
@@ -226,11 +234,13 @@ export function ParkScreen({ park }: ParkScreenProps) {
           }
           panelPosition={panelPosition}
           ride={selectedRide}
-          latestRating={
-            rideLogs.find(
-              (log) => log.rideId === selectedRide.id && log.rating !== null,
-            )?.rating ?? null
+          rideCount={
+            rideLogsReady
+              ? rideLogs.filter((log) => log.rideId === selectedRide.id).length
+              : null
           }
+          rating={rideRatings.get(selectedRide.id) ?? null}
+          onChangeRating={(rating) => setRideRating(selectedRide.id, rating)}
           liveStatus={
             liveDataByPark[selectedPark]?.[normalizeRideName(selectedRide.name)]
           }

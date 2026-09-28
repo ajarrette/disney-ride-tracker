@@ -1,5 +1,5 @@
 import { Image } from 'expo-image';
-import { router } from 'expo-router';
+import { router, useLocalSearchParams } from 'expo-router';
 import { SymbolView } from 'expo-symbols';
 import { useState } from 'react';
 import {
@@ -30,8 +30,17 @@ import { getRideLogPhotos } from '@/models/ride-log';
 export default function DiaryScreen() {
   const colors = Colors.light;
   const insets = useSafeAreaInsets();
+  const { rideId: rideIdParam, tripId: tripIdParam } = useLocalSearchParams<{
+    rideId?: string | string[];
+    tripId?: string | string[];
+  }>();
+  const rideFilterId = Array.isArray(rideIdParam)
+    ? rideIdParam[0]
+    : rideIdParam;
+  const selectedTripId = Array.isArray(tripIdParam)
+    ? (tripIdParam[0] ?? null)
+    : (tripIdParam ?? null);
   const [scrollY] = useState(() => new Animated.Value(0));
-  const [selectedTripId, setSelectedTripId] = useState<string | null>(null);
   const {
     rideLogs,
     rideLogSyncStatuses,
@@ -41,11 +50,14 @@ export default function DiaryScreen() {
   } = useAppState();
   const { rides } = useRideCatalog();
   const { favoriteRideIds } = useRidePreferences();
-  const visibleRideLogs =
-    selectedTripId === null
-      ? rideLogs
-      : rideLogs.filter((log) => log.tripId === selectedTripId);
+  const rideFilteredLogs = rideFilterId
+    ? rideLogs.filter((log) => log.rideId === rideFilterId)
+    : rideLogs;
+  const visibleRideLogs = selectedTripId
+    ? rideFilteredLogs.filter((log) => log.tripId === selectedTripId)
+    : rideFilteredLogs;
   const ridesById = new Map(rides.map((ride) => [ride.id, ride]));
+  const rideFilter = rideFilterId ? ridesById.get(rideFilterId) : undefined;
   const groupedLogs = new Map<string, typeof rideLogs>();
 
   [...visibleRideLogs]
@@ -82,6 +94,12 @@ export default function DiaryScreen() {
     const { error } = await supabase.auth.signOut();
     if (error) Alert.alert('Unable to sign out', error.message);
   };
+  const diaryReturnParams = new URLSearchParams();
+  if (rideFilterId) diaryReturnParams.set('rideId', rideFilterId);
+  if (selectedTripId) diaryReturnParams.set('tripId', selectedTripId);
+  const diaryReturnTo = diaryReturnParams.toString()
+    ? `/diary?${diaryReturnParams.toString()}`
+    : '/diary';
 
   return (
     <View style={[styles.container, { backgroundColor: colors.background }]}>
@@ -109,11 +127,47 @@ export default function DiaryScreen() {
           Diary
         </Animated.Text>
         <RideDiarySummary
-          onSelectTrip={setSelectedTripId}
+          onSelectTrip={(tripId) =>
+            router.setParams({ tripId: tripId ?? undefined })
+          }
           rideLogs={visibleRideLogs}
           ridesById={ridesById}
           selectedTripId={selectedTripId}
         />
+        {rideFilterId && (
+          <View style={styles.rideFilter}>
+            <Text
+              numberOfLines={1}
+              style={[styles.rideFilterName, { color: colors.text }]}
+            >
+              Showing {rideFilter?.name ?? 'selected ride'}
+            </Text>
+            <Pressable
+              accessibilityLabel='Clear ride filter'
+              accessibilityRole='button'
+              onPress={() => router.setParams({ rideId: undefined })}
+              style={styles.clearRideFilter}
+            >
+              <SymbolView
+                name={{
+                  ios: 'xmark.circle.fill',
+                  android: 'cancel',
+                  web: 'cancel',
+                }}
+                size={16}
+                tintColor={colors.textSecondary}
+              />
+              <Text
+                style={[
+                  styles.clearRideFilterText,
+                  { color: colors.textSecondary },
+                ]}
+              >
+                Clear
+              </Text>
+            </Pressable>
+          </View>
+        )}
         {rideLogsError && rideLogs.length > 0 && (
           <Pressable
             accessibilityRole='button'
@@ -139,9 +193,11 @@ export default function DiaryScreen() {
           </Pressable>
         ) : visibleRideLogs.length === 0 ? (
           <Text style={[styles.emptyText, { color: colors.textSecondary }]}>
-            {selectedTripId
-              ? 'No rides logged for this trip yet.'
-              : 'Rides you log will appear here.'}
+            {rideFilterId
+              ? `No ${rideFilter?.name ?? 'ride'} entries match these filters.`
+              : selectedTripId
+                ? 'No rides logged for this trip yet.'
+                : 'Rides you log will appear here.'}
           </Text>
         ) : (
           [...groupedLogs.entries()].map(([dayKey, logs]) => {
@@ -194,7 +250,7 @@ export default function DiaryScreen() {
                             params: {
                               rideId: log.rideId,
                               logId: log.id,
-                              returnTo: '/diary',
+                              returnTo: diaryReturnTo,
                             },
                           })
                         }
@@ -408,6 +464,29 @@ const styles = StyleSheet.create({
     fontSize: 28,
     fontWeight: '700',
     marginBottom: 24,
+  },
+  rideFilter: {
+    alignItems: 'center',
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginBottom: 16,
+    minHeight: 36,
+  },
+  rideFilterName: {
+    flex: 1,
+    fontSize: 14,
+    fontWeight: '600',
+    marginRight: 12,
+  },
+  clearRideFilter: {
+    alignItems: 'center',
+    flexDirection: 'row',
+    gap: 5,
+    minHeight: 36,
+  },
+  clearRideFilterText: {
+    fontSize: 14,
+    fontWeight: '600',
   },
   header: {
     alignItems: 'center',
