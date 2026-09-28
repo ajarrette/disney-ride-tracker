@@ -1,3 +1,5 @@
+import { SymbolView } from 'expo-symbols';
+import { useState } from 'react';
 import {
   ActivityIndicator,
   Pressable,
@@ -6,8 +8,7 @@ import {
   View,
 } from 'react-native';
 import DraggableFlatList from 'react-native-draggable-flatlist';
-import { SymbolView } from 'expo-symbols';
-import { useState } from 'react';
+import { RefreshControl } from 'react-native-gesture-handler';
 
 import { RideListItem } from '@/components/ride-list-item';
 import { BottomTabInset, Colors } from '@/constants/theme';
@@ -205,8 +206,14 @@ export function ParkRideList({
           </Text>
         ) : null
       }
-      onRefresh={onRefresh}
       onDragEnd={({ data }) => updateParkPinnedRideOrder(data)}
+      refreshControl={
+        <RefreshControl
+          onRefresh={onRefresh}
+          refreshing={isRefreshing}
+          tintColor={colors.accent}
+        />
+      }
       renderItem={renderPinnedRide}
       renderPlaceholder={({ index }) => (
         <View style={styles.dropTarget}>
@@ -224,7 +231,6 @@ export function ParkRideList({
           </Text>
         </View>
       )}
-      refreshing={isRefreshing}
       scrollEventThrottle={16}
       showsVerticalScrollIndicator={false}
     />

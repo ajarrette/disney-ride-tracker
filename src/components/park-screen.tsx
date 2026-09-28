@@ -1,5 +1,6 @@
-import { useCallback, useEffect, useRef, useState } from 'react';
 import { Image, type ImageSource } from 'expo-image';
+import { router } from 'expo-router';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import {
   Animated,
   Dimensions,
@@ -7,21 +8,20 @@ import {
   StyleSheet,
   View,
 } from 'react-native';
-import { router } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-import { RideDetailsPanel } from '@/components/ride-details-panel';
 import { useAppState } from '@/components/app-state';
 import { ParkRideList } from '@/components/park-ride-list';
-import { Colors } from '@/constants/theme';
+import { useRideCatalog } from '@/components/ride-catalog-provider';
+import { RideDetailsPanel } from '@/components/ride-details-panel';
+import { useRidePreferences } from '@/components/ride-preferences-provider';
 import { ParkLabels } from '@/constants/ride-labels';
+import { Colors } from '@/constants/theme';
 import {
   fetchParkLiveData,
   normalizeRideName,
   RideLiveData,
 } from '@/data/live-wait-times';
-import { useRideCatalog } from '@/components/ride-catalog-provider';
-import { useRidePreferences } from '@/components/ride-preferences-provider';
 import { Park, Ride } from '@/models/ride';
 
 type ParkScreenProps = {
@@ -149,6 +149,10 @@ export function ParkScreen({ park }: ParkScreenProps) {
     setSelectedRide(ride);
   };
 
+  const refreshSelectedPark = () => {
+    void loadLiveData(selectedPark);
+  };
+
   return (
     <View style={[styles.container, { backgroundColor: colors.background }]}>
       <View style={[styles.listViewport, { paddingTop: insets.top }]}>
@@ -192,7 +196,7 @@ export function ParkScreen({ park }: ParkScreenProps) {
           liveData={liveDataByPark[selectedPark]}
           favoriteRideIds={favoriteRideIds}
           onPinnedRideOrderChange={setPinnedRideOrder}
-          onRefresh={() => loadLiveData(selectedPark)}
+          onRefresh={refreshSelectedPark}
           onRidePress={openRide}
           pinnedRideIds={pinnedRideIds}
           pinnedRideOrder={pinnedRideOrder}
