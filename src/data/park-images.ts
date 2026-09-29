@@ -3,8 +3,8 @@ import { ImageSource } from 'expo-image';
 import { Park } from '@/models/ride';
 
 type ParkImage = {
-  alt: string;
-  source: ImageSource;
+  alt: string | null;
+  source: ImageSource | null;
 };
 
 const parkImages: Record<Park, ParkImage> = {
@@ -23,6 +23,14 @@ const parkImages: Record<Park, ParkImage> = {
   [Park.HollywoodStudios]: {
     alt: 'The Twilight Zone Tower of Terror',
     source: require('../../assets/images/hollywood-studios/rides/tower-of-terror-background.jpg'),
+  },
+  [Park.DisneylandPark]: {
+    alt: null,
+    source: null,
+  },
+  [Park.DisneyCaliforniaAdventure]: {
+    alt: null,
+    source: null,
   },
 };
 

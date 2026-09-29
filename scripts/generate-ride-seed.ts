@@ -11,6 +11,8 @@ const parkFolders: Record<Park, string> = {
   [Park.Epcot]: 'epcot',
   [Park.HollywoodStudios]: 'hollywood-studios',
   [Park.AnimalKingdom]: 'animal-kingdom',
+  [Park.DisneylandPark]: 'disneyland',
+  [Park.DisneyCaliforniaAdventure]: 'california-adventure',
 };
 
 const quote = (value: string | null): string =>

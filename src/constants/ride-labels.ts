@@ -5,6 +5,8 @@ export const ParkLabels: Record<Park, string> = {
   [Park.Epcot]: 'EPCOT',
   [Park.HollywoodStudios]: 'Hollywood Studios',
   [Park.AnimalKingdom]: 'Animal Kingdom',
+  [Park.DisneylandPark]: 'Disneyland Park',
+  [Park.DisneyCaliforniaAdventure]: 'Disney California Adventure',
 };
 
 export const LandLabels: Record<Land, string> = {
@@ -31,4 +33,15 @@ export const LandLabels: Record<Land, string> = {
   [Land.ConservationStation]: 'Conservation Station',
   [Land.Asia]: 'Asia',
   [Land.PandoraWorldOfAvatar]: 'Pandora - The World of Avatar',
+  [Land.NewOrleansSquare]: 'New Orleans Square',
+  [Land.BayouCountry]: 'Bayou Country',
+  [Land.MickeysToontown]: "Mickey's Toontown",
+  [Land.BuenaVistaStreet]: 'Buena Vista Street',
+  [Land.HollywoodLand]: 'Hollywood Land',
+  [Land.AvengersCampus]: 'Avengers Campus',
+  [Land.CarsLand]: 'Cars Land',
+  [Land.SanFransokyoSquare]: 'San Fransokyo Square',
+  [Land.PixarPier]: 'Pixar Pier',
+  [Land.ParadiseGardensPark]: 'Paradise Gardens Park',
+  [Land.GrizzlyPeak]: 'Grizzly Peak',
 };

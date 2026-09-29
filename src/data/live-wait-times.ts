@@ -5,6 +5,16 @@ const themeParksParkIds: Record<Park, string> = {
   [Park.Epcot]: '47f90d2c-e191-4239-a466-5892ef59a88b',
   [Park.HollywoodStudios]: '288747d1-8b4f-4a64-867e-ea7c9b27bad8',
   [Park.AnimalKingdom]: '1c84a229-8862-4648-9c71-378ddd2c7693',
+  [Park.DisneylandPark]: '7340550b-c14d-4def-80bb-acdb51d49a66',
+  [Park.DisneyCaliforniaAdventure]: '832fcd51-ea19-4e77-85c7-75d5843b127c',
+};
+const parkTimeZones: Record<Park, string> = {
+  [Park.MagicKingdom]: 'America/New_York',
+  [Park.Epcot]: 'America/New_York',
+  [Park.HollywoodStudios]: 'America/New_York',
+  [Park.AnimalKingdom]: 'America/New_York',
+  [Park.DisneylandPark]: 'America/Los_Angeles',
+  [Park.DisneyCaliforniaAdventure]: 'America/Los_Angeles',
 };
 
 export type WaitTrend = 'lower' | 'higher';
@@ -55,21 +65,29 @@ type HistoricalEntity = {
   history?: unknown;
 };
 
-const parkTimeZone = 'America/New_York';
-const parkTimeFormatter = new Intl.DateTimeFormat('en-US', {
-  timeZone: parkTimeZone,
-  year: 'numeric',
-  month: '2-digit',
-  day: '2-digit',
-  hour: '2-digit',
-  minute: '2-digit',
-  hourCycle: 'h23',
-});
+const parkTimeFormatters = new Map<string, Intl.DateTimeFormat>();
 const parkHistoryCache = new Map<string, Promise<HistoricalEntity[]>>();
 
-function getParkTimeParts(date: Date) {
+function getParkTimeFormatter(timeZone: string): Intl.DateTimeFormat {
+  const cachedFormatter = parkTimeFormatters.get(timeZone);
+  if (cachedFormatter) return cachedFormatter;
+
+  const formatter = new Intl.DateTimeFormat('en-US', {
+    timeZone,
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+    hour: '2-digit',
+    minute: '2-digit',
+    hourCycle: 'h23',
+  });
+  parkTimeFormatters.set(timeZone, formatter);
+  return formatter;
+}
+
+function getParkTimeParts(date: Date, timeZone: string) {
   const parts = Object.fromEntries(
-    parkTimeFormatter
+    getParkTimeFormatter(timeZone)
       .formatToParts(date)
       .map(({ type, value }) => [type, value]),
   );
@@ -133,13 +151,14 @@ function getHistoricalWaitTime(
   entity: HistoricalEntity | undefined,
   date: string,
   minuteOfDay: number,
+  timeZone: string,
 ): number | null {
   if (!entity) return null;
 
   let waitTime: number | null = null;
   const opening = entity.opening;
   if (typeof opening?.observedAt === 'string') {
-    const observedAt = getParkTimeParts(new Date(opening.observedAt));
+    const observedAt = getParkTimeParts(new Date(opening.observedAt), timeZone);
     const openingWaitTime = opening.queue?.STANDBY?.waitTime;
     if (
       observedAt.date === date &&
@@ -161,7 +180,7 @@ function getHistoricalWaitTime(
       continue;
     }
 
-    const snapshotTime = getParkTimeParts(new Date(snapshot.time));
+    const snapshotTime = getParkTimeParts(new Date(snapshot.time), timeZone);
     if (snapshotTime.date !== date || snapshotTime.minuteOfDay > minuteOfDay) {
       continue;
     }
@@ -176,6 +195,7 @@ function getHistoricalWaitTime(
 function getHistoricalWaitSamplesByHour(
   entity: HistoricalEntity | undefined,
   date: string,
+  timeZone: string,
 ): number[][] {
   const samplesByHour = Array.from({ length: 24 }, () => [] as number[]);
   if (!entity) return samplesByHour;
@@ -192,7 +212,10 @@ function getHistoricalWaitSamplesByHour(
     const timestamp = new Date(time);
     if (Number.isNaN(timestamp.getTime())) return;
 
-    const { date: sampleDate, hourOfDay } = getParkTimeParts(timestamp);
+    const { date: sampleDate, hourOfDay } = getParkTimeParts(
+      timestamp,
+      timeZone,
+    );
     if (sampleDate !== date) return;
     samplesByHour[hourOfDay].push(waitTime);
   };
@@ -220,6 +243,7 @@ function getHistoricalWaitSamplesByHour(
 function getForecastedWaitTimes(
   entitiesByDay: (HistoricalEntity | undefined)[],
   dates: string[],
+  timeZone: string,
 ): (number | null)[] {
   const dailyAveragesByHour = Array.from({ length: 24 }, () => [] as number[]);
 
@@ -227,6 +251,7 @@ function getForecastedWaitTimes(
     const samplesByHour = getHistoricalWaitSamplesByHour(
       entity,
       dates[dayIndex],
+      timeZone,
     );
     samplesByHour.forEach((samples, hour) => {
       if (samples.length > 0) {
@@ -266,7 +291,8 @@ export async function fetchParkLiveData(
   park: Park,
 ): Promise<Record<string, RideLiveData>> {
   const now = new Date();
-  const currentParkTime = getParkTimeParts(now);
+  const timeZone = parkTimeZones[park];
+  const currentParkTime = getParkTimeParts(now, timeZone);
   const historyDates = Array.from({ length: 7 }, (_, index) => {
     let date = currentParkTime.date;
     for (let daysAgo = 0; daysAgo < index; daysAgo += 1) {
@@ -327,13 +353,18 @@ export async function fetchParkLiveData(
       historyForRide[0],
       historyDates[0],
       currentParkTime.minuteOfDay,
+      timeZone,
     );
     rides[normalizeRideName(entity.name)] = {
       status: entity.status,
       waitTime: typeof waitTime === 'number' ? waitTime : null,
       currentParkHour: currentParkTime.hourOfDay,
       yesterdayWaitTime: historicalWaitTime,
-      forecastedWaitTimes: getForecastedWaitTimes(historyForRide, historyDates),
+      forecastedWaitTimes: getForecastedWaitTimes(
+        historyForRide,
+        historyDates,
+        timeZone,
+      ),
       operatingHours,
       waitTrend:
         typeof waitTime === 'number' && historicalWaitTime !== null

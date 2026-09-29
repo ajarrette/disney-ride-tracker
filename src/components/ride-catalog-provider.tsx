@@ -5,8 +5,7 @@ import { fetchRideCatalog } from '@/data/ride-catalog';
 import { supabase } from '@/data/supabase';
 import { Ride } from '@/models/ride';
 
-const CACHE_KEY = 'ride-catalog:v1';
-const CACHE_MAX_AGE_MS = 24 * 60 * 60 * 1000;
+const CACHE_KEY = 'ride-catalog:v2';
 
 type CachedCatalog = {
   fetchedAt: number;
@@ -30,8 +29,6 @@ export function RideCatalogProvider({ children }: React.PropsWithChildren) {
     let isMounted = true;
 
     const loadCatalog = async () => {
-      let cached: CachedCatalog | null = null;
-
       try {
         const storedValue = await Storage.getItem(CACHE_KEY);
         if (storedValue) {
@@ -40,19 +37,14 @@ export function RideCatalogProvider({ children }: React.PropsWithChildren) {
             Number.isFinite(parsed.fetchedAt) &&
             Array.isArray(parsed.rides)
           ) {
-            cached = parsed;
             if (isMounted) {
               setRides(parsed.rides);
               setIsLoading(false);
             }
           }
         }
-      } catch {
-        cached = null;
-      }
-
-      if (cached && Date.now() - cached.fetchedAt < CACHE_MAX_AGE_MS) {
-        return;
+      } catch (error) {
+        console.warn('Unable to read the cached ride catalog.', error);
       }
 
       if (!supabase) {

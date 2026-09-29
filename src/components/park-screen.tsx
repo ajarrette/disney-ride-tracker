@@ -7,6 +7,7 @@ import {
   Pressable,
   ScrollView,
   StyleSheet,
+  Text,
   View,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -32,8 +33,9 @@ type ParkScreenProps = {
 const panelWidth = Dimensions.get('window').width;
 const parkTabs: {
   park: Park;
-  unselectedIcon: ImageSource;
+  unselectedIcon?: ImageSource;
   selectedIcon?: ImageSource;
+  placeholderLabel?: string;
 }[] = [
   {
     park: Park.MagicKingdom,
@@ -55,12 +57,22 @@ const parkTabs: {
     unselectedIcon: require('@/assets/images/animal-kingdom-icon.png'),
     selectedIcon: require('@/assets/images/animal-kingdom-selected-icon.png'),
   },
+  {
+    park: Park.DisneylandPark,
+    placeholderLabel: 'DL',
+  },
+  {
+    park: Park.DisneyCaliforniaAdventure,
+    placeholderLabel: 'DCA',
+  },
 ];
 const parkSelectionColors: Partial<Record<Park, string>> = {
   [Park.MagicKingdom]: '#4CA1D4',
   [Park.Epcot]: '#766FB0',
   [Park.HollywoodStudios]: '#9C5D32',
   [Park.AnimalKingdom]: '#78AE70',
+  [Park.DisneylandPark]: '#B12228',
+  [Park.DisneyCaliforniaAdventure]: '#2F8877',
 };
 
 export function ParkScreen({ park }: ParkScreenProps) {
@@ -166,7 +178,12 @@ export function ParkScreen({ park }: ParkScreenProps) {
             showsHorizontalScrollIndicator={false}
           >
             {parkTabs.map(
-              ({ park: parkOption, unselectedIcon, selectedIcon }) => (
+              ({
+                park: parkOption,
+                unselectedIcon,
+                selectedIcon,
+                placeholderLabel,
+              }) => (
                 <Pressable
                   key={parkOption}
                   accessibilityRole='tab'
@@ -181,14 +198,22 @@ export function ParkScreen({ park }: ParkScreenProps) {
                     },
                   ]}
                 >
-                  <Image
-                    source={
-                      parkOption === selectedPark
-                        ? (selectedIcon ?? unselectedIcon)
-                        : unselectedIcon
-                    }
-                    style={styles.parkIcon}
-                  />
+                  {unselectedIcon ? (
+                    <Image
+                      source={
+                        parkOption === selectedPark
+                          ? (selectedIcon ?? unselectedIcon)
+                          : unselectedIcon
+                      }
+                      style={styles.parkIcon}
+                    />
+                  ) : (
+                    <View style={styles.parkPlaceholder}>
+                      <Text style={styles.parkPlaceholderLabel}>
+                        {placeholderLabel}
+                      </Text>
+                    </View>
+                  )}
                 </Pressable>
               ),
             )}
@@ -285,13 +310,26 @@ const styles = StyleSheet.create({
     flexGrow: 1,
     height: 64,
     justifyContent: 'center',
-    minWidth: 72,
-    paddingHorizontal: 2,
+    minWidth: 80,
+    paddingHorizontal: 5,
     borderBottomWidth: 3,
     borderBottomColor: 'transparent',
   },
   parkIcon: {
     width: 48,
     height: 48,
+  },
+  parkPlaceholder: {
+    alignItems: 'center',
+    backgroundColor: '#E7EBEF',
+    borderRadius: 4,
+    height: 48,
+    justifyContent: 'center',
+    width: 48,
+  },
+  parkPlaceholderLabel: {
+    color: '#637384',
+    fontSize: 12,
+    fontWeight: '600',
   },
 });

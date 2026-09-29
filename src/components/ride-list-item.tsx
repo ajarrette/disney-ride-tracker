@@ -82,6 +82,13 @@ export function RideListItem({
             style={styles.rideLogoImage}
           />
         )}
+        {!logo && (
+          <SymbolView
+            name={{ ios: 'photo', android: 'image', web: 'image' }}
+            size={20}
+            tintColor={colors.textSecondary}
+          />
+        )}
       </View>
       <View style={styles.rideCopy}>
         <Text style={[styles.rideName, { color: rideTextColor }]}>

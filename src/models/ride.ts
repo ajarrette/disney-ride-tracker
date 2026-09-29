@@ -3,6 +3,8 @@ export enum Park {
   Epcot = 'epcot',
   HollywoodStudios = 'hollywood_studios',
   AnimalKingdom = 'animal_kingdom',
+  DisneylandPark = 'disneyland_park',
+  DisneyCaliforniaAdventure = 'disney_california_adventure',
 }
 
 export enum Land {
@@ -29,6 +31,17 @@ export enum Land {
   ConservationStation = 'conservation_station',
   Asia = 'asia',
   PandoraWorldOfAvatar = 'pandora_world_of_avatar',
+  NewOrleansSquare = 'new_orleans_square',
+  BayouCountry = 'bayou_country',
+  MickeysToontown = 'mickeys_toontown',
+  BuenaVistaStreet = 'buena_vista_street',
+  HollywoodLand = 'hollywood_land',
+  AvengersCampus = 'avengers_campus',
+  CarsLand = 'cars_land',
+  SanFransokyoSquare = 'san_fransokyo_square',
+  PixarPier = 'pixar_pier',
+  ParadiseGardensPark = 'paradise_gardens_park',
+  GrizzlyPeak = 'grizzly_peak',
 }
 
 export enum AgeGroup {

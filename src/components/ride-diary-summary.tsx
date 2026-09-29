@@ -14,6 +14,8 @@ const parkColors: Record<Park, string> = {
   [Park.Epcot]: '#27849A',
   [Park.HollywoodStudios]: '#D39124',
   [Park.AnimalKingdom]: '#438267',
+  [Park.DisneylandPark]: '#B12228',
+  [Park.DisneyCaliforniaAdventure]: '#2F8877',
 };
 
 type RideDiarySummaryProps = {
