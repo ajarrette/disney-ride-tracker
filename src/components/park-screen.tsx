@@ -8,6 +8,7 @@ import {
   ScrollView,
   StyleSheet,
   Text,
+  useWindowDimensions,
   View,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -80,6 +81,8 @@ const parkSelectionColors: Partial<Record<Park, string>> = {
 export function ParkScreen({ park }: ParkScreenProps) {
   const colors = Colors.light;
   const insets = useSafeAreaInsets();
+  const { width: windowWidth } = useWindowDimensions();
+  const parkTabWidth = windowWidth / 4;
   const { rideLogs, rideLogsReady, setRideDetailsOpen } = useAppState();
   const { rides: catalogRides, isLoading, hasError } = useRideCatalog();
   const {
@@ -194,6 +197,7 @@ export function ParkScreen({ park }: ParkScreenProps) {
                   onPress={() => setSelectedPark(parkOption)}
                   style={[
                     styles.parkTab,
+                    { width: parkTabWidth },
                     parkOption === selectedPark && {
                       borderBottomColor:
                         parkSelectionColors[parkOption] ?? colors.accent,
@@ -304,30 +308,26 @@ const styles = StyleSheet.create({
   parkTabs: {
     flexDirection: 'row',
     minWidth: '100%',
-    paddingHorizontal: 8,
   },
   parkTab: {
     alignItems: 'center',
-    flexBasis: 0,
-    flexGrow: 1,
-    height: 64,
+    flexShrink: 0,
+    height: 80,
     justifyContent: 'center',
-    minWidth: 80,
-    paddingHorizontal: 5,
     borderBottomWidth: 3,
     borderBottomColor: 'transparent',
   },
   parkIcon: {
-    width: 48,
-    height: 48,
+    width: 64,
+    height: 64,
   },
   parkPlaceholder: {
     alignItems: 'center',
     backgroundColor: '#E7EBEF',
     borderRadius: 4,
-    height: 48,
+    height: 64,
     justifyContent: 'center',
-    width: 48,
+    width: 64,
   },
   parkPlaceholderLabel: {
     color: '#637384',
