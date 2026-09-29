@@ -262,7 +262,9 @@ function RideListSkeleton({ bottomInset }: { bottomInset: number }) {
 
 const styles = StyleSheet.create({
   listContent: {
-    padding: 24,
+    paddingHorizontal: 24,
+    paddingTop: 12,
+    paddingBottom: 24,
   },
   dropTarget: {
     alignItems: 'center',

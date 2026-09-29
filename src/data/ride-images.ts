@@ -16,18 +16,26 @@ const rideLogos: Partial<Record<Park, Record<string, ImageSource>>> = {
   [Park.Epcot]: {
     'guardians-of-the-galaxy-cosmic-rewind-logo.avif': require('../../assets/images/epcot/rides/guardians-of-the-galaxy-cosmic-rewind-logo.avif'),
   },
+  [Park.DisneylandPark]: {
+    'ride-placeholder-logo.png': require('../../assets/images/disneyland/rides/ride-placeholder-logo.png'),
+  },
+  [Park.DisneyCaliforniaAdventure]: {
+    'ride-placeholder-logo.png': require('../../assets/images/california-adventure/rides/ride-placeholder-logo.png'),
+  },
 };
 
 const rideLogosByBackground: Partial<
   Record<Park, Record<string, ImageSource>>
 > = {
   [Park.DisneyCaliforniaAdventure]: {
+    'ride-placeholder-background.jpg': require('../../assets/images/california-adventure/rides/ride-placeholder-logo.png'),
     'radiator-springs-racers-background.jpg': require('../../assets/images/california-adventure/rides/radiator-springs-racers-logo.jpg'),
     'incredicoaster-background.jpg': require('../../assets/images/california-adventure/rides/incredicoaster-logo.jpg'),
     'grizzly-river-run-background.jpg': require('../../assets/images/california-adventure/rides/grizzly-river-run-logo.jpg'),
     'guardians-mission-breakout-background.jpg': require('../../assets/images/california-adventure/rides/guardians-mission-breakout-logo.jpg'),
   },
   [Park.DisneylandPark]: {
+    'ride-placeholder-background.jpg': require('../../assets/images/disneyland/rides/ride-placeholder-logo.png'),
     'space-mountain-background.jpg': require('../../assets/images/disneyland/rides/space-mountain-logo.jpg'),
     'matterhorn-bobsleds-background.jpg': require('../../assets/images/disneyland/rides/matterhorn-bobsleds-logo.jpg'),
     'indiana-jones-adventure-background.jpg': require('../../assets/images/disneyland/rides/indiana-jones-adventure-logo.jpg'),
@@ -91,12 +99,14 @@ const rideLogosByBackground: Partial<
 
 const rideBackgrounds: Partial<Record<Park, Record<string, ImageSource>>> = {
   [Park.DisneyCaliforniaAdventure]: {
+    'ride-placeholder-background.jpg': require('../../assets/images/california-adventure/rides/ride-placeholder-background.jpg'),
     'radiator-springs-racers-background.jpg': require('../../assets/images/california-adventure/rides/radiator-springs-racers-background.jpg'),
     'incredicoaster-background.jpg': require('../../assets/images/california-adventure/rides/incredicoaster-background.jpg'),
     'grizzly-river-run-background.jpg': require('../../assets/images/california-adventure/rides/grizzly-river-run-background.jpg'),
     'guardians-mission-breakout-background.jpg': require('../../assets/images/california-adventure/rides/guardians-mission-breakout-background.jpg'),
   },
   [Park.DisneylandPark]: {
+    'ride-placeholder-background.jpg': require('../../assets/images/disneyland/rides/ride-placeholder-background.jpg'),
     'space-mountain-background.jpg': require('../../assets/images/disneyland/rides/space-mountain-background.jpg'),
     'matterhorn-bobsleds-background.jpg': require('../../assets/images/disneyland/rides/matterhorn-bobsleds-background.jpg'),
     'indiana-jones-adventure-background.jpg': require('../../assets/images/disneyland/rides/indiana-jones-adventure-background.jpg'),

@@ -548,6 +548,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     height: 36,
     justifyContent: 'center',
+    marginLeft: 'auto',
     width: 36,
   },
   logRideButton: {
