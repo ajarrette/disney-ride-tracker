@@ -3,6 +3,7 @@ import { GestureHandlerRootView } from 'react-native-gesture-handler';
 
 import AppTabs from '@/components/app-tabs';
 import { AuthGate } from '@/components/auth-gate';
+import { ResortPreferencesProvider } from '@/components/resort-preferences-provider';
 import { RideCatalogProvider } from '@/components/ride-catalog-provider';
 import { RidePreferencesProvider } from '@/components/ride-preferences-provider';
 import { RideTripsProvider } from '@/components/ride-trips-provider';
@@ -12,13 +13,15 @@ export default function TabLayout() {
     <GestureHandlerRootView style={{ flex: 1 }}>
       <AuthGate>
         <ThemeProvider value={DefaultTheme}>
-          <RideCatalogProvider>
-            <RidePreferencesProvider>
-              <RideTripsProvider>
-                <AppTabs />
-              </RideTripsProvider>
-            </RidePreferencesProvider>
-          </RideCatalogProvider>
+          <ResortPreferencesProvider>
+            <RideCatalogProvider>
+              <RidePreferencesProvider>
+                <RideTripsProvider>
+                  <AppTabs />
+                </RideTripsProvider>
+              </RidePreferencesProvider>
+            </RideCatalogProvider>
+          </ResortPreferencesProvider>
         </ThemeProvider>
       </AuthGate>
     </GestureHandlerRootView>
