@@ -24,7 +24,10 @@ export function searchRideCatalog(rides: Ride[], query: string): Ride[] {
         .join(' ')
         .toLocaleLowerCase(),
     }))
-    .filter(({ searchText }) => searchText.includes(normalizedQuery))
+    .filter(
+      ({ ride, searchText }) =>
+        ride.isActive && searchText.includes(normalizedQuery),
+    )
     .sort((first, second) => first.ride.name.localeCompare(second.ride.name))
     .map(({ ride }) => ride);
 }

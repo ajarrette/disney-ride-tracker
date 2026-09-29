@@ -23,11 +23,7 @@ import { useRidePreferences } from '@/components/ride-preferences-provider';
 import { ResortOptions, ResortScopeId } from '@/constants/resorts';
 import { ParkLabels } from '@/constants/ride-labels';
 import { Colors } from '@/constants/theme';
-import {
-  fetchParkLiveData,
-  normalizeRideName,
-  RideLiveData,
-} from '@/data/live-wait-times';
+import { fetchParkLiveData, RideLiveData } from '@/data/live-wait-times';
 import { Park, Ride } from '@/models/ride';
 
 type ParkScreenProps = {
@@ -188,7 +184,13 @@ export function ParkScreen({ park }: ParkScreenProps) {
   );
   const selectedPark = selectedParksByResort[selectedResortId];
   const { rideLogs, rideLogsReady, setRideDetailsOpen } = useAppState();
-  const { rides: catalogRides, isLoading, hasError } = useRideCatalog();
+  const {
+    rides: catalogRides,
+    isLoading,
+    isRefreshing: isCatalogRefreshing,
+    hasError,
+    refreshCatalog,
+  } = useRideCatalog();
   const {
     pinnedRideIds,
     pinnedRideOrder,
@@ -210,38 +212,47 @@ export function ParkScreen({ park }: ParkScreenProps) {
   const [loadingParks, setLoadingParks] = useState<Set<Park>>(() => new Set());
   const loadedParks = useRef(new Set<Park>());
   const pendingParks = useRef(new Set<Park>());
-  const loadLiveData = useCallback(async (parkToLoad: Park) => {
-    if (pendingParks.current.has(parkToLoad)) {
-      return;
-    }
+  const loadLiveData = useCallback(
+    async (parkToLoad: Park, catalog = catalogRides) => {
+      if (pendingParks.current.has(parkToLoad)) {
+        return;
+      }
 
-    pendingParks.current.add(parkToLoad);
-    setLoadingParks((current) => new Set(current).add(parkToLoad));
+      pendingParks.current.add(parkToLoad);
+      setLoadingParks((current) => new Set(current).add(parkToLoad));
 
-    try {
-      const liveData = await fetchParkLiveData(parkToLoad);
-      setLiveDataByPark((current) => ({ ...current, [parkToLoad]: liveData }));
-      loadedParks.current.add(parkToLoad);
-    } catch (error) {
-      console.warn(
-        `Unable to load ${ParkLabels[parkToLoad]} live data.`,
-        error,
-      );
-    } finally {
-      pendingParks.current.delete(parkToLoad);
-      setLoadingParks((current) => {
-        const next = new Set(current);
-        next.delete(parkToLoad);
-        return next;
-      });
-    }
-  }, []);
+      try {
+        const liveData = await fetchParkLiveData(
+          parkToLoad,
+          catalog.filter((ride) => ride.park === parkToLoad && ride.isActive),
+        );
+        setLiveDataByPark((current) => ({
+          ...current,
+          [parkToLoad]: liveData,
+        }));
+        loadedParks.current.add(parkToLoad);
+      } catch (error) {
+        console.warn(
+          `Unable to load ${ParkLabels[parkToLoad]} live data.`,
+          error,
+        );
+      } finally {
+        pendingParks.current.delete(parkToLoad);
+        setLoadingParks((current) => {
+          const next = new Set(current);
+          next.delete(parkToLoad);
+          return next;
+        });
+      }
+    },
+    [catalogRides],
+  );
 
   useEffect(() => {
-    if (!loadedParks.current.has(selectedPark)) {
+    if (!isLoading && !loadedParks.current.has(selectedPark)) {
       void loadLiveData(selectedPark);
     }
-  }, [loadLiveData, selectedPark]);
+  }, [isLoading, loadLiveData, selectedPark]);
 
   useEffect(() => {
     if (selectedRide) {
@@ -272,8 +283,9 @@ export function ParkScreen({ park }: ParkScreenProps) {
     setSelectedRide(ride);
   };
 
-  const refreshSelectedPark = () => {
-    void loadLiveData(selectedPark);
+  const refreshSelectedPark = async () => {
+    const freshCatalog = await refreshCatalog();
+    await loadLiveData(selectedPark, freshCatalog ?? catalogRides);
   };
   const selectPark = (parkOption: Park) => {
     const nextSelectedParks = {
@@ -371,7 +383,7 @@ export function ParkScreen({ park }: ParkScreenProps) {
           hasCatalogError={hasError}
           isCatalogLoading={isLoading}
           isPreferencesLoading={isPreferencesLoading}
-          isRefreshing={loadingParks.has(selectedPark)}
+          isRefreshing={loadingParks.has(selectedPark) || isCatalogRefreshing}
           liveData={liveDataByPark[selectedPark]}
           favoriteRideIds={favoriteRideIds}
           onPinnedRideOrderChange={setPinnedRideOrder}
@@ -380,7 +392,9 @@ export function ParkScreen({ park }: ParkScreenProps) {
           pinnedRideIds={pinnedRideIds}
           pinnedRideOrder={pinnedRideOrder}
           hiddenRideIds={hiddenRideIds}
-          rides={catalogRides.filter((ride) => ride.park === selectedPark)}
+          rides={catalogRides.filter(
+            (ride) => ride.park === selectedPark && ride.isActive,
+          )}
         />
       </View>
 
@@ -418,9 +432,7 @@ export function ParkScreen({ park }: ParkScreenProps) {
           }
           rating={rideRatings.get(selectedRide.id) ?? null}
           onChangeRating={(rating) => setRideRating(selectedRide.id, rating)}
-          liveStatus={
-            liveDataByPark[selectedPark]?.[normalizeRideName(selectedRide.name)]
-          }
+          liveStatus={liveDataByPark[selectedPark]?.[selectedRide.id]}
         />
       )}
     </View>

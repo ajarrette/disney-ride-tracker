@@ -12,7 +12,7 @@ import { RefreshControl } from 'react-native-gesture-handler';
 
 import { RideListItem } from '@/components/ride-list-item';
 import { BottomTabInset, Colors } from '@/constants/theme';
-import { RideLiveData, normalizeRideName } from '@/data/live-wait-times';
+import { RideLiveData } from '@/data/live-wait-times';
 import { Ride } from '@/models/ride';
 
 function compareRideNames(firstRide: Ride, secondRide: Ride) {
@@ -102,7 +102,7 @@ export function ParkRideList({
         isPinnedDivider={
           index === pinnedRides.length - 1 && unpinnedRides.length > 0
         }
-        liveStatus={liveData?.[normalizeRideName(item.name)]}
+        liveStatus={liveData?.[item.id]}
         onPress={onRidePress}
         ride={item}
         reserveLiveStatusSpace
@@ -130,7 +130,7 @@ export function ParkRideList({
         <RideListItem
           key={ride.id}
           isFavorite={favoriteRideIds.has(ride.id)}
-          liveStatus={liveData?.[normalizeRideName(ride.name)]}
+          liveStatus={liveData?.[ride.id]}
           onPress={onRidePress}
           ride={ride}
           reserveLiveStatusSpace
@@ -165,7 +165,7 @@ export function ParkRideList({
                 key={ride.id}
                 isFavorite={favoriteRideIds.has(ride.id)}
                 isHidden
-                liveStatus={liveData?.[normalizeRideName(ride.name)]}
+                liveStatus={liveData?.[ride.id]}
                 onPress={onRidePress}
                 ride={ride}
                 reserveLiveStatusSpace

@@ -9,6 +9,7 @@ type SeedRide = Pick<
 const seedTimestamp = '2026-09-23T00:00:00.000Z';
 
 export const createSeedRide = (ride: SeedRide): Ride => ({
+  themeparksEntityId: null,
   logoUrl: null,
   backgroundUrl: null,
   durationMinutes: null,
@@ -24,6 +25,7 @@ export const createSeedRide = (ride: SeedRide): Ride => ({
   longitude: null,
   officialUrl: null,
   seasonal: false,
+  isActive: true,
   openingDate: null,
   createdAt: seedTimestamp,
   updatedAt: seedTimestamp,

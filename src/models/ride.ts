@@ -90,6 +90,7 @@ export enum RideWarning {
 
 export interface Ride {
   id: string;
+  themeparksEntityId: string | null;
   name: string;
   park: Park;
   land: Land;
@@ -110,6 +111,7 @@ export interface Ride {
   longitude: number | null;
   officialUrl: string | null;
   seasonal: boolean;
+  isActive: boolean;
   openingDate: string | null;
   createdAt: string;
   updatedAt: string;

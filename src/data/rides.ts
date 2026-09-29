@@ -16,6 +16,7 @@ const seedTimestamp = '2026-09-23T00:00:00.000Z';
 export const seedRides: Ride[] = [
   {
     id: 'magic-kingdom-space-mountain',
+    themeparksEntityId: null,
     name: 'Space Mountain',
     park: Park.MagicKingdom,
     land: Land.Tomorrowland,
@@ -38,12 +39,14 @@ export const seedRides: Ride[] = [
     officialUrl:
       'https://disneyworld.disney.go.com/attractions/magic-kingdom/space-mountain/',
     seasonal: false,
+    isActive: true,
     openingDate: '1975-01-15',
     createdAt: seedTimestamp,
     updatedAt: seedTimestamp,
   },
   {
     id: 'magic-kingdom-pirates-of-the-caribbean',
+    themeparksEntityId: null,
     name: 'Pirates of the Caribbean',
     park: Park.MagicKingdom,
     land: Land.Adventureland,
@@ -66,12 +69,14 @@ export const seedRides: Ride[] = [
     officialUrl:
       'https://disneyworld.disney.go.com/attractions/magic-kingdom/pirates-of-the-caribbean/',
     seasonal: false,
+    isActive: true,
     openingDate: '1973-12-15',
     createdAt: seedTimestamp,
     updatedAt: seedTimestamp,
   },
   {
     id: 'magic-kingdom-seven-dwarfs-mine-train',
+    themeparksEntityId: null,
     name: 'Seven Dwarfs Mine Train',
     park: Park.MagicKingdom,
     land: Land.Fantasyland,
@@ -94,6 +99,7 @@ export const seedRides: Ride[] = [
     officialUrl:
       'https://disneyworld.disney.go.com/attractions/magic-kingdom/seven-dwarfs-mine-train/',
     seasonal: false,
+    isActive: true,
     openingDate: '2014-05-28',
     createdAt: seedTimestamp,
     updatedAt: seedTimestamp,

@@ -1,9 +1,10 @@
 import { Park, type Ride } from '@/models/ride';
-import { getRideBackground, getRideLogo } from './ride-images';
 import { supabase } from './supabase';
 
 type RideRow = {
   id: string;
+  themeparks_entity_id: string | null;
+  is_active: boolean;
   name: string;
   park: string;
   land: string;
@@ -29,21 +30,9 @@ type RideRow = {
   updated_at: string;
 };
 
-const getImageUrl = (
-  path: string | null,
-  park: Park,
-  imageType: 'logo' | 'background',
-) => {
+const getImageUrl = (path: string | null) => {
   if (!path || !supabase) return null;
   if (path.startsWith('https://')) return path;
-
-  const filename = path.slice(path.lastIndexOf('/') + 1);
-  const bundledImage =
-    imageType === 'logo'
-      ? getRideLogo(park, filename, filename)
-      : getRideBackground(park, filename);
-  if (bundledImage) return filename;
-
   return supabase.storage.from('ride-images').getPublicUrl(path).data.publicUrl;
 };
 
@@ -61,15 +50,13 @@ export async function fetchRideCatalog(): Promise<Ride[]> {
 
   return (data as unknown as RideRow[]).map((row) => ({
     id: row.id,
+    themeparksEntityId: row.themeparks_entity_id,
+    isActive: row.is_active,
     name: row.name,
     park: row.park as Park,
     land: row.land as Ride['land'],
-    logoUrl: getImageUrl(row.logo_path, row.park as Park, 'logo'),
-    backgroundUrl: getImageUrl(
-      row.background_path,
-      row.park as Park,
-      'background',
-    ),
+    logoUrl: getImageUrl(row.logo_path),
+    backgroundUrl: getImageUrl(row.background_path),
     attractionType: row.attraction_type,
     durationMinutes: row.duration_minutes,
     minimumHeightInches: row.minimum_height_inches,

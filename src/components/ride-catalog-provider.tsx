@@ -1,11 +1,17 @@
 import Storage from 'expo-sqlite/kv-store';
-import { createContext, useContext, useEffect, useState } from 'react';
+import {
+  createContext,
+  useCallback,
+  useContext,
+  useEffect,
+  useState,
+} from 'react';
 
 import { fetchRideCatalog } from '@/data/ride-catalog';
 import { supabase } from '@/data/supabase';
 import { Ride } from '@/models/ride';
 
-const CACHE_KEY = 'ride-catalog:v2';
+const CACHE_KEY = 'ride-catalog:v3';
 
 type CachedCatalog = {
   fetchedAt: number;
@@ -15,7 +21,9 @@ type CachedCatalog = {
 type RideCatalogContextValue = {
   rides: Ride[];
   isLoading: boolean;
+  isRefreshing: boolean;
   hasError: boolean;
+  refreshCatalog: () => Promise<Ride[] | null>;
 };
 
 const RideCatalogContext = createContext<RideCatalogContextValue | null>(null);
@@ -23,7 +31,35 @@ const RideCatalogContext = createContext<RideCatalogContextValue | null>(null);
 export function RideCatalogProvider({ children }: React.PropsWithChildren) {
   const [rides, setRides] = useState<Ride[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [isRefreshing, setIsRefreshing] = useState(false);
   const [hasError, setHasError] = useState(false);
+
+  const refreshCatalog = useCallback(async () => {
+    if (!supabase) {
+      setHasError(true);
+      setIsLoading(false);
+      return null;
+    }
+
+    setIsRefreshing(true);
+    try {
+      const freshRides = await fetchRideCatalog();
+      await Storage.setItem(
+        CACHE_KEY,
+        JSON.stringify({ fetchedAt: Date.now(), rides: freshRides }),
+      );
+      setRides(freshRides);
+      setHasError(false);
+      return freshRides;
+    } catch (error) {
+      console.warn('Unable to load the ride catalog.', error);
+      setHasError(true);
+      return null;
+    } finally {
+      setIsLoading(false);
+      setIsRefreshing(false);
+    }
+  }, []);
 
   useEffect(() => {
     let isMounted = true;
@@ -47,40 +83,19 @@ export function RideCatalogProvider({ children }: React.PropsWithChildren) {
         console.warn('Unable to read the cached ride catalog.', error);
       }
 
-      if (!supabase) {
-        if (isMounted) {
-          setHasError(true);
-          setIsLoading(false);
-        }
-        return;
-      }
-
-      try {
-        const freshRides = await fetchRideCatalog();
-        await Storage.setItem(
-          CACHE_KEY,
-          JSON.stringify({ fetchedAt: Date.now(), rides: freshRides }),
-        );
-        if (isMounted) {
-          setRides(freshRides);
-          setHasError(false);
-        }
-      } catch (error) {
-        console.warn('Unable to load the ride catalog.', error);
-        if (isMounted) setHasError(true);
-      } finally {
-        if (isMounted) setIsLoading(false);
-      }
+      if (isMounted) await refreshCatalog();
     };
 
     void loadCatalog();
     return () => {
       isMounted = false;
     };
-  }, []);
+  }, [refreshCatalog]);
 
   return (
-    <RideCatalogContext.Provider value={{ rides, isLoading, hasError }}>
+    <RideCatalogContext.Provider
+      value={{ rides, isLoading, isRefreshing, hasError, refreshCatalog }}
+    >
       {children}
     </RideCatalogContext.Provider>
   );

@@ -1,4 +1,4 @@
-import { Park } from '@/models/ride';
+import { Park, type Ride } from '@/models/ride';
 
 const themeParksParkIds: Record<Park, string> = {
   [Park.MagicKingdom]: '75ea578a-adc8-4116-a54d-dccb60765ef9',
@@ -36,6 +36,7 @@ export type RideOperatingHour = {
 };
 
 type LiveDataEntity = {
+  id?: unknown;
   name?: unknown;
   entityType?: unknown;
   status?: unknown;
@@ -326,6 +327,7 @@ function getRideLookupName(park: Park, name: string): string {
 
 export async function fetchParkLiveData(
   park: Park,
+  parkRides: Ride[],
 ): Promise<Record<string, RideLiveData>> {
   const now = new Date();
   const timeZone = parkTimeZones[park];
@@ -369,19 +371,33 @@ export async function fetchParkLiveData(
 
   const rides: Record<string, RideLiveData> = {};
   const liveEntitiesByRide: Record<string, LiveAttractionEntity> = {};
+  const ridesByProviderId = new Map(
+    parkRides
+      .filter((ride) => ride.themeparksEntityId)
+      .map((ride) => [ride.themeparksEntityId as string, ride]),
+  );
+  const ridesByName = new Map(
+    parkRides.map((ride) => [normalizeRideName(ride.name), ride]),
+  );
 
   for (const entity of payload.liveData as LiveDataEntity[]) {
     if (!isLiveAttractionEntity(entity)) continue;
 
     const normalizedName = normalizeRideName(entity.name);
-    const rideName = getRideLookupName(park, entity.name);
-    const existingEntity = liveEntitiesByRide[rideName];
+    const ride =
+      (typeof entity.id === 'string'
+        ? ridesByProviderId.get(entity.id)
+        : null) ?? ridesByName.get(getRideLookupName(park, entity.name));
+    if (!ride) continue;
+
+    const existingEntity = liveEntitiesByRide[ride.id];
     const waitTime = entity.queue?.STANDBY?.waitTime;
     const existingWaitTime = existingEntity?.queue?.STANDBY?.waitTime;
-    const isCanonicalName = normalizedName === rideName;
+    const canonicalRideName = normalizeRideName(ride.name);
+    const isCanonicalName = normalizedName === canonicalRideName;
     const existingIsCanonicalName =
       typeof existingEntity?.name === 'string' &&
-      normalizeRideName(existingEntity.name) === rideName;
+      normalizeRideName(existingEntity.name) === canonicalRideName;
 
     if (
       !existingEntity ||
@@ -391,11 +407,11 @@ export async function fetchParkLiveData(
         isCanonicalName &&
         !existingIsCanonicalName)
     ) {
-      liveEntitiesByRide[rideName] = entity;
+      liveEntitiesByRide[ride.id] = entity;
     }
   }
 
-  for (const [rideName, entity] of Object.entries(liveEntitiesByRide)) {
+  for (const [rideId, entity] of Object.entries(liveEntitiesByRide)) {
     const waitTime = entity.queue?.STANDBY?.waitTime;
     const operatingHours = Array.isArray(entity.operatingHours)
       ? entity.operatingHours.filter(isRideOperatingHour)
@@ -405,12 +421,12 @@ export async function fetchParkLiveData(
       (historyByRide) => historyByRide[normalizedName],
     );
     const historicalWaitTime = getHistoricalWaitTime(
-      historyForRide[0],
-      historyDates[0],
+      historyForRide[1],
+      historyDates[1],
       currentParkTime.minuteOfDay,
       timeZone,
     );
-    rides[rideName] = {
+    rides[rideId] = {
       status: entity.status,
       waitTime: typeof waitTime === 'number' ? waitTime : null,
       currentParkHour: currentParkTime.hourOfDay,
