@@ -213,37 +213,39 @@ export function RideDiarySummary({
               {parksVisited === 1 ? 'park explored' : 'parks explored'}
             </Text>
           </View>
-          {Object.values(Park).map((park) => {
-            const count = parkCounts.get(park) ?? 0;
-            return (
-              <View key={park} style={styles.parkRow}>
-                <Text
-                  numberOfLines={1}
-                  style={[styles.parkLabel, { color: colors.text }]}
-                >
-                  {ParkLabels[park]}
-                </Text>
-                <View
-                  style={[styles.parkTrack, { backgroundColor: '#EDE6E2' }]}
-                >
+          {Object.values(Park)
+            .filter((park) => (parkCounts.get(park) ?? 0) > 0)
+            .map((park) => {
+              const count = parkCounts.get(park) ?? 0;
+              return (
+                <View key={park} style={styles.parkRow}>
+                  <Text
+                    numberOfLines={1}
+                    style={[styles.parkLabel, { color: colors.text }]}
+                  >
+                    {ParkLabels[park]}
+                  </Text>
                   <View
-                    style={[
-                      styles.parkBar,
-                      {
-                        backgroundColor: parkColors[park],
-                        width: `${(count / maxParkCount) * 100}%`,
-                      },
-                    ]}
-                  />
+                    style={[styles.parkTrack, { backgroundColor: '#EDE6E2' }]}
+                  >
+                    <View
+                      style={[
+                        styles.parkBar,
+                        {
+                          backgroundColor: parkColors[park],
+                          width: `${(count / maxParkCount) * 100}%`,
+                        },
+                      ]}
+                    />
+                  </View>
+                  <Text
+                    style={[styles.parkValue, { color: colors.textSecondary }]}
+                  >
+                    {count}
+                  </Text>
                 </View>
-                <Text
-                  style={[styles.parkValue, { color: colors.textSecondary }]}
-                >
-                  {count}
-                </Text>
-              </View>
-            );
-          })}
+              );
+            })}
         </>
       )}
 
