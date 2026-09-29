@@ -59,11 +59,13 @@ const parkTabs: {
   },
   {
     park: Park.DisneylandPark,
-    placeholderLabel: 'DL',
+    unselectedIcon: require('@/assets/images/disneyland-icon.png'),
+    selectedIcon: require('@/assets/images/disneyland-selected-icon.png'),
   },
   {
     park: Park.DisneyCaliforniaAdventure,
-    placeholderLabel: 'DCA',
+    unselectedIcon: require('@/assets/images/california-adventure-icon.png'),
+    selectedIcon: require('@/assets/images/california-adventure-selected-icon.png'),
   },
 ];
 const parkSelectionColors: Partial<Record<Park, string>> = {
@@ -71,8 +73,8 @@ const parkSelectionColors: Partial<Record<Park, string>> = {
   [Park.Epcot]: '#766FB0',
   [Park.HollywoodStudios]: '#9C5D32',
   [Park.AnimalKingdom]: '#78AE70',
-  [Park.DisneylandPark]: '#B12228',
-  [Park.DisneyCaliforniaAdventure]: '#2F8877',
+  [Park.DisneylandPark]: '#CD93AA',
+  [Park.DisneyCaliforniaAdventure]: '#619EC3',
 };
 
 export function ParkScreen({ park }: ParkScreenProps) {
