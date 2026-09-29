@@ -85,4 +85,19 @@ on conflict (id) do update set
   seasonal = excluded.seasonal,
   opening_date = excluded.opening_date;
 
+update public.rides as rides
+set background_path = images.background_path
+from (
+  values
+    ('disneyland-park-space-mountain', 'disneyland/rides/space-mountain-background.jpg'),
+    ('disneyland-park-matterhorn-bobsleds', 'disneyland/rides/matterhorn-bobsleds-background.jpg'),
+    ('disneyland-park-indiana-jones-adventure', 'disneyland/rides/indiana-jones-adventure-background.jpg'),
+    ('disneyland-park-big-thunder-mountain-railroad', 'disneyland/rides/big-thunder-mountain-railroad-background.jpg'),
+    ('california-adventure-radiator-springs-racers', 'california-adventure/rides/radiator-springs-racers-background.jpg'),
+    ('california-adventure-incredicoaster', 'california-adventure/rides/incredicoaster-background.jpg'),
+    ('california-adventure-grizzly-river-run', 'california-adventure/rides/grizzly-river-run-background.jpg'),
+    ('california-adventure-guardians-mission-breakout', 'california-adventure/rides/guardians-mission-breakout-background.jpg')
+) as images(id, background_path)
+where rides.id = images.id;
+
 commit;

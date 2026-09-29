@@ -78,6 +78,18 @@ const rideLogosByBackground: Partial<
 };
 
 const rideBackgrounds: Partial<Record<Park, Record<string, ImageSource>>> = {
+  [Park.DisneyCaliforniaAdventure]: {
+    'radiator-springs-racers-background.jpg': require('../../assets/images/california-adventure/rides/radiator-springs-racers-background.jpg'),
+    'incredicoaster-background.jpg': require('../../assets/images/california-adventure/rides/incredicoaster-background.jpg'),
+    'grizzly-river-run-background.jpg': require('../../assets/images/california-adventure/rides/grizzly-river-run-background.jpg'),
+    'guardians-mission-breakout-background.jpg': require('../../assets/images/california-adventure/rides/guardians-mission-breakout-background.jpg'),
+  },
+  [Park.DisneylandPark]: {
+    'space-mountain-background.jpg': require('../../assets/images/disneyland/rides/space-mountain-background.jpg'),
+    'matterhorn-bobsleds-background.jpg': require('../../assets/images/disneyland/rides/matterhorn-bobsleds-background.jpg'),
+    'indiana-jones-adventure-background.jpg': require('../../assets/images/disneyland/rides/indiana-jones-adventure-background.jpg'),
+    'big-thunder-mountain-railroad-background.jpg': require('../../assets/images/disneyland/rides/big-thunder-mountain-railroad-background.jpg'),
+  },
   [Park.MagicKingdom]: {
     'haunted-mansion-background.avif': require('../../assets/images/magic-kingdom/rides/haunted-mansion-background.avif'),
     'big-thunder-mountain-railroad-background.avif': require('../../assets/images/magic-kingdom/rides/big-thunder-mountain-railroad-background.avif'),
