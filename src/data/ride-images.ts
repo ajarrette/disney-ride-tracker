@@ -33,6 +33,20 @@ const rideLogosByBackground: Partial<
     'incredicoaster-background.jpg': require('../../assets/images/california-adventure/rides/incredicoaster-logo.jpg'),
     'grizzly-river-run-background.jpg': require('../../assets/images/california-adventure/rides/grizzly-river-run-logo.jpg'),
     'guardians-mission-breakout-background.jpg': require('../../assets/images/california-adventure/rides/guardians-mission-breakout-logo.jpg'),
+    'luigis-rollickin-roadsters-background.jpg': require('../../assets/images/california-adventure/rides/luigis-rollickin-roadsters-logo.jpg'),
+    'maters-junkyard-jamboree-background.jpg': require('../../assets/images/california-adventure/rides/maters-junkyard-jamboree-logo.jpg'),
+    'monsters-inc-mikes-sulley-to-the-rescue-background.jpg': require('../../assets/images/california-adventure/rides/monsters-inc-mikes-sulley-to-the-rescue-logo.jpg'),
+    'soarin-across-america-background.jpg': require('../../assets/images/california-adventure/rides/soarin-across-america-logo.jpg'),
+    'toy-story-midway-mania-background.jpg': require('../../assets/images/california-adventure/rides/toy-story-midway-mania-logo.jpg'),
+    'web-slingers-spider-man-adventure-background.jpg': require('../../assets/images/california-adventure/rides/web-slingers-spider-man-adventure-logo.jpg'),
+    'golden-zephyr-background.jpg': require('../../assets/images/california-adventure/rides/golden-zephyr-logo.jpg'),
+    'goofys-sky-school-background.jpg': require('../../assets/images/california-adventure/rides/goofys-sky-school-logo.jpg'),
+    'inside-out-emotional-whirlwind-background.jpg': require('../../assets/images/california-adventure/rides/inside-out-emotional-whirlwind-logo.jpg'),
+    'jessies-critter-carousel-background.jpg': require('../../assets/images/california-adventure/rides/jessies-critter-carousel-logo.jpg'),
+    'jumpin-jellyfish-background.jpg': require('../../assets/images/california-adventure/rides/jumpin-jellyfish-logo.jpg'),
+    'little-mermaid-ariels-undersea-adventure-background.jpg': require('../../assets/images/california-adventure/rides/little-mermaid-ariels-undersea-adventure-logo.jpg'),
+    'pixar-pal-a-round-background.jpg': require('../../assets/images/california-adventure/rides/pixar-pal-a-round-logo.jpg'),
+    'silly-symphony-swings-background.jpg': require('../../assets/images/california-adventure/rides/silly-symphony-swings-logo.jpg'),
   },
   [Park.DisneylandPark]: {
     'ride-placeholder-background.jpg': require('../../assets/images/disneyland/rides/ride-placeholder-logo.png'),
@@ -40,6 +54,32 @@ const rideLogosByBackground: Partial<
     'matterhorn-bobsleds-background.jpg': require('../../assets/images/disneyland/rides/matterhorn-bobsleds-logo.jpg'),
     'indiana-jones-adventure-background.jpg': require('../../assets/images/disneyland/rides/indiana-jones-adventure-logo.jpg'),
     'big-thunder-mountain-railroad-background.jpg': require('../../assets/images/disneyland/rides/big-thunder-mountain-railroad-logo.jpg'),
+    'alice-in-wonderland-background.jpg': require('../../assets/images/disneyland/rides/alice-in-wonderland-logo.jpg'),
+    'astro-orbitor-background.jpg': require('../../assets/images/disneyland/rides/astro-orbitor-logo.jpg'),
+    'autopia-background.jpg': require('../../assets/images/disneyland/rides/autopia-logo.jpg'),
+    'buzz-lightyear-astro-blasters-background.jpg': require('../../assets/images/disneyland/rides/buzz-lightyear-astro-blasters-logo.jpg'),
+    'casey-jr-circus-train-background.jpg': require('../../assets/images/disneyland/rides/casey-jr-circus-train-logo.jpg'),
+    'chip-n-dales-gadgetcoaster-background.jpg': require('../../assets/images/disneyland/rides/chip-n-dales-gadgetcoaster-logo.jpg'),
+    'davy-crocketts-explorer-canoes-background.jpg': require('../../assets/images/disneyland/rides/davy-crocketts-explorer-canoes-logo.jpg'),
+    'dumbo-the-flying-elephant-background.jpg': require('../../assets/images/disneyland/rides/dumbo-the-flying-elephant-logo.jpg'),
+    'finding-nemo-submarine-voyage-background.jpg': require('../../assets/images/disneyland/rides/finding-nemo-submarine-voyage-logo.jpg'),
+    'haunted-mansion-background.jpg': require('../../assets/images/disneyland/rides/haunted-mansion-logo.jpg'),
+    'its-a-small-world-background.jpg': require('../../assets/images/disneyland/rides/its-a-small-world-logo.jpg'),
+    'jungle-cruise-background.jpg': require('../../assets/images/disneyland/rides/jungle-cruise-logo.jpg'),
+    'king-arthur-carrousel-background.jpg': require('../../assets/images/disneyland/rides/king-arthur-carrousel-logo.jpg'),
+    'mad-tea-party-background.jpg': require('../../assets/images/disneyland/rides/mad-tea-party-logo.jpg'),
+    'millennium-falcon-smugglers-run-background.jpg': require('../../assets/images/disneyland/rides/millennium-falcon-smugglers-run-logo.jpg'),
+    'mickey-minnies-runaway-railway-background.jpg': require('../../assets/images/disneyland/rides/mickey-minnies-runaway-railway-logo.jpg'),
+    'mr-toads-wild-ride-background.jpg': require('../../assets/images/disneyland/rides/mr-toads-wild-ride-logo.jpg'),
+    'peter-pans-flight-background.jpg': require('../../assets/images/disneyland/rides/peter-pans-flight-logo.jpg'),
+    'pinocchios-daring-journey-background.jpg': require('../../assets/images/disneyland/rides/pinocchios-daring-journey-logo.jpg'),
+    'pirates-of-the-caribbean-background.jpg': require('../../assets/images/disneyland/rides/pirates-of-the-caribbean-logo.jpg'),
+    'roger-rabbits-car-toon-spin-background.jpg': require('../../assets/images/disneyland/rides/roger-rabbits-car-toon-spin-logo.jpg'),
+    'snow-whites-enchanted-wish-background.jpg': require('../../assets/images/disneyland/rides/snow-whites-enchanted-wish-logo.jpg'),
+    'star-tours-adventures-continue-background.jpg': require('../../assets/images/disneyland/rides/star-tours-adventures-continue-logo.jpg'),
+    'storybook-land-canal-boats-background.jpg': require('../../assets/images/disneyland/rides/storybook-land-canal-boats-logo.jpg'),
+    'tianas-bayou-adventure-background.jpg': require('../../assets/images/disneyland/rides/tianas-bayou-adventure-logo.jpg'),
+    'many-adventures-of-winnie-the-pooh-background.jpg': require('../../assets/images/disneyland/rides/many-adventures-of-winnie-the-pooh-logo.jpg'),
   },
   [Park.MagicKingdom]: {
     'astro-orbiter-background.jpg': require('../../assets/images/magic-kingdom/rides/astro-orbiter-logo.jpg'),
@@ -104,6 +144,20 @@ const rideBackgrounds: Partial<Record<Park, Record<string, ImageSource>>> = {
     'incredicoaster-background.jpg': require('../../assets/images/california-adventure/rides/incredicoaster-background.jpg'),
     'grizzly-river-run-background.jpg': require('../../assets/images/california-adventure/rides/grizzly-river-run-background.jpg'),
     'guardians-mission-breakout-background.jpg': require('../../assets/images/california-adventure/rides/guardians-mission-breakout-background.jpg'),
+    'luigis-rollickin-roadsters-background.jpg': require('../../assets/images/california-adventure/rides/luigis-rollickin-roadsters-background.jpg'),
+    'maters-junkyard-jamboree-background.jpg': require('../../assets/images/california-adventure/rides/maters-junkyard-jamboree-background.jpg'),
+    'monsters-inc-mikes-sulley-to-the-rescue-background.jpg': require('../../assets/images/california-adventure/rides/monsters-inc-mikes-sulley-to-the-rescue-background.jpg'),
+    'soarin-across-america-background.jpg': require('../../assets/images/california-adventure/rides/soarin-across-america-background.jpg'),
+    'toy-story-midway-mania-background.jpg': require('../../assets/images/california-adventure/rides/toy-story-midway-mania-background.jpg'),
+    'web-slingers-spider-man-adventure-background.jpg': require('../../assets/images/california-adventure/rides/web-slingers-spider-man-adventure-background.jpg'),
+    'golden-zephyr-background.jpg': require('../../assets/images/california-adventure/rides/golden-zephyr-background.jpg'),
+    'goofys-sky-school-background.jpg': require('../../assets/images/california-adventure/rides/goofys-sky-school-background.jpg'),
+    'inside-out-emotional-whirlwind-background.jpg': require('../../assets/images/california-adventure/rides/inside-out-emotional-whirlwind-background.jpg'),
+    'jessies-critter-carousel-background.jpg': require('../../assets/images/california-adventure/rides/jessies-critter-carousel-background.jpg'),
+    'jumpin-jellyfish-background.jpg': require('../../assets/images/california-adventure/rides/jumpin-jellyfish-background.jpg'),
+    'little-mermaid-ariels-undersea-adventure-background.jpg': require('../../assets/images/california-adventure/rides/little-mermaid-ariels-undersea-adventure-background.jpg'),
+    'pixar-pal-a-round-background.jpg': require('../../assets/images/california-adventure/rides/pixar-pal-a-round-background.jpg'),
+    'silly-symphony-swings-background.jpg': require('../../assets/images/california-adventure/rides/silly-symphony-swings-background.jpg'),
   },
   [Park.DisneylandPark]: {
     'ride-placeholder-background.jpg': require('../../assets/images/disneyland/rides/ride-placeholder-background.jpg'),
@@ -111,6 +165,32 @@ const rideBackgrounds: Partial<Record<Park, Record<string, ImageSource>>> = {
     'matterhorn-bobsleds-background.jpg': require('../../assets/images/disneyland/rides/matterhorn-bobsleds-background.jpg'),
     'indiana-jones-adventure-background.jpg': require('../../assets/images/disneyland/rides/indiana-jones-adventure-background.jpg'),
     'big-thunder-mountain-railroad-background.jpg': require('../../assets/images/disneyland/rides/big-thunder-mountain-railroad-background.jpg'),
+    'alice-in-wonderland-background.jpg': require('../../assets/images/disneyland/rides/alice-in-wonderland-background.jpg'),
+    'astro-orbitor-background.jpg': require('../../assets/images/disneyland/rides/astro-orbitor-background.jpg'),
+    'autopia-background.jpg': require('../../assets/images/disneyland/rides/autopia-background.jpg'),
+    'buzz-lightyear-astro-blasters-background.jpg': require('../../assets/images/disneyland/rides/buzz-lightyear-astro-blasters-background.jpg'),
+    'casey-jr-circus-train-background.jpg': require('../../assets/images/disneyland/rides/casey-jr-circus-train-background.jpg'),
+    'chip-n-dales-gadgetcoaster-background.jpg': require('../../assets/images/disneyland/rides/chip-n-dales-gadgetcoaster-background.jpg'),
+    'davy-crocketts-explorer-canoes-background.jpg': require('../../assets/images/disneyland/rides/davy-crocketts-explorer-canoes-background.jpg'),
+    'dumbo-the-flying-elephant-background.jpg': require('../../assets/images/disneyland/rides/dumbo-the-flying-elephant-background.jpg'),
+    'finding-nemo-submarine-voyage-background.jpg': require('../../assets/images/disneyland/rides/finding-nemo-submarine-voyage-background.jpg'),
+    'haunted-mansion-background.jpg': require('../../assets/images/disneyland/rides/haunted-mansion-background.jpg'),
+    'its-a-small-world-background.jpg': require('../../assets/images/disneyland/rides/its-a-small-world-background.jpg'),
+    'jungle-cruise-background.jpg': require('../../assets/images/disneyland/rides/jungle-cruise-background.jpg'),
+    'king-arthur-carrousel-background.jpg': require('../../assets/images/disneyland/rides/king-arthur-carrousel-background.jpg'),
+    'mad-tea-party-background.jpg': require('../../assets/images/disneyland/rides/mad-tea-party-background.jpg'),
+    'millennium-falcon-smugglers-run-background.jpg': require('../../assets/images/disneyland/rides/millennium-falcon-smugglers-run-background.jpg'),
+    'mickey-minnies-runaway-railway-background.jpg': require('../../assets/images/disneyland/rides/mickey-minnies-runaway-railway-background.jpg'),
+    'mr-toads-wild-ride-background.jpg': require('../../assets/images/disneyland/rides/mr-toads-wild-ride-background.jpg'),
+    'peter-pans-flight-background.jpg': require('../../assets/images/disneyland/rides/peter-pans-flight-background.jpg'),
+    'pinocchios-daring-journey-background.jpg': require('../../assets/images/disneyland/rides/pinocchios-daring-journey-background.jpg'),
+    'pirates-of-the-caribbean-background.jpg': require('../../assets/images/disneyland/rides/pirates-of-the-caribbean-background.jpg'),
+    'roger-rabbits-car-toon-spin-background.jpg': require('../../assets/images/disneyland/rides/roger-rabbits-car-toon-spin-background.jpg'),
+    'snow-whites-enchanted-wish-background.jpg': require('../../assets/images/disneyland/rides/snow-whites-enchanted-wish-background.jpg'),
+    'star-tours-adventures-continue-background.jpg': require('../../assets/images/disneyland/rides/star-tours-adventures-continue-background.jpg'),
+    'storybook-land-canal-boats-background.jpg': require('../../assets/images/disneyland/rides/storybook-land-canal-boats-background.jpg'),
+    'tianas-bayou-adventure-background.jpg': require('../../assets/images/disneyland/rides/tianas-bayou-adventure-background.jpg'),
+    'many-adventures-of-winnie-the-pooh-background.jpg': require('../../assets/images/disneyland/rides/many-adventures-of-winnie-the-pooh-background.jpg'),
   },
   [Park.MagicKingdom]: {
     'haunted-mansion-background.avif': require('../../assets/images/magic-kingdom/rides/haunted-mansion-background.avif'),
@@ -180,13 +260,13 @@ export const getRideLogo = (
   backgroundUrl: string | null,
 ): ImageSource | null => {
   if (logoUrl?.startsWith('https://')) return { uri: logoUrl };
-  if (logoUrl && rideLogos[park]?.[logoUrl]) {
-    return rideLogos[park][logoUrl];
-  }
+  const logo = logoUrl ? rideLogos[park]?.[logoUrl] : null;
+  if (logo && logoUrl !== 'ride-placeholder-logo.png') return logo;
 
-  return backgroundUrl
-    ? (rideLogosByBackground[park]?.[backgroundUrl] ?? null)
+  const backgroundLogo = backgroundUrl
+    ? rideLogosByBackground[park]?.[backgroundUrl]
     : null;
+  return backgroundLogo ?? logo ?? null;
 };
 
 export const getRideBackground = (
