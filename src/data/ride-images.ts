@@ -21,6 +21,18 @@ const rideLogos: Partial<Record<Park, Record<string, ImageSource>>> = {
 const rideLogosByBackground: Partial<
   Record<Park, Record<string, ImageSource>>
 > = {
+  [Park.DisneyCaliforniaAdventure]: {
+    'radiator-springs-racers-background.jpg': require('../../assets/images/california-adventure/rides/radiator-springs-racers-logo.jpg'),
+    'incredicoaster-background.jpg': require('../../assets/images/california-adventure/rides/incredicoaster-logo.jpg'),
+    'grizzly-river-run-background.jpg': require('../../assets/images/california-adventure/rides/grizzly-river-run-logo.jpg'),
+    'guardians-mission-breakout-background.jpg': require('../../assets/images/california-adventure/rides/guardians-mission-breakout-logo.jpg'),
+  },
+  [Park.DisneylandPark]: {
+    'space-mountain-background.jpg': require('../../assets/images/disneyland/rides/space-mountain-logo.jpg'),
+    'matterhorn-bobsleds-background.jpg': require('../../assets/images/disneyland/rides/matterhorn-bobsleds-logo.jpg'),
+    'indiana-jones-adventure-background.jpg': require('../../assets/images/disneyland/rides/indiana-jones-adventure-logo.jpg'),
+    'big-thunder-mountain-railroad-background.jpg': require('../../assets/images/disneyland/rides/big-thunder-mountain-railroad-logo.jpg'),
+  },
   [Park.MagicKingdom]: {
     'astro-orbiter-background.jpg': require('../../assets/images/magic-kingdom/rides/astro-orbiter-logo.jpg'),
     'the-barnstormer-background.jpg': require('../../assets/images/magic-kingdom/rides/the-barnstormer-logo.jpg'),
