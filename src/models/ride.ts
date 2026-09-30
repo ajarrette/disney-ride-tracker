@@ -67,6 +67,7 @@ export enum ThrillType {
 export enum AttractionType {
   Ride = 'ride',
   Show = 'show',
+  Experience = 'experience',
   CharacterMeet = 'character_meet',
   PlayArea = 'play_area',
   Transportation = 'transportation',

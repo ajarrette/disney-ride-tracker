@@ -317,6 +317,8 @@ const rideNameAliases: Partial<Record<Park, Record<string, string>>> = {
     [normalizeRideName("Mater's Graveyard JamBOOree")]: normalizeRideName(
       "Mater's Junkyard Jamboree",
     ),
+    [normalizeRideName('Guardians of the Galaxy - Monsters After Dark')]:
+      normalizeRideName('Guardians of the Galaxy - Mission: BREAKOUT!'),
   },
 };
 
