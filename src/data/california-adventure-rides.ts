@@ -41,6 +41,7 @@ export const californiaAdventureRides: Ride[] = [
     attractionType: AttractionType.Ride,
     thrillTypes: [ThrillType.Dark, ThrillType.SlowRides],
     warnings: [RideWarning.Darkness],
+    lightningLane: true,
     description:
       'Ride through Monstropolis as Mike and Sulley help Boo get home.',
     officialUrl: `${url}/attractions/disney-california-adventure/monsters-inc-mike-sulley-to-the-rescue/`,
@@ -54,6 +55,7 @@ export const californiaAdventureRides: Ride[] = [
     minimumHeightInches: 40,
     thrillTypes: [ThrillType.ThrillRide],
     warnings: [RideWarning.MotionSimulation],
+    lightningLane: true,
     description: 'Glide over iconic American landscapes in a flight simulator.',
     officialUrl: `${url}/attractions/disney-california-adventure/soarin-around-the-world/`,
   }),
@@ -65,6 +67,7 @@ export const californiaAdventureRides: Ride[] = [
     attractionType: AttractionType.Ride,
     thrillTypes: [ThrillType.Dark],
     warnings: [RideWarning.Darkness],
+    lightningLane: true,
     description: 'Play midway games with Toy Story characters in 4D.',
     officialUrl: `${url}/attractions/disney-california-adventure/toy-story-midway-mania/`,
   }),
@@ -75,6 +78,7 @@ export const californiaAdventureRides: Ride[] = [
     land: Land.AvengersCampus,
     attractionType: AttractionType.Ride,
     warnings: [RideWarning.FlashingLights],
+    lightningLane: true,
     description:
       'Team up with Spider-Man and sling webs at escaped Spider-Bots.',
     officialUrl: `${url}/attractions/disney-california-adventure/web-slingers-spider-man-adventure/`,
@@ -101,6 +105,7 @@ export const californiaAdventureRides: Ride[] = [
       ThrillType.SmallDrops,
       ThrillType.Loud,
     ],
+    lightningLane: true,
     description: 'Take a bumpy flight lesson on a twisting aerial coaster.',
     officialUrl: `${url}/attractions/disney-california-adventure/goofys-sky-school/`,
   }),
@@ -142,6 +147,7 @@ export const californiaAdventureRides: Ride[] = [
     attractionType: AttractionType.Ride,
     thrillTypes: [ThrillType.Dark, ThrillType.SlowRides],
     warnings: [RideWarning.Darkness, RideWarning.Water],
+    lightningLane: true,
     description:
       'Journey through scenes from The Little Mermaid aboard a clamshell.',
     officialUrl: `${url}/attractions/disney-california-adventure/little-mermaid-ariels-undersea-adventure/`,
